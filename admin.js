@@ -1,0 +1,233 @@
+(function () {
+  "use strict";
+  var C = window.SITE_CONFIG || {};
+  var $ = function (s) { return document.querySelector(s); };
+  var $$ = function (s) { return Array.prototype.slice.call(document.querySelectorAll(s)); };
+  function show(el, on) { el.classList.toggle("hidden", !on); }
+
+  if (!(C.supabaseUrl && C.supabaseAnonKey && window.supabase)) { show($("#not-configured"), true); return; }
+  var sb = window.supabase.createClient(C.supabaseUrl, C.supabaseAnonKey);
+  var settings = {};
+
+  /* ---------- Auth ---------- */
+  async function enter() {
+    var s = await sb.auth.getSession();
+    if (!s.data.session) { show($("#login"), true); show($("#dash"), false); show($("#logout"), false); return; }
+    var chk = await sb.rpc("is_admin");
+    if (chk.error || chk.data !== true) {
+      await sb.auth.signOut();
+      show($("#login"), true);
+      $("#login-msg").className = "msg err";
+      $("#login-msg").textContent = "This account doesn’t have admin access.";
+      return;
+    }
+    show($("#login"), false); show($("#dash"), true); show($("#logout"), true);
+    loadAnalytics(); loadReviews(); loadSettings();
+  }
+  $("#login").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    var msg = $("#login-msg"); msg.className = "msg"; msg.textContent = "Signing in…";
+    var r = await sb.auth.signInWithPassword({ email: $("#email").value.trim(), password: $("#password").value });
+    if (r.error) { msg.className = "msg err"; msg.textContent = "Wrong email or password."; return; }
+    msg.textContent = ""; enter();
+  });
+  $("#logout").addEventListener("click", async function () { await sb.auth.signOut(); location.reload(); });
+
+  /* ---------- Tabs ---------- */
+  $$(".tabs button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      $$(".tabs button").forEach(function (x) { x.classList.toggle("on", x === b); });
+      ["analytics", "reviews", "content"].forEach(function (t) { show($("#tab-" + t), t === b.dataset.tab); });
+    });
+  });
+
+  /* ---------- Analytics ---------- */
+  async function fetchEvents(days) {
+    var since = new Date(Date.now() - days * 864e5).toISOString();
+    var all = [], from = 0, step = 1000;
+    while (from < 50000) {
+      var r = await sb.from("page_views").select("created_at,event,label,referrer,device,session_id")
+        .gte("created_at", since).order("created_at", { ascending: true }).range(from, from + step - 1);
+      if (r.error || !r.data) break;
+      all = all.concat(r.data);
+      if (r.data.length < step) break;
+      from += step;
+    }
+    return all;
+  }
+  function countBy(arr, fn) {
+    var m = {};
+    arr.forEach(function (x) { var k = fn(x); if (k) m[k] = (m[k] || 0) + 1; });
+    return Object.keys(m).map(function (k) { return [k, m[k]]; }).sort(function (a, b) { return b[1] - a[1]; });
+  }
+  function fillList(id, pairs, empty) {
+    var ul = $(id); ul.innerHTML = "";
+    if (!pairs.length) { ul.innerHTML = '<li><span class="muted">' + empty + "</span></li>"; return; }
+    pairs.slice(0, 8).forEach(function (p) {
+      var li = document.createElement("li");
+      var a = document.createElement("span"); a.textContent = p[0];
+      var b = document.createElement("b"); b.textContent = p[1];
+      li.appendChild(a); li.appendChild(b); ul.appendChild(li);
+    });
+  }
+  var clickNames = {
+    nav_book: "Book call (menu)", hero_book: "Book call (top)", cta_book: "Book call (bottom)",
+    booking_open: "Opened booking page", booking_email: "Email to book", email: "Email link", instagram: "Instagram link",
+    toggle_yearly: "Viewed yearly prices", toggle_monthly: "Viewed monthly prices"
+  };
+  function niceClick(l) {
+    if (clickNames[l]) return clickNames[l];
+    if (l.indexOf("plan_") === 0) return "Pay: " + l.slice(5).replace(/([A-Z])/g, " $1").replace(/^./, function (c) { return c.toUpperCase(); });
+    return l;
+  }
+  function drawChart(views, days) {
+    var svg = $("#chart"), W = svg.clientWidth || 800, H = 220, pad = { l: 34, r: 8, t: 12, b: 26 };
+    var buckets = [], map = {};
+    for (var i = days - 1; i >= 0; i--) {
+      var d = new Date(Date.now() - i * 864e5), key = d.toLocaleDateString("en-CA");
+      buckets.push({ key: key, label: (d.getMonth() + 1) + "/" + d.getDate(), set: {} });
+      map[key] = buckets[buckets.length - 1];
+    }
+    views.forEach(function (v) { var b = map[new Date(v.created_at).toLocaleDateString("en-CA")]; if (b) b.set[v.session_id || Math.random()] = 1; });
+    var vals = buckets.map(function (b) { return Object.keys(b.set).length; });
+    var max = Math.max(4, Math.max.apply(null, vals));
+    var cw = (W - pad.l - pad.r) / buckets.length, bw = Math.max(2, cw * 0.62);
+    var h = '<g font-size="10" fill="#627588" font-family="inherit">';
+    [0, 0.5, 1].forEach(function (f) {
+      var y = pad.t + (H - pad.t - pad.b) * (1 - f);
+      h += '<line x1="' + pad.l + '" x2="' + (W - pad.r) + '" y1="' + y + '" y2="' + y + '" stroke="#E5E0D6"/>';
+      h += '<text x="' + (pad.l - 6) + '" y="' + (y + 3) + '" text-anchor="end">' + Math.round(max * f) + "</text>";
+    });
+    var every = Math.ceil(buckets.length / 10);
+    buckets.forEach(function (b, i) {
+      var v = vals[i], bh = (H - pad.t - pad.b) * v / max, x = pad.l + i * cw + (cw - bw) / 2, y = H - pad.b - bh;
+      h += '<rect x="' + x + '" y="' + y + '" width="' + bw + '" height="' + Math.max(bh, v ? 2 : 0) + '" rx="3" fill="#3B75A4"><title>' + b.label + ": " + v + " visitors</title></rect>";
+      if (i % every === 0) h += '<text x="' + (x + bw / 2) + '" y="' + (H - 8) + '" text-anchor="middle">' + b.label + "</text>";
+    });
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    svg.innerHTML = h + "</g>";
+  }
+  async function loadAnalytics() {
+    var days = +$("#range").value;
+    var ev = await fetchEvents(days);
+    var views = ev.filter(function (e) { return e.event === "view"; });
+    var clicks = ev.filter(function (e) { return e.event === "click" && e.label; });
+    var uniq = {}; views.forEach(function (v) { uniq[v.session_id] = 1; });
+    $("#k-views").textContent = views.length;
+    $("#k-visitors").textContent = Object.keys(uniq).length;
+    $("#k-book").textContent = clicks.filter(function (c) { return /book/.test(c.label); }).length;
+    $("#k-plans").textContent = clicks.filter(function (c) { return c.label.indexOf("plan_") === 0; }).length;
+    $("#k-reviews").textContent = ev.filter(function (e) { return e.event === "review_submitted"; }).length;
+    fillList("#l-ref", countBy(views, function (v) {
+      if (!v.referrer) return "Direct / typed in";
+      try { return new URL(v.referrer).hostname.replace(/^www\./, ""); } catch (e) { return "Other"; }
+    }), "No visits yet");
+    fillList("#l-dev", countBy(views, function (v) { return v.device ? v.device[0].toUpperCase() + v.device.slice(1) : "Unknown"; }), "No visits yet");
+    fillList("#l-clicks", countBy(clicks, function (c) { return niceClick(c.label); }), "No clicks yet");
+    drawChart(views, days);
+  }
+  $("#range").addEventListener("change", loadAnalytics);
+  window.addEventListener("resize", function () { clearTimeout(window.__rz); window.__rz = setTimeout(loadAnalytics, 400); });
+
+  /* ---------- Reviews ---------- */
+  async function loadReviews() {
+    var r = await sb.from("reviews").select("*").order("created_at", { ascending: false });
+    var list = $("#rev-list"); list.innerHTML = "";
+    var rows = r.data || [];
+    var pending = rows.filter(function (x) { return !x.approved; }).length;
+    $("#pending-badge").innerHTML = pending ? '<span class="status p">' + pending + " new</span>" : "";
+    if (!rows.length) { list.innerHTML = '<div class="empty">No reviews yet.</div>'; return; }
+    rows.forEach(function (x) {
+      var card = document.createElement("div"); card.className = "card rev";
+      card.innerHTML = '<div><div class="who" style="font-weight:700"></div><div style="color:#E0A93B;letter-spacing:2px;margin-top:4px" class="st"></div><p class="b"></p><div class="muted d"></div></div><div class="actions"></div>';
+      var who = card.querySelector(".who");
+      who.textContent = x.name + (x.business ? " · " + x.business : "");
+      var tag = document.createElement("span"); tag.className = "status " + (x.approved ? "a" : "p"); tag.textContent = x.approved ? "Live" : "Pending";
+      who.appendChild(tag);
+      card.querySelector(".st").textContent = "★★★★★".slice(0, x.rating) + "☆☆☆☆☆".slice(0, 5 - x.rating);
+      card.querySelector(".b").textContent = x.body;
+      card.querySelector(".d").textContent = new Date(x.created_at).toLocaleString();
+      var act = card.querySelector(".actions");
+      var tog = document.createElement("button"); tog.className = "btn " + (x.approved ? "btn-ghost" : "btn-primary");
+      tog.textContent = x.approved ? "Hide" : "Approve";
+      tog.onclick = async function () { await sb.from("reviews").update({ approved: !x.approved }).eq("id", x.id); loadReviews(); };
+      var del = document.createElement("button"); del.className = "btn btn-danger"; del.textContent = "Delete";
+      del.onclick = async function () { if (confirm("Delete this review for good?")) { await sb.from("reviews").delete().eq("id", x.id); loadReviews(); } };
+      act.appendChild(tog); act.appendChild(del);
+      list.appendChild(card);
+    });
+  }
+
+  /* ---------- Photos & About ---------- */
+  async function saveSetting(key, value) {
+    var r = await sb.from("site_settings").upsert({ key: key, value: value, updated_at: new Date().toISOString() });
+    if (r.error) throw r.error;
+    return r;
+  }
+  async function uploadImage(file, name) {
+    if (file.size > 5 * 1024 * 1024) throw new Error("Please use an image under 5 MB.");
+    var ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
+    var path = name + "-" + Date.now() + "." + ext;
+    var up = await sb.storage.from("site-images").upload(path, file, { upsert: true, contentType: file.type });
+    if (up.error) throw up.error;
+    return sb.storage.from("site-images").getPublicUrl(path).data.publicUrl;
+  }
+  function setThumb(el, url) { if (url) { el.style.backgroundImage = "url('" + url.replace(/'/g, "%27") + "')"; el.textContent = ""; } }
+
+  var workDefaults = [
+    { img: "images/work-meetem.jpg", title: "College Meet Up" },
+    { img: "images/work-profile.jpg", title: "Profile Webpage" },
+    { img: "images/work-clothing.jpg", title: "Clothing Brand" }
+  ];
+  function buildWorkSlots() {
+    var wrap = $("#work-slots"); wrap.innerHTML = "";
+    [1, 2, 3].forEach(function (n) {
+      var row = document.createElement("div"); row.className = "photo-row";
+      row.innerHTML =
+        '<div class="thumb wide"></div><div>' +
+        '<label>Project ' + n + ' screenshot</label><input type="file" accept="image/*" class="f">' +
+        '<label>Title</label><input class="t" maxlength="60">' +
+        '<label>Short description</label><input class="d" maxlength="120">' +
+        '<button class="btn btn-primary" style="margin-top:12px">Save project ' + n + '</button><div class="msg" role="status"></div></div>';
+      var thumb = row.querySelector(".thumb");
+      setThumb(thumb, settings["work_" + n] || workDefaults[n - 1].img);
+      row.querySelector(".t").value = settings["work_" + n + "_title"] || "";
+      row.querySelector(".t").placeholder = workDefaults[n - 1].title;
+      row.querySelector(".d").value = settings["work_" + n + "_desc"] || "";
+      row.querySelector(".f").onchange = function () { var f = this.files[0]; if (f) setThumb(thumb, URL.createObjectURL(f)); };
+      row.querySelector("button").onclick = async function () {
+        var msg = row.querySelector(".msg"); msg.className = "msg"; msg.textContent = "Saving…";
+        try {
+          var f = row.querySelector(".f").files[0];
+          if (f) { var url = await uploadImage(f, "work-" + n); await saveSetting("work_" + n, url); settings["work_" + n] = url; }
+          var t = row.querySelector(".t").value.trim(), d = row.querySelector(".d").value.trim();
+          if (t) await saveSetting("work_" + n + "_title", t);
+          if (d) await saveSetting("work_" + n + "_desc", d);
+          msg.className = "msg ok"; msg.textContent = "Saved. It’s live on your site.";
+        } catch (e) { msg.className = "msg err"; msg.textContent = e.message || "Couldn’t save. Try again."; }
+      };
+      wrap.appendChild(row);
+    });
+  }
+  async function loadSettings() {
+    var r = await sb.from("site_settings").select("key,value");
+    settings = {}; (r.data || []).forEach(function (x) { settings[x.key] = x.value; });
+    setThumb($("#about-thumb"), settings.about_photo);
+    $("#about-text").value = settings.about_text || "";
+    buildWorkSlots();
+  }
+  $("#about-file").addEventListener("change", function () { var f = this.files[0]; if (f) setThumb($("#about-thumb"), URL.createObjectURL(f)); });
+  $("#save-about").addEventListener("click", async function () {
+    var msg = $("#about-msg"); msg.className = "msg"; msg.textContent = "Saving…";
+    try {
+      var f = $("#about-file").files[0];
+      if (f) { var url = await uploadImage(f, "about"); await saveSetting("about_photo", url); }
+      var t = $("#about-text").value.trim();
+      if (t) await saveSetting("about_text", t);
+      else await sb.from("site_settings").delete().eq("key", "about_text");
+      msg.className = "msg ok"; msg.textContent = "Saved. It’s live on your site.";
+    } catch (e) { msg.className = "msg err"; msg.textContent = e.message || "Couldn’t save. Try again."; }
+  });
+
+  enter();
+})();

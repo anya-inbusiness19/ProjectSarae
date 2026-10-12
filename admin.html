@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Project Sarae — Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  body { min-height: 100vh; }
+  .admin-wrap { max-width: 1120px; margin: 0 auto; padding: 28px 20px 60px; }
+  .login { max-width: 400px; margin: 9vh auto; }
+  .tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--line); margin: 6px 0 26px; overflow-x: auto; }
+  .tabs button { background: none; border: 0; font: inherit; font-weight: 700; color: var(--muted); padding: 12px 16px; border-bottom: 2.5px solid transparent; cursor: pointer; white-space: nowrap; }
+  .tabs button.on { color: var(--navy); border-color: var(--blue); }
+  .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin: 18px 0; }
+  @media (max-width: 900px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+  .kpi .v { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.02em; }
+  .kpi .l { font-size: .8rem; color: var(--muted-2); font-weight: 600; }
+  .chart { width: 100%; height: 220px; display: block; }
+  .rows { list-style: none; margin: 10px 0 0; padding: 0; }
+  .rows li { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: .92rem; }
+  .rows li:last-child { border: 0; }
+  .rows li span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rows li b { color: var(--navy); }
+  .muted { color: var(--muted-2); font-size: .9rem; }
+  .rev { display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: start; }
+  .rev .actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .rev .btn { padding: 8px 12px; font-size: .85rem; }
+  .status { font-size: .72rem; font-weight: 800; padding: 3px 9px; border-radius: 999px; margin-left: 8px; }
+  .status.p { background: #FBEBD3; color: #9A6212; }
+  .status.a { background: #DDF1E6; color: #2E7D5B; }
+  .btn-danger { background: #fff; border-color: #EBC9C4; color: var(--coral); }
+  .btn-danger:hover { border-color: var(--coral); }
+  .photo-row { display: grid; grid-template-columns: 180px 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 640px) { .photo-row { grid-template-columns: 1fr; } }
+  .thumb { aspect-ratio: 4/5; border-radius: 12px; background: var(--navy) center/cover no-repeat; border: 1px solid var(--line); display: grid; place-items: center; color: #9BC3E6; font-weight: 800; font-size: 2rem; }
+  .thumb.wide { aspect-ratio: 16/10; background-color: var(--blue-pale); color: var(--muted-2); font-size: .85rem; }
+  input[type=file] { padding: 9px; background: var(--cream-2); }
+  select { width: auto; padding: 8px 12px; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="index.html"><span class="brand-mark"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5 9-5zm-9 9l9 5 9-5M3 16l9 5 9-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span>PROJECT SARAE · ADMIN</a>
+    <button id="logout" class="btn btn-ghost-dark hidden" style="padding:8px 14px">Log out</button>
+  </div>
+</header>
+
+<div class="admin-wrap">
+
+  <div id="not-configured" class="card login hidden">
+    <h3>Admin isn’t connected yet</h3>
+    <p>Add your Supabase URL and anon key to <b>config.js</b>, then reload this page. The setup guide walks you through it.</p>
+  </div>
+
+  <form id="login" class="card login hidden">
+    <h3>Admin login</h3>
+    <p>Only the Project Sarae owner can sign in.</p>
+    <label for="email">Email</label>
+    <input id="email" type="email" autocomplete="username" required>
+    <label for="password">Password</label>
+    <input id="password" type="password" autocomplete="current-password" required>
+    <button class="btn btn-primary btn-block" style="margin-top:18px" type="submit">Sign in</button>
+    <div id="login-msg" class="msg" role="status"></div>
+  </form>
+
+  <div id="dash" class="hidden">
+    <div class="top">
+      <div><span class="eyebrow">Dashboard</span><h2 style="font-size:1.8rem">Welcome back, A’Nya</h2></div>
+      <a class="btn btn-ghost" href="index.html" target="_blank" rel="noopener">View site</a>
+    </div>
+    <div class="tabs" role="tablist">
+      <button class="on" data-tab="analytics">Analytics</button>
+      <button data-tab="reviews">Reviews <span id="pending-badge"></span></button>
+      <button data-tab="content">Photos &amp; About</button>
+    </div>
+
+    <!-- ANALYTICS -->
+    <section id="tab-analytics" style="padding:0">
+      <div class="top">
+        <p class="muted">Anonymous visits and clicks on your site.</p>
+        <select id="range" aria-label="Date range">
+          <option value="7">Last 7 days</option>
+          <option value="30" selected>Last 30 days</option>
+          <option value="90">Last 90 days</option>
+        </select>
+      </div>
+      <div class="kpis">
+        <div class="card kpi"><div class="v" id="k-views">–</div><div class="l">Page views</div></div>
+        <div class="card kpi"><div class="v" id="k-visitors">–</div><div class="l">Visitors</div></div>
+        <div class="card kpi"><div class="v" id="k-book">–</div><div class="l">Booking clicks</div></div>
+        <div class="card kpi"><div class="v" id="k-plans">–</div><div class="l">Payment button clicks</div></div>
+        <div class="card kpi"><div class="v" id="k-reviews">–</div><div class="l">Reviews submitted</div></div>
+      </div>
+      <div class="card"><h3>Visitors per day</h3><svg id="chart" class="chart" role="img" aria-label="Visitors per day"></svg></div>
+      <div class="grid g3" style="margin-top:18px">
+        <div class="card"><h3>Where visitors came from</h3><ul class="rows" id="l-ref"></ul></div>
+        <div class="card"><h3>Devices</h3><ul class="rows" id="l-dev"></ul></div>
+        <div class="card"><h3>Top button clicks</h3><ul class="rows" id="l-clicks"></ul></div>
+      </div>
+    </section>
+
+    <!-- REVIEWS -->
+    <section id="tab-reviews" class="hidden" style="padding:0">
+      <p class="muted" style="margin-bottom:16px">New reviews stay hidden until you approve them.</p>
+      <div id="rev-list" class="stack"></div>
+    </section>
+
+    <!-- CONTENT -->
+    <section id="tab-content" class="hidden" style="padding:0">
+      <div class="stack">
+        <div class="card">
+          <h3>Your photo &amp; About text</h3>
+          <div class="photo-row" style="margin-top:16px">
+            <div class="thumb" id="about-thumb">AS</div>
+            <div>
+              <label for="about-file">Upload a new photo</label>
+              <input id="about-file" type="file" accept="image/*">
+              <label for="about-text">About me text</label>
+              <textarea id="about-text" style="min-height:180px" placeholder="Leave blank to keep the default text"></textarea>
+              <button class="btn btn-primary" style="margin-top:14px" id="save-about">Save</button>
+              <div class="msg" id="about-msg" role="status"></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Portfolio (“Recent work”)</h3>
+          <p>Swap in screenshots of client sites as you finish them. Blank fields keep what’s there now.</p>
+          <div id="work-slots" class="stack" style="margin-top:16px"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>
