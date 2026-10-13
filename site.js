@@ -171,8 +171,8 @@
       $("#picked-plan", banner).textContent = PRICES[plan].name + " plan · " + money(PRICES[plan][period]) + (period === "yearly" ? "/year" : "/month");
     }
     var booking = $("#booking");
-    if (C.bookingLink) {
-      var url = C.bookingLink;
+    var url = C.bookingLink || "https://cal.com/projectsarae/30min";
+    {
       if (plan && /cal\.com/.test(url)) {
         url += (url.indexOf("?") > -1 ? "&" : "?") + "notes=" + encodeURIComponent("Interested in the " + PRICES[plan].name + " plan (" + period + ")");
       }
@@ -185,13 +185,6 @@
       p.innerHTML = 'Calendar not loading? <a target="_blank" rel="noopener" data-track="booking_open">Open the booking page</a>.';
       $("a", p).href = url;
       booking.appendChild(p);
-    } else {
-      booking.innerHTML =
-        '<div class="card booking-empty"><div class="icon" style="margin:0 auto 16px"><svg width="20" height="20"><use href="#i-video"/></svg></div>' +
-        "<h3>Online booking is coming soon</h3><p>Email me two or three times that work for you, and I’ll send a Zoom link.</p>" +
-        '<a class="btn btn-primary" data-track="booking_email">Email to book a call</a></div>';
-      var subj = "Zoom call: website for my business" + (plan ? " (" + PRICES[plan].name + " plan)" : "");
-      $("a", booking).href = "mailto:" + (C.email || "") + "?subject=" + encodeURIComponent(subj);
     }
   }
 
