@@ -15,8 +15,8 @@ window.SITE_CONFIG = {
 
   // --- Supabase (reviews, admin login, analytics, photos, private checkout) ---
   // Supabase → Project Settings → API
-  supabaseUrl: "",                    // e.g. "https://abcd1234.supabase.co"
-  supabaseAnonKey: "",                // the "anon public" key
+  supabaseUrl: "https://skxwnhlnzylworsfxluw.supabase.co",
+  supabaseAnonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNreHduaGxuenlsd29yc2Z4bHV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0NzAxNTQsImV4cCI6MjEwNzA0NjE1NH0.dRl7RBB4NUwXeTKzOcUufnerjgwwGs03VkzJPC1MszE",
 
   // --- Zoom booking (Cal.com or Calendly link) ---
   bookingLink: ""                     // e.g. "https://cal.com/anya-sarae/zoom-consultation"
