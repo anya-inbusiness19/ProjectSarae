@@ -177,7 +177,7 @@
         url += (url.indexOf("?") > -1 ? "&" : "?") + "notes=" + encodeURIComponent("Interested in the " + PRICES[plan].name + " plan (" + period + ")");
       }
       var f = document.createElement("iframe");
-      f.className = "booking-frame card"; f.src = url; f.loading = "lazy";
+      f.className = "booking-frame card"; f.src = /cal\.com/.test(url) ? url.replace(/^(https:\/\/cal\.com\/[^?#]+?)\/?(\?|#|$)/, "$1/embed$2") : url; f.loading = "lazy";
       f.title = "Book a Zoom call with Project Sarae";
       booking.appendChild(f);
       var p = document.createElement("p");

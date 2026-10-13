@@ -19,5 +19,5 @@ window.SITE_CONFIG = {
   supabaseAnonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNreHduaGxuenlsd29yc2Z4bHV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0NzAxNTQsImV4cCI6MjEwNzA0NjE1NH0.dRl7RBB4NUwXeTKzOcUufnerjgwwGs03VkzJPC1MszE",
 
   // --- Zoom booking (Cal.com or Calendly link) ---
-  bookingLink: ""                     // e.g. "https://cal.com/anya-sarae/zoom-consultation"
+  bookingLink: "https://cal.com/projectsarae/30min"   // e.g. "https://cal.com/anya-sarae/zoom-consultation"
 };
