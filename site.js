@@ -172,20 +172,24 @@
     }
     var booking = $("#booking");
     var url = C.bookingLink || "https://cal.com/projectsarae/30min";
-    {
-      if (plan && /cal\.com/.test(url)) {
-        url += (url.indexOf("?") > -1 ? "&" : "?") + "notes=" + encodeURIComponent("Interested in the " + PRICES[plan].name + " plan (" + period + ")");
-      }
-      var f = document.createElement("iframe");
-      f.className = "booking-frame card"; f.src = /cal\.com/.test(url) ? url.replace(/^(https:\/\/cal\.com\/[^?#]+?)\/?(\?|#|$)/, "$1/embed$2") : url; f.loading = "lazy";
-      f.title = "Book a Zoom call with Project Sarae";
-      booking.appendChild(f);
-      var p = document.createElement("p");
-      p.className = "fine"; p.style.textAlign = "center";
-      p.innerHTML = 'Calendar not loading? <a target="_blank" rel="noopener" data-track="booking_open">Open the booking page</a>.';
-      $("a", p).href = url;
-      booking.appendChild(p);
-    }
+    var note = plan ? "Interested in the " + PRICES[plan].name + " plan (" + period + ")" : "";
+    var calLink = url.replace(/^https?:\/\/(app\.)?cal\.com\//, "").replace(/[?#].*$/, "").replace(/\/$/, "");
+    var box = document.createElement("div");
+    box.id = "cal-inline"; box.className = "booking-frame card";
+    box.style.height = "auto"; box.style.minHeight = "640px"; box.style.overflow = "auto";
+    booking.appendChild(box);
+    /* Official Cal.com inline embed */
+    (function (C2, A, L) { var p = function (a, ar) { a.q.push(ar); }; var d = C2.document; C2.Cal = C2.Cal || function () { var cal = C2.Cal; var ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { var api = function () { p(api, arguments); }; var namespace = ar[1]; api.q = api.q || []; if (typeof namespace === "string") { cal.ns[namespace] = cal.ns[namespace] || api; p(cal.ns[namespace], ar); p(cal, ["initNamespace", namespace]); } else p(cal, ar); return; } p(cal, ar); }; })(window, "https://app.cal.com/embed/embed.js", "init");
+    Cal("init", "booking", { origin: "https://app.cal.com" });
+    var calConfig = { layout: "month_view" };
+    if (note) calConfig.notes = note;
+    Cal.ns.booking("inline", { elementOrSelector: "#cal-inline", calLink: calLink, config: calConfig });
+    Cal.ns.booking("ui", { hideEventTypeDetails: false, layout: "month_view" });
+    var p = document.createElement("p");
+    p.className = "fine"; p.style.textAlign = "center";
+    p.innerHTML = 'Calendar not loading? <a target="_blank" rel="noopener" data-track="booking_open">Open the booking page</a>.';
+    $("a", p).href = url + (note ? "?notes=" + encodeURIComponent(note) : "");
+    booking.appendChild(p);
   }
 
   /* ---------- Reviews ---------- */
