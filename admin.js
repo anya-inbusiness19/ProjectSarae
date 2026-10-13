@@ -22,7 +22,7 @@
       return;
     }
     show($("#login"), false); show($("#dash"), true); show($("#logout"), true);
-    loadAnalytics(); loadReviews(); loadSettings();
+    loadAnalytics(); loadReviews(); loadSettings(); loadInvites(); loadLinks();
   }
   $("#login").addEventListener("submit", async function (e) {
     e.preventDefault();
@@ -37,7 +37,7 @@
   $$(".tabs button").forEach(function (b) {
     b.addEventListener("click", function () {
       $$(".tabs button").forEach(function (x) { x.classList.toggle("on", x === b); });
-      ["analytics", "reviews", "content"].forEach(function (t) { show($("#tab-" + t), t === b.dataset.tab); });
+      ["analytics", "clients", "reviews", "content"].forEach(function (t) { show($("#tab-" + t), t === b.dataset.tab); });
     });
   });
 
@@ -73,11 +73,13 @@
   var clickNames = {
     nav_book: "Book call (menu)", hero_book: "Book call (top)", cta_book: "Book call (bottom)",
     booking_open: "Opened booking page", booking_email: "Email to book", email: "Email link", instagram: "Instagram link",
-    toggle_yearly: "Viewed yearly prices", toggle_monthly: "Viewed monthly prices"
+    about_book: "Book call (about page)", toggle_yearly: "Viewed yearly prices", toggle_monthly: "Viewed monthly prices"
   };
   function niceClick(l) {
     if (clickNames[l]) return clickNames[l];
-    if (l.indexOf("plan_") === 0) return "Pay: " + l.slice(5).replace(/([A-Z])/g, " $1").replace(/^./, function (c) { return c.toUpperCase(); });
+    var cap = function (x) { return x.charAt(0).toUpperCase() + x.slice(1); };
+    if (l.indexOf("choose_") === 0) return "Chose plan: " + l.slice(7).split("_").map(cap).join(" ");
+    if (l.indexOf("pay_") === 0) return "Clicked pay: " + l.slice(4).replace(/([A-Z])/g, " $1").split("_").map(cap).join(" ");
     return l;
   }
   function drawChart(views, days) {
@@ -116,7 +118,8 @@
     $("#k-views").textContent = views.length;
     $("#k-visitors").textContent = Object.keys(uniq).length;
     $("#k-book").textContent = clicks.filter(function (c) { return /book/.test(c.label); }).length;
-    $("#k-plans").textContent = clicks.filter(function (c) { return c.label.indexOf("plan_") === 0; }).length;
+    $("#k-plans").textContent = ev.filter(function (e) { return e.event === "contract_signed"; }).length;
+    $("#k-pay").textContent = clicks.filter(function (c) { return c.label.indexOf("pay_") === 0; }).length;
     $("#k-reviews").textContent = ev.filter(function (e) { return e.event === "review_submitted"; }).length;
     fillList("#l-ref", countBy(views, function (v) {
       if (!v.referrer) return "Direct / typed in";
@@ -227,6 +230,118 @@
       else await sb.from("site_settings").delete().eq("key", "about_text");
       msg.className = "msg ok"; msg.textContent = "Saved. It’s live on your site.";
     } catch (e) { msg.className = "msg err"; msg.textContent = e.message || "Couldn’t save. Try again."; }
+  });
+
+  /* ---------- Clients & private checkout ---------- */
+  var PLAN_NAMES = { starter: "Starter", business: "Business", pro: "Pro" };
+  var LINK_KEYS = [
+    ["starterMonthly", "Starter monthly"], ["starterYearly", "Starter yearly"],
+    ["businessMonthly", "Business monthly"], ["businessYearly", "Business yearly"],
+    ["proMonthly", "Pro monthly"], ["proYearly", "Pro yearly"],
+    ["addonAccounts", "Member area add-on"], ["addonStore", "Online store add-on"]
+  ];
+  function makeCode() {
+    var chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789", out = "";
+    var arr = new Uint32Array(16); crypto.getRandomValues(arr);
+    for (var i = 0; i < arr.length; i++) out += chars[arr[i] % chars.length];
+    return out;
+  }
+  function checkoutUrl(code) { return new URL("checkout.html?code=" + code, location.href).href; }
+  function emailHref(inv) {
+    var first = (inv.client_name || "").split(" ")[0];
+    var body = "Hi " + first + ",\n\nThank you for meeting with me today! Here is your private checkout link. You can choose your plan, review and sign the service agreement, and pay securely with Stripe:\n\n" +
+      checkoutUrl(inv.code) + "\n\nThe link is valid for 14 days. Once you've paid, send me your logo, photos, hours, and services, and I'll get started on your first draft.\n\n" +
+      (C.ownerName || "") + "\nProject Sarae";
+    return "mailto:" + encodeURIComponent(inv.client_email || "") + "?subject=" + encodeURIComponent("Your Project Sarae checkout link") + "&body=" + encodeURIComponent(body);
+  }
+  $("#invite-form").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    var msg = $("#invite-msg"); msg.className = "msg";
+    var name = $("#i-name").value.trim();
+    if (!name) { msg.className = "msg err"; msg.textContent = "Add the client’s name."; return; }
+    var row = {
+      code: makeCode(), client_name: name, client_email: $("#i-email").value.trim() || null,
+      business: $("#i-business").value.trim() || null, recommended_plan: $("#i-plan").value,
+      call_date: $("#i-date").value || null
+    };
+    var r = await sb.from("checkout_invites").insert(row);
+    if (r.error) { msg.className = "msg err"; msg.textContent = "Couldn’t create the link: " + r.error.message; return; }
+    msg.className = "msg ok"; msg.textContent = "Link created. Send it to " + name.split(" ")[0] + ".";
+    show($("#invite-result"), true);
+    $("#invite-link").value = checkoutUrl(row.code);
+    $("#email-link").href = emailHref(row);
+    e.target.querySelectorAll("input:not(#invite-link)").forEach(function (i) { i.value = ""; });
+    loadInvites();
+  });
+  $("#copy-link").addEventListener("click", function () {
+    var inp = $("#invite-link"); inp.select();
+    (navigator.clipboard ? navigator.clipboard.writeText(inp.value) : Promise.reject()).then(
+      function () { $("#copy-link").textContent = "Copied!"; setTimeout(function () { $("#copy-link").textContent = "Copy link"; }, 1500); },
+      function () { document.execCommand("copy"); });
+  });
+  async function loadInvites() {
+    var r = await sb.from("checkout_invites").select("*").order("created_at", { ascending: false }).limit(100);
+    var list = $("#invite-list"); list.innerHTML = "";
+    var rows = r.data || [];
+    if (!rows.length) { list.innerHTML = '<div class="empty">No clients yet. Create a link after your first Zoom call.</div>'; return; }
+    rows.forEach(function (x) {
+      var expired = new Date(x.expires_at) < new Date();
+      var el = document.createElement("div"); el.className = "inv";
+      el.innerHTML = '<div><div class="who" style="font-weight:700"></div><div class="muted d"></div></div><div class="actions"></div>';
+      var who = el.querySelector(".who");
+      who.textContent = x.client_name + (x.business ? " · " + x.business : "");
+      var st = document.createElement("span");
+      if (x.signed_at) { st.className = "status a"; st.textContent = "Signed"; }
+      else if (expired) { st.className = "status x"; st.textContent = "Expired"; }
+      else { st.className = "status p"; st.textContent = "Link sent"; }
+      who.appendChild(st);
+      var det = x.signed_at
+        ? "Signed by " + x.signed_name + " on " + new Date(x.signed_at).toLocaleDateString() + " · " + PLAN_NAMES[x.chosen_plan] + " (" + x.chosen_period + ")" + (x.chosen_addons && x.chosen_addons.length ? " + " + x.chosen_addons.length + " add-on(s)" : "")
+        : "Recommended: " + (PLAN_NAMES[x.recommended_plan] || "–") + " · " + (expired ? "Expired " : "Expires ") + new Date(x.expires_at).toLocaleDateString();
+      el.querySelector(".d").textContent = det;
+      var act = el.querySelector(".actions");
+      if (!x.signed_at && !expired) {
+        var cp = document.createElement("button"); cp.className = "btn btn-ghost"; cp.textContent = "Copy link";
+        cp.onclick = function () { if (navigator.clipboard) navigator.clipboard.writeText(checkoutUrl(x.code)); cp.textContent = "Copied!"; };
+        var em = document.createElement("a"); em.className = "btn btn-ghost"; em.textContent = "Email"; em.href = emailHref(x);
+        act.appendChild(cp); act.appendChild(em);
+      }
+      if (!x.signed_at) {
+        var ext = document.createElement("button"); ext.className = "btn btn-ghost"; ext.textContent = "+14 days";
+        ext.onclick = async function () { await sb.from("checkout_invites").update({ expires_at: new Date(Date.now() + 14 * 864e5).toISOString() }).eq("id", x.id); loadInvites(); };
+        act.appendChild(ext);
+      }
+      var del = document.createElement("button"); del.className = "btn btn-danger"; del.textContent = "Delete";
+      del.onclick = async function () { if (confirm("Delete this client record" + (x.signed_at ? " (including their signature record)" : "") + "?")) { await sb.from("checkout_invites").delete().eq("id", x.id); loadInvites(); } };
+      act.appendChild(del);
+      list.appendChild(el);
+    });
+  }
+  async function loadLinks() {
+    var r = await sb.from("payment_links").select("key,url");
+    var map = {}; (r.data || []).forEach(function (x) { map[x.key] = x.url; });
+    var f = $("#links-form"); f.innerHTML = "";
+    LINK_KEYS.forEach(function (k) {
+      var row = document.createElement("label"); row.className = "link-row";
+      row.innerHTML = "<span></span><input type='url' placeholder='https://buy.stripe.com/...'>";
+      row.querySelector("span").textContent = k[1];
+      row.querySelector("input").value = map[k[0]] || "";
+      row.querySelector("input").dataset.key = k[0];
+      f.appendChild(row);
+    });
+  }
+  $("#save-links").addEventListener("click", async function () {
+    var msg = $("#links-msg"); msg.className = "msg"; msg.textContent = "Saving…";
+    var rows = [], bad = false;
+    $$("#links-form input").forEach(function (i) {
+      var v = i.value.trim();
+      if (v && v.indexOf("https://") !== 0) bad = true;
+      rows.push({ key: i.dataset.key, url: v || null, updated_at: new Date().toISOString() });
+    });
+    if (bad) { msg.className = "msg err"; msg.textContent = "Each link should start with https://"; return; }
+    var r = await sb.from("payment_links").upsert(rows);
+    if (r.error) { msg.className = "msg err"; msg.textContent = "Couldn’t save: " + r.error.message; return; }
+    msg.className = "msg ok"; msg.textContent = "Saved.";
   });
 
   enter();
