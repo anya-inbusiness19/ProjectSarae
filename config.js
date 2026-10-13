@@ -11,7 +11,7 @@ window.SITE_CONFIG = {
   legalName: "A’Nya Hill",            // your legal name, used in the contract
   state: "Alabama",                   // used in the contract (governing law)
   email: "anya.sarae@yahoo.com",
-  instagram: "projectsarae",          // handle only, no @
+  instagram: "official.projectsarae",          // handle only, no @
 
   // --- Supabase (reviews, admin login, analytics, photos, private checkout) ---
   // Supabase → Project Settings → API
