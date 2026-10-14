@@ -42,7 +42,7 @@ Without a link, checkout.html only says "Checkout opens after your Zoom call." Y
    - Pro $120/month and $1,200/year (recurring)
    - Setup fee $180 (one-time)
    - Member area add-on $100 (one-time) and Online store add-on $150 (one-time)
-3. Go to **Payment Links → New**. For each of the six plan links, add the plan price **plus** the $180 setup fee, so the first payment includes setup. Make one link for each add-on.
+3. Go to **Payment Links → New**. For each of the six plan links, add the plan price **plus** the $180 setup fee, and turn on **Include a free trial: 30 days**. The client pays the $180 setup today, gets the first month free, and plan billing starts after 30 days. Make one link for each add-on.
 4. Paste the links into **Admin → Clients & checkout → Stripe payment links** and click **Save links**. Don't put them in config.js.
 
 ## 5. Your admin page

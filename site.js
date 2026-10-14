@@ -275,7 +275,7 @@
     var showPay = function (inv, links) {
       var plan = PRICES[inv.chosen_plan], per = inv.chosen_period;
       var addons = (inv.chosen_addons || []).filter(function (k) { return ADDONS[k]; });
-      var planToday = SETUP_FEE + plan[per];
+      var planToday = SETUP_FEE;
       var total = planToday + addons.reduce(function (a, k) { return a + ADDONS[k].price; }, 0);
       box.innerHTML =
         '<div class="card pay-card"><div class="icon"><svg width="20" height="20"><use href="#i-check"/></svg></div>' +
@@ -283,7 +283,7 @@
         '<p class="signed-line"></p>' +
         '<div class="summary" id="pay-sum"></div>' +
         '<div class="pay-buttons"></div>' +
-        '<p class="fine">Payments are processed securely by Stripe. After today, your plan renews automatically ' + (per === "yearly" ? "each year" : "on the same date each month") + ". Questions? <a data-email></a></p></div>";
+        '<p class="fine">Payments are processed securely by Stripe. Your first month is free. Your plan starts billing 30 days from today and then renews automatically ' + (per === "yearly" ? "each year" : "each month") + ". Questions? <a data-email></a></p></div>";
       $(".signed-line", box).textContent = "Agreement signed by " + inv.signed_name + ". You can read the full terms anytime on the Service Agreement page." +
         (addons.length ? " Your add-ons are paid as a separate one-time payment." : "");
       var sum = $("#pay-sum");
@@ -295,6 +295,7 @@
       };
       line(plan.name + " plan (" + per + ")", money(plan[per]) + (per === "yearly" ? "/year" : "/month"));
       line("One-time setup", money(SETUP_FEE));
+      line("First month", "Free");
       addons.forEach(function (k) { line(ADDONS[k].name + " (one-time)", money(ADDONS[k].price)); });
       line("Due today", money(total), "total");
       var pb = $(".pay-buttons", box);
@@ -306,7 +307,7 @@
         pb.appendChild(a);
       };
       var n = addons.length ? 1 : 0;
-      addBtn((n ? "Step 1: " : "") + "Pay " + money(planToday) + " for plan + setup", links && links.plan_url, "pay_" + inv.chosen_plan + "_" + per);
+      addBtn((n ? "Step 1: " : "") + "Pay " + money(planToday) + " setup (first month free)", links && links.plan_url, "pay_" + inv.chosen_plan + "_" + per);
       addons.forEach(function (k, i) {
         var l = links && (links.addons || []).filter(function (x) { return x.key === k; })[0];
         addBtn("Step " + (i + 2) + ": Pay " + money(ADDONS[k].price) + " for " + ADDONS[k].name.toLowerCase(), l && l.url, "pay_" + k);
@@ -318,7 +319,7 @@
       box.innerHTML =
         '<div class="checkout-grid"><div class="stack">' +
         '<div class="card"><span class="step-label">Step 1</span><h3>Choose your plan</h3>' +
-        '<div class="toggle" role="group" aria-label="Billing period" style="margin:14px 0 16px"><button type="button" class="on" data-period="monthly">Monthly</button><button type="button" data-period="yearly">Yearly <small>2 months free</small></button></div>' +
+        '<div class="toggle" role="group" aria-label="Billing period" style="margin:14px 0 16px"><button type="button" class="on" data-period="monthly">Monthly</button><button type="button" data-period="yearly">Yearly</button></div>' +
         '<div class="plan-pick" role="radiogroup"></div></div>' +
         '<div class="card"><span class="step-label">Step 2</span><h3>Add-ons <span class="muted-inline">(optional)</span></h3><div class="addon-pick"></div></div>' +
         '<div class="card"><span class="step-label">Step 3</span><h3>Review &amp; sign the agreement</h3>' +
@@ -359,8 +360,8 @@
           lab.classList.toggle("on", $("input", lab).checked);
         });
         $$(".addon-pick .pick", box).forEach(function (lab) { lab.classList.toggle("on", $("input", lab).checked); });
-        var p = PRICES[sel.plan], today = SETUP_FEE + p[sel.period];
-        var rows = '<div><span></span><b></b></div><div><span>One-time setup</span><b>' + money(SETUP_FEE) + "</b></div>";
+        var p = PRICES[sel.plan], today = SETUP_FEE;
+        var rows = '<div><span></span><b></b></div><div><span>One-time setup</span><b>' + money(SETUP_FEE) + "</b></div><div><span>First month</span><b>Free</b></div>";
         var extra = Object.keys(sel.addons).filter(function (k) { return sel.addons[k]; });
         extra.forEach(function () { rows += "<div><span></span><b></b></div>"; });
         rows += '<div class="total"><span>Due today</span><b></b></div>';
@@ -369,14 +370,14 @@
         $("span", lines[0]).textContent = p.name + " plan (" + sel.period + ")";
         $("b", lines[0]).textContent = money(p[sel.period]);
         extra.forEach(function (k, i) {
-          $("span", lines[2 + i]).textContent = ADDONS[k].name;
-          $("b", lines[2 + i]).textContent = money(ADDONS[k].price);
+          $("span", lines[3 + i]).textContent = ADDONS[k].name;
+          $("b", lines[3 + i]).textContent = money(ADDONS[k].price);
           today += ADDONS[k].price;
         });
         $("b", lines[lines.length - 1]).textContent = money(today);
         var after = $(".after", sum) || document.createElement("p");
         after.className = "fine after";
-        after.textContent = "Then " + money(p[sel.period]) + (sel.period === "yearly" ? " per year." : " per month.");
+        after.textContent = "Then " + money(p[sel.period]) + (sel.period === "yearly" ? " per year" : " per month") + ", starting 30 days after checkout.";
         sum.appendChild(after);
       };
       $$('input[name="plan"]', box).forEach(function (r) { r.addEventListener("change", function () { sel.plan = r.value; update(); }); });
