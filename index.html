@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=6">
+<link rel="stylesheet" href="styles.css?v=7">
 </head>
 <body data-page="home">
 <div id="site-header"></div>
@@ -33,11 +33,13 @@
     </div>
   </div>
   <div class="devices" aria-hidden="true">
+    <div class="tilt">
     <div class="laptop">
       <div class="screen"><img src="images/mock-bakery.svg" alt=""></div>
       <div class="base"></div>
     </div>
     <div class="phone"><img src="images/mock-phone.svg" alt=""></div>
+    </div>
   </div>
   <div class="wrap">
     <div class="price-capsule">
@@ -47,6 +49,7 @@
   </div>
   <nav class="anchors" aria-label="On this page">
     <div class="wrap">
+      <a href="#showcase">Showcase</a>
       <a href="#highlights">Highlights</a>
       <a href="#why">Why a website</a>
       <a href="#how">How it works</a>
@@ -55,6 +58,51 @@
       <a href="#reviews">Reviews</a>
     </div>
   </nav>
+</section>
+
+<!-- Showcase: pinned laptop on computers, stacked on phones -->
+<section class="showcase" id="showcase" aria-label="Sample website concepts">
+  <div class="wrap-wide sc-grid">
+    <div class="sc-steps">
+      <div class="sc-intro">
+        <span class="eyebrow">Built for your kind of business</span>
+        <h2>One studio.<br>Every storefront.</h2>
+      </div>
+      <article class="sc-step is-active" data-i="0">
+        <span class="label-new">Sample concept</span>
+        <h3>A bakery that sells out by noon.</h3>
+        <p>Today’s menu, hours and directions up front, with order-ahead pickup so regulars skip the line.</p>
+        <img class="sc-inline" src="images/mock-bakery.svg" alt="Sample concept: bakery website" loading="lazy">
+      </article>
+      <article class="sc-step" data-i="1">
+        <span class="label-new">Sample concept</span>
+        <h3>A salon booked around the clock.</h3>
+        <p>Clients pick a stylist, choose a time and pay a deposit, even at midnight. You get a full calendar in the morning.</p>
+        <img class="sc-inline" src="images/mock-salon.svg" alt="Sample concept: hair salon website with booking" loading="lazy">
+      </article>
+      <article class="sc-step" data-i="2">
+        <span class="label-new">Sample concept</span>
+        <h3>A florist that delivers today.</h3>
+        <p>A simple online shop with best sellers, same-day delivery and a cart that works beautifully on every screen.</p>
+        <img class="sc-inline" src="images/mock-florist.svg" alt="Sample concept: florist website with shop" loading="lazy">
+      </article>
+    </div>
+    <div class="sc-stage" aria-hidden="true">
+      <div class="sc-sticky">
+        <div class="laptop sc-laptop">
+          <div class="screen">
+            <div class="sc-screens">
+              <img src="images/mock-bakery.svg" alt="" class="on">
+              <img src="images/mock-salon.svg" alt="">
+              <img src="images/mock-florist.svg" alt="">
+            </div>
+          </div>
+          <div class="base"></div>
+        </div>
+        <div class="sc-dots"><i class="on"></i><i></i><i></i></div>
+      </div>
+    </div>
+  </div>
 </section>
 
 <!-- Highlights rail -->
@@ -237,6 +285,6 @@
 <div id="site-footer"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=6"></script>
-<script src="site.js?v=6"></script>
+<script src="site.js?v=7"></script>
 </body>
 </html>

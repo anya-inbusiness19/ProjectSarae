@@ -432,6 +432,19 @@
       });
     });
   }
+  /* Showcase: swap the laptop screen as each story scrolls by */
+  var steps = $$(".sc-step"), screens = $$(".sc-screens img"), dots = $$(".sc-dots i");
+  if (steps.length && "IntersectionObserver" in window) {
+    var setActive = function (i) {
+      steps.forEach(function (s, k) { s.classList.toggle("is-active", k === i); });
+      screens.forEach(function (s, k) { s.classList.toggle("on", k === i); });
+      dots.forEach(function (s, k) { s.classList.toggle("on", k === i); });
+    };
+    var so = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) setActive(Number(e.target.getAttribute("data-i"))); });
+    }, { rootMargin: "-45% 0px -45% 0px" });
+    steps.forEach(function (s) { so.observe(s); });
+  }
   if (reduce || !("IntersectionObserver" in window)) return;
   root.classList.add("js-reveal");
 
@@ -482,6 +495,31 @@
 
   /* 4. Hero entrance on load */
   requestAnimationFrame(function () { requestAnimationFrame(function () { root.classList.add("loaded"); }); });
+
+  /* 6. Computers: pinned showcase, mouse tilt, drag-to-scroll rail */
+  var fine = window.matchMedia("(pointer: fine)").matches;
+  var tilt = document.querySelector(".devices .tilt"), hero = document.querySelector(".stage-hero");
+  if (tilt && hero && fine) {
+    hero.addEventListener("pointermove", function (e) {
+      var r = hero.getBoundingClientRect();
+      var x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+      tilt.style.setProperty("--tx", (x * 6).toFixed(2) + "deg");
+      tilt.style.setProperty("--ty", (-y * 4).toFixed(2) + "deg");
+    });
+    hero.addEventListener("pointerleave", function () { tilt.style.setProperty("--tx", "0deg"); tilt.style.setProperty("--ty", "0deg"); });
+  }
+  if (rail && fine) {
+    var down = false, sx = 0, sl = 0, moved = false;
+    rail.addEventListener("pointerdown", function (e) { if (e.pointerType !== "mouse") return; down = true; moved = false; sx = e.clientX; sl = rail.scrollLeft; });
+    window.addEventListener("pointermove", function (e) {
+      if (!down) return;
+      var dx = e.clientX - sx;
+      if (Math.abs(dx) > 4) { moved = true; rail.classList.add("dragging"); }
+      rail.scrollLeft = sl - dx;
+    });
+    window.addEventListener("pointerup", function () { if (!down) return; down = false; rail.classList.remove("dragging"); });
+    rail.addEventListener("click", function (e) { if (moved) { e.preventDefault(); e.stopPropagation(); } }, true);
+  }
 
   /* 5. Scroll-linked device stage: laptop grows, phone slides in */
   var stage = document.querySelector(".devices");
