@@ -414,25 +414,88 @@
   }
 })();
 
-/* ---------- Gallery motion: scroll reveal + highlights rail ---------- */
+/* ---------- Gallery motion ---------- */
 (function () {
   "use strict";
-  var items = document.querySelectorAll(".reveal");
-  if (items.length && "IntersectionObserver" in window) {
-    document.documentElement.classList.add("js-reveal");
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
-    }, { threshold: 0.12 });
-    items.forEach(function (el) { io.observe(el); });
-  }
+  var root = document.documentElement;
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+
+  /* Highlights rail arrows (always on) */
   var rail = document.getElementById("rail");
   if (rail) {
-    document.querySelectorAll("[data-rail]").forEach(function (b) {
+    $$("[data-rail]").forEach(function (b) {
       b.addEventListener("click", function () {
         var tile = rail.querySelector(".tile");
         var step = tile ? tile.getBoundingClientRect().width + 20 : 380;
-        rail.scrollBy({ left: step * Number(b.getAttribute("data-rail")), behavior: "smooth" });
+        rail.scrollBy({ left: step * Number(b.getAttribute("data-rail")), behavior: reduce ? "auto" : "smooth" });
       });
     });
+  }
+  if (reduce || !("IntersectionObserver" in window)) return;
+  root.classList.add("js-reveal");
+
+  /* 1. Tag blocks to reveal, with a stagger inside groups */
+  $$("main section:not(.stage-hero):not(.page-head) .section-head, main .head-row h2, main .closer .wrap > *, main .about-text > *, main .portrait, main .doc, main .picked, main #booking, main .pricing-bar")
+    .forEach(function (el) { el.classList.add("reveal"); });
+  $$(".steps, .gallery, .plans, .grid:not(#review-list), .flow, .facts-row, .stack, .split, .rail").forEach(function (g) {
+    Array.prototype.forEach.call(g.children, function (c, i) {
+      c.classList.add("reveal");
+      c.style.setProperty("--d", Math.min(i, 6) * 90 + "ms");
+    });
+  });
+  $$(".closer .wrap > *").forEach(function (c, i) { c.style.setProperty("--d", i * 110 + "ms"); });
+
+  /* 2. Reveal on scroll */
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      e.target.classList.add("in");
+      io.unobserve(e.target);
+      $$("[data-count]", e.target).forEach(countUp);
+    });
+  }, { threshold: 0.15, rootMargin: "0px 0px -6% 0px" });
+  $$(".reveal").forEach(function (el) { io.observe(el); });
+
+  /* Reviews load later from the database: animate them as they arrive */
+  var rl = document.getElementById("review-list");
+  if (rl && window.MutationObserver) {
+    new MutationObserver(function () {
+      Array.prototype.forEach.call(rl.children, function (c, i) {
+        if (c.classList.contains("reveal")) return;
+        c.classList.add("reveal"); c.style.setProperty("--d", Math.min(i, 6) * 90 + "ms"); io.observe(c);
+      });
+    }).observe(rl, { childList: true });
+  }
+
+  /* 3. Count-up for plan prices on the homepage */
+  function countUp(el) {
+    var target = Number(el.getAttribute("data-count")), start = null, node = el.firstChild;
+    function tick(t) {
+      if (!start) start = t;
+      var k = Math.min(1, (t - start) / 900), e = 1 - Math.pow(1 - k, 3);
+      node.nodeValue = "$" + Math.round(target * e);
+      if (k < 1) requestAnimationFrame(tick);
+    }
+    node.nodeValue = "$0"; requestAnimationFrame(tick);
+  }
+
+  /* 4. Hero entrance on load */
+  requestAnimationFrame(function () { requestAnimationFrame(function () { root.classList.add("loaded"); }); });
+
+  /* 5. Scroll-linked device stage: laptop grows, phone slides in */
+  var stage = document.querySelector(".devices");
+  if (stage) {
+    var ticking = false;
+    var update = function () {
+      ticking = false;
+      var r = stage.getBoundingClientRect(), vh = window.innerHeight;
+      var p = (vh - r.top) / (vh * 0.75);
+      p = Math.max(0, Math.min(1, p));
+      stage.style.setProperty("--p", p.toFixed(3));
+    };
+    window.addEventListener("scroll", function () { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+    window.addEventListener("resize", update);
+    update();
   }
 })();
