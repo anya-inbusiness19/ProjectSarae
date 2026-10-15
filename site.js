@@ -62,7 +62,7 @@
   if (head) {
     head.outerHTML =
       '<header class="nav"><div class="wrap">' +
-      '<a class="brand" href="index.html" aria-label="Project Sarae home"><img src="images/logo-white.png" alt="" class="brand-logo"><span>PROJECT SARAE</span></a>' +
+      '<a class="brand" href="index.html" aria-label="Project Sarae home"><img src="images/logo-dark.png" alt="" class="brand-logo"><span>PROJECT SARAE</span></a>' +
       '<button class="menu-btn" aria-label="Open menu" aria-expanded="false"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>' +
       '<nav class="nav-links">' +
       links.map(function (l) { return '<a href="' + l[0] + '"' + (page === l[2] ? ' aria-current="page"' : "") + ">" + l[1] + "</a>"; }).join("") +
@@ -77,7 +77,7 @@
   if (foot) {
     foot.outerHTML =
       '<footer><div class="wrap footer-grid">' +
-      '<div><a class="brand" href="index.html"><img src="images/logo-white.png" alt="" class="brand-logo"><span>PROJECT SARAE</span></a>' +
+      '<div><a class="brand" href="index.html"><img src="images/logo-dark.png" alt="" class="brand-logo"><span>PROJECT SARAE</span></a>' +
       '<p class="foot-tag">Websites for local businesses, built for you and kept up for you.</p></div>' +
       '<div><h4>Explore</h4>' + links.map(function (l) { return '<a href="' + l[0] + '">' + l[1] + "</a>"; }).join("") + "</div>" +
       '<div><h4>Policies</h4><a href="contract.html">Service Agreement</a><a href="terms.html">Terms &amp; Refunds</a><a href="privacy.html">Privacy Policy</a></div>' +
