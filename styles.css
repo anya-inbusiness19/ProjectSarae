@@ -492,6 +492,65 @@ footer a:hover { color: var(--ink); }
 .foot-bottom { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding-top: 18px; color: var(--steel); }
 .foot-bottom a { color: var(--slate); }
 
+/* ---------- Showcase (pinned laptop) ---------- */
+.showcase { padding: var(--section) 0; }
+.sc-intro { margin-bottom: 40px; }
+.sc-step { padding: 28px 0; border-top: 1px solid var(--hairline); }
+.sc-step h3 { font-size: 28px; line-height: 1.14; }
+.sc-step p { color: var(--slate); font-size: 19px; line-height: 1.42; margin-top: 10px; max-width: 460px; }
+.sc-inline { margin-top: 22px; border-radius: 18px; width: 100%; aspect-ratio: 16/10; object-fit: cover; object-position: top; background: var(--mist); }
+.sc-stage { display: none; }
+.sc-screens { position: relative; aspect-ratio: 16/10; border-radius: 6px; overflow: hidden; background: var(--mist); }
+.sc-screens img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; border-radius: 0; aspect-ratio: auto; opacity: 0; transform: scale(1.04); transition: opacity .8s ease, transform 1.2s cubic-bezier(.2,.7,.2,1); }
+.sc-screens img.on { opacity: 1; transform: none; }
+.sc-dots { display: flex; justify-content: center; gap: 8px; margin-top: 28px; }
+.sc-dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--hairline); transition: background .4s, width .4s; }
+.sc-dots i.on { background: var(--ink); width: 24px; border-radius: 4px; }
+
+/* ---------- Computers (laptops, desktops, big monitors) ---------- */
+@media (min-width: 1024px) {
+  .showcase { padding: 120px 0 40px; }
+  .sc-grid { display: grid; grid-template-columns: minmax(340px, 0.8fr) 1.4fr; gap: 72px; align-items: start; }
+  .sc-intro { min-height: 34vh; }
+  .sc-step { min-height: 78vh; display: flex; flex-direction: column; justify-content: center; border: 0; padding: 0; opacity: .25; transition: opacity .6s ease; }
+  .sc-step.is-active { opacity: 1; }
+  .sc-step:last-child { min-height: 70vh; }
+  .sc-inline { display: none; }
+  .sc-stage { display: block; height: 100%; }
+  .sc-sticky { position: sticky; top: calc(50vh - 260px); padding-top: 20px; }
+  .sc-laptop { width: 100%; }
+
+  .rail { cursor: grab; }
+  .rail.dragging { cursor: grabbing; scroll-snap-type: none; user-select: none; }
+  .rail.dragging img { pointer-events: none; }
+  .tile { min-height: 540px; }
+  .devices { perspective: 1800px; }
+  .devices .tilt { transform: rotateX(var(--ty, 0deg)) rotateY(var(--tx, 0deg)); transition: transform .5s cubic-bezier(.2,.7,.2,1); transform-style: preserve-3d; position: relative; }
+}
+/* Short laptop screens: keep the devices in the first view */
+@media (min-width: 1024px) and (max-height: 860px) {
+  .stage-hero { padding-top: 40px; }
+  .stage-hero h1 { font-size: clamp(52px, 9.2vh, 80px); }
+  .stage-hero .lead { margin: 14px auto 22px; }
+  .devices { margin-top: 36px; max-width: 900px; }
+}
+/* Big monitors: use more of the screen */
+@media (min-width: 1440px) {
+  :root { --max: 1180px; --max-wide: 1360px; }
+  .devices { max-width: 1180px; }
+  .rail { grid-auto-columns: 400px; }
+}
+@media (min-width: 1800px) {
+  :root { --max: 1280px; --max-wide: 1480px; }
+  body { font-size: 18px; }
+  .stage-hero h1 { font-size: 96px; max-width: 1100px; }
+  .stage-hero .lead, .section-head p { font-size: 22px; }
+  .devices { max-width: 1300px; }
+  h2 { font-size: 56px; }
+  .rail { grid-auto-columns: 440px; }
+  .tile { min-height: 580px; }
+}
+
 /* ---------- Motion ---------- */
 @keyframes rise { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
@@ -513,8 +572,8 @@ footer a:hover { color: var(--ink); }
   /* Device stage: laptop scales up and phone glides in as you scroll */
   .js-reveal .devices { --p: 0; }
   .js-reveal .devices.reveal { opacity: 1; transform: none; }
-  .js-reveal .laptop { transform: translateY(calc((1 - var(--p)) * 40px)) scale(calc(.86 + .14 * var(--p))); transform-origin: 50% 100%; will-change: transform; }
-  .js-reveal .phone { transform: translateX(calc((1 - var(--p)) * 45%)) rotate(calc((1 - var(--p)) * 6deg)); opacity: calc(.15 + .85 * var(--p)); will-change: transform; }
+  .js-reveal .devices .laptop { transform: translateY(calc((1 - var(--p)) * 40px)) scale(calc(.86 + .14 * var(--p))); transform-origin: 50% 100%; will-change: transform; }
+  .js-reveal .devices .phone { transform: translateX(calc((1 - var(--p)) * 45%)) rotate(calc((1 - var(--p)) * 6deg)); opacity: calc(.15 + .85 * var(--p)); will-change: transform; }
   .js-reveal .devices { animation: fade 1.2s .35s both; }
 
   /* Scroll reveal */
