@@ -9,8 +9,8 @@
 <link rel="icon" type="image/png" sizes="512x512" href="images/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=5">
 <style>
   body { min-height: 100vh; }
   .admin-wrap { max-width: 1120px; margin: 0 auto; padding: 28px 20px 60px; }
@@ -40,7 +40,7 @@
   .btn-danger:hover { border-color: var(--coral); }
   .photo-row { display: grid; grid-template-columns: 180px 1fr; gap: 20px; align-items: start; }
   @media (max-width: 640px) { .photo-row { grid-template-columns: 1fr; } }
-  .thumb { aspect-ratio: 4/5; border-radius: 12px; background: var(--navy) center/cover no-repeat; border: 1px solid var(--line); display: grid; place-items: center; color: #9BC3E6; font-weight: 800; font-size: 2rem; }
+  .thumb { aspect-ratio: 4/5; border-radius: 12px; background: var(--baby) center/cover no-repeat; border: 1px solid var(--line); display: grid; place-items: center; color: var(--blue-dark); font-weight: 800; font-size: 2rem; }
   .thumb.wide { aspect-ratio: 16/10; background-color: var(--blue-pale); color: var(--muted-2); font-size: .85rem; }
   input[type=file] { padding: 9px; background: var(--cream-2); }
   select { width: auto; padding: 8px 12px; }
@@ -58,7 +58,7 @@
 <body>
 <header class="nav">
   <div class="wrap">
-    <a class="brand" href="index.html"><img src="images/logo-white.png" alt="" class="brand-logo"><span>PROJECT SARAE · ADMIN</span></a>
+    <a class="brand" href="index.html"><img src="images/logo-dark.png" alt="" class="brand-logo"><span>PROJECT SARAE · ADMIN</span></a>
     <button id="logout" class="btn btn-ghost-dark hidden" style="padding:8px 14px">Log out</button>
   </div>
 </header>
@@ -189,7 +189,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="config.js?v=4"></script>
+<script src="config.js?v=5"></script>
 <script src="admin.js"></script>
 </body>
 </html>
