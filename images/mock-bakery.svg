@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" font-family="Helvetica Neue, Helvetica, Arial, sans-serif">
+  <rect width="1600" height="1000" fill="#FBF4EA"/>
+  <!-- nav -->
+  <rect width="1600" height="84" fill="#FBF4EA"/>
+  <circle cx="92" cy="42" r="17" fill="#D9822B"/>
+  <text x="122" y="50" font-family="Georgia, serif" font-size="25" font-weight="700" fill="#3B2A1E">Marigold Bakery</text>
+  <g font-size="17" fill="#6B5544">
+    <text x="900" y="49">Menu</text><text x="985" y="49">Catering</text><text x="1092" y="49">Visit</text><text x="1165" y="49">Our story</text>
+  </g>
+  <rect x="1300" y="22" width="220" height="42" rx="21" fill="#3B2A1E"/>
+  <text x="1410" y="49" text-anchor="middle" font-size="16" font-weight="600" fill="#FBF4EA">Order for pickup</text>
+  <line x1="0" y1="84" x2="1600" y2="84" stroke="#EADBC6"/>
+  <!-- hero copy -->
+  <text x="92" y="200" font-size="16" font-weight="700" letter-spacing="3" fill="#D9822B">FRESH EVERY MORNING · SINCE 2014</text>
+  <text x="88" y="300" font-family="Georgia, serif" font-size="84" font-weight="700" fill="#3B2A1E">Baked at dawn.</text>
+  <text x="88" y="390" font-family="Georgia, serif" font-size="84" font-weight="700" fill="#3B2A1E">Gone by noon.</text>
+  <text x="92" y="460" font-size="22" fill="#6B5544">Croissants, sourdough and seasonal pies from our</text>
+  <text x="92" y="492" font-size="22" fill="#6B5544">neighborhood kitchen. Order ahead and skip the line.</text>
+  <rect x="92" y="540" width="230" height="58" rx="29" fill="#D9822B"/>
+  <text x="207" y="576" text-anchor="middle" font-size="18" font-weight="600" fill="#fff">See today's menu</text>
+  <rect x="340" y="540" width="190" height="58" rx="29" fill="none" stroke="#3B2A1E" stroke-width="1.5"/>
+  <text x="435" y="576" text-anchor="middle" font-size="18" font-weight="600" fill="#3B2A1E">Get directions</text>
+  <g font-size="16" fill="#6B5544">
+    <circle cx="100" cy="660" r="5" fill="#D9822B"/><text x="116" y="666">Open today 6am – 2pm</text>
+    <circle cx="340" cy="660" r="5" fill="#D9822B"/><text x="356" y="666">412 Elm Street</text>
+  </g>
+  <!-- hero art -->
+  <circle cx="1180" cy="400" r="270" fill="#F2D9B6"/>
+  <ellipse cx="1180" cy="520" rx="250" ry="40" fill="#E6C49A"/>
+  <!-- croissant -->
+  <g transform="translate(1040 300)">
+    <path d="M10 150 C 40 40, 240 40, 270 150 C 230 120, 50 120, 10 150 Z" fill="#D9822B"/>
+    <path d="M60 128 C 90 60, 190 60, 220 128" fill="none" stroke="#B5651D" stroke-width="6" stroke-linecap="round"/>
+    <path d="M100 122 C 120 76, 160 76, 180 122" fill="none" stroke="#B5651D" stroke-width="6" stroke-linecap="round"/>
+    <path d="M140 60 L 140 118" stroke="#B5651D" stroke-width="6" stroke-linecap="round"/>
+  </g>
+  <!-- loaf -->
+  <g transform="translate(1210 430)">
+    <ellipse cx="90" cy="60" rx="110" ry="62" fill="#A8622C"/>
+    <path d="M30 40 L 70 70 M80 30 L 120 62 M130 32 L 160 58" stroke="#E9C08F" stroke-width="7" stroke-linecap="round"/>
+  </g>
+  <!-- tart -->
+  <g transform="translate(980 450)">
+    <ellipse cx="80" cy="50" rx="90" ry="40" fill="#E9B872"/>
+    <ellipse cx="80" cy="44" rx="72" ry="28" fill="#C2413A"/>
+    <circle cx="60" cy="40" r="8" fill="#E25F55"/><circle cx="95" cy="48" r="8" fill="#E25F55"/><circle cx="82" cy="32" r="7" fill="#E25F55"/>
+  </g>
+  <!-- cards row -->
+  <g transform="translate(92 740)">
+    <rect width="452" height="200" rx="24" fill="#fff"/>
+    <rect x="24" y="24" width="152" height="152" rx="16" fill="#F2D9B6"/>
+    <path d="M40 120 C 60 60, 160 60, 160 120 C 130 104, 70 104, 40 120 Z" fill="#D9822B"/>
+    <text x="200" y="74" font-family="Georgia, serif" font-size="26" font-weight="700" fill="#3B2A1E">Butter croissant</text>
+    <text x="200" y="108" font-size="17" fill="#6B5544">Three days of folding.</text>
+    <text x="200" y="158" font-size="22" font-weight="700" fill="#D9822B">$4.25</text>
+  </g>
+  <g transform="translate(574 740)">
+    <rect width="452" height="200" rx="24" fill="#fff"/>
+    <rect x="24" y="24" width="152" height="152" rx="16" fill="#EBD3B3"/>
+    <ellipse cx="100" cy="104" rx="56" ry="34" fill="#A8622C"/>
+    <text x="200" y="74" font-family="Georgia, serif" font-size="26" font-weight="700" fill="#3B2A1E">Country sourdough</text>
+    <text x="200" y="108" font-size="17" fill="#6B5544">Wild yeast, 24-hour rise.</text>
+    <text x="200" y="158" font-size="22" font-weight="700" fill="#D9822B">$9.00</text>
+  </g>
+  <g transform="translate(1056 740)">
+    <rect width="452" height="200" rx="24" fill="#fff"/>
+    <rect x="24" y="24" width="152" height="152" rx="16" fill="#F6E0C8"/>
+    <ellipse cx="100" cy="104" rx="56" ry="26" fill="#C2413A"/>
+    <text x="200" y="74" font-family="Georgia, serif" font-size="26" font-weight="700" fill="#3B2A1E">Seasonal berry pie</text>
+    <text x="200" y="108" font-size="17" fill="#6B5544">Whole pies by pre-order.</text>
+    <text x="200" y="158" font-size="22" font-weight="700" fill="#D9822B">$28.00</text>
+  </g>
+</svg>

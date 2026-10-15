@@ -178,9 +178,9 @@
   function setThumb(el, url) { if (url) { el.style.backgroundImage = "url('" + url.replace(/'/g, "%27") + "')"; el.textContent = ""; } }
 
   var workDefaults = [
-    { img: "images/work-meetem.jpg", title: "College Meet Up" },
-    { img: "images/work-profile.jpg", title: "Profile Webpage" },
-    { img: "images/work-clothing.jpg", title: "Clothing Brand" }
+    { img: "images/work-placeholder.svg", title: "College Meet Up" },
+    { img: "images/work-placeholder.svg", title: "Profile Webpage" },
+    { img: "images/work-placeholder.svg", title: "Clothing Brand" }
   ];
   function buildWorkSlots() {
     var wrap = $("#work-slots"); wrap.innerHTML = "";

@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" font-family="Helvetica Neue, Helvetica, Arial, sans-serif">
+  <rect width="1600" height="1000" fill="#1F2430"/>
+  <!-- right photo panel -->
+  <rect x="880" y="0" width="720" height="1000" fill="#E9D6CF"/>
+  <circle cx="1240" cy="430" r="230" fill="#D9B9AE"/>
+  <!-- abstract portrait: head + hair -->
+  <path d="M1110 360 C 1110 230, 1370 230, 1370 380 C 1380 520, 1330 640, 1240 650 C 1150 640, 1100 520, 1110 360 Z" fill="#2B2230"/>
+  <ellipse cx="1240" cy="420" rx="96" ry="118" fill="#C99A84"/>
+  <path d="M1144 380 C 1160 280, 1330 270, 1340 390 C 1300 330, 1200 320, 1144 380 Z" fill="#2B2230"/>
+  <rect x="1200" y="530" width="80" height="80" fill="#C99A84"/>
+  <path d="M1080 760 C 1110 640, 1370 640, 1400 760 L 1400 1000 L 1080 1000 Z" fill="#8E6A7A"/>
+  <circle cx="1450" cy="200" r="38" fill="#F3E7E1"/>
+  <!-- nav -->
+  <text x="92" y="66" font-family="Georgia, serif" font-size="30" font-style="italic" fill="#F3E7E1">Luna</text>
+  <text x="166" y="66" font-size="14" letter-spacing="4" fill="#C9A9B5">HAIR STUDIO</text>
+  <g font-size="16" fill="#B9B3C2"><text x="520" y="64">Services</text><text x="620" y="64">Stylists</text><text x="710" y="64">Gallery</text></g>
+  <rect x="1360" y="36" width="160" height="44" rx="22" fill="#1F2430"/>
+  <text x="1440" y="64" text-anchor="middle" font-size="16" font-weight="600" fill="#F3E7E1">Book now</text>
+  <!-- hero copy -->
+  <text x="92" y="250" font-size="15" font-weight="700" letter-spacing="3" fill="#C9A9B5">COLOR · CUTS · BRAIDS · TREATMENTS</text>
+  <text x="88" y="350" font-family="Georgia, serif" font-size="80" fill="#F3E7E1">Your best hair</text>
+  <text x="88" y="440" font-family="Georgia, serif" font-size="80" font-style="italic" fill="#E3B7C4">starts here.</text>
+  <text x="92" y="510" font-size="21" fill="#B9B3C2">Book online in under a minute. Choose your stylist,</text>
+  <text x="92" y="542" font-size="21" fill="#B9B3C2">pick a time, and get a reminder the day before.</text>
+  <!-- booking widget -->
+  <rect x="92" y="600" width="700" height="300" rx="26" fill="#2A3040"/>
+  <text x="124" y="648" font-size="18" font-weight="700" fill="#F3E7E1">Book an appointment</text>
+  <text x="124" y="676" font-size="15" fill="#9C96A8">Silk press with Jasmine · 90 min</text>
+  <g font-size="14" fill="#B9B3C2" text-anchor="middle">
+    <g transform="translate(124 704)">
+      <rect width="88" height="72" rx="14" fill="#353C4F"/><text x="44" y="30">MON</text><text x="44" y="56" font-size="22" fill="#F3E7E1">12</text>
+    </g>
+    <g transform="translate(224 704)">
+      <rect width="88" height="72" rx="14" fill="#E3B7C4"/><text x="44" y="30" fill="#1F2430">TUE</text><text x="44" y="56" font-size="22" fill="#1F2430" font-weight="700">13</text>
+    </g>
+    <g transform="translate(324 704)">
+      <rect width="88" height="72" rx="14" fill="#353C4F"/><text x="44" y="30">WED</text><text x="44" y="56" font-size="22" fill="#F3E7E1">14</text>
+    </g>
+    <g transform="translate(424 704)">
+      <rect width="88" height="72" rx="14" fill="#353C4F"/><text x="44" y="30">THU</text><text x="44" y="56" font-size="22" fill="#F3E7E1">15</text>
+    </g>
+    <g transform="translate(524 704)">
+      <rect width="88" height="72" rx="14" fill="#353C4F"/><text x="44" y="30">FRI</text><text x="44" y="56" font-size="22" fill="#F3E7E1">16</text>
+    </g>
+  </g>
+  <g font-size="15" text-anchor="middle">
+    <rect x="124" y="800" width="110" height="40" rx="20" fill="none" stroke="#5A6075"/><text x="179" y="826" fill="#B9B3C2">10:00 am</text>
+    <rect x="246" y="800" width="110" height="40" rx="20" fill="#F3E7E1"/><text x="301" y="826" fill="#1F2430" font-weight="700">11:30 am</text>
+    <rect x="368" y="800" width="110" height="40" rx="20" fill="none" stroke="#5A6075"/><text x="423" y="826" fill="#B9B3C2">2:00 pm</text>
+    <rect x="490" y="800" width="110" height="40" rx="20" fill="none" stroke="#5A6075"/><text x="545" y="826" fill="#B9B3C2">4:30 pm</text>
+  </g>
+  <rect x="624" y="704" width="140" height="136" rx="18" fill="#E3B7C4"/>
+  <text x="694" y="766" text-anchor="middle" font-size="16" font-weight="700" fill="#1F2430">Confirm</text>
+  <text x="694" y="790" text-anchor="middle" font-size="14" fill="#1F2430">$85</text>
+</svg>

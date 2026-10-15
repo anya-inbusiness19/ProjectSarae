@@ -413,3 +413,26 @@
     }
   }
 })();
+
+/* ---------- Gallery motion: scroll reveal + highlights rail ---------- */
+(function () {
+  "use strict";
+  var items = document.querySelectorAll(".reveal");
+  if (items.length && "IntersectionObserver" in window) {
+    document.documentElement.classList.add("js-reveal");
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
+    }, { threshold: 0.12 });
+    items.forEach(function (el) { io.observe(el); });
+  }
+  var rail = document.getElementById("rail");
+  if (rail) {
+    document.querySelectorAll("[data-rail]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var tile = rail.querySelector(".tile");
+        var step = tile ? tile.getBoundingClientRect().width + 20 : 380;
+        rail.scrollBy({ left: step * Number(b.getAttribute("data-rail")), behavior: "smooth" });
+      });
+    });
+  }
+})();
