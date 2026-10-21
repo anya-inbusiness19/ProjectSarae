@@ -536,4 +536,24 @@
     window.addEventListener("resize", update);
     update();
   }
+
+})();
+
+(function () {
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  /* 7. Live demo embeds: scale a full-size site into each device frame */
+  var lives = $$(".live");
+  if (lives.length) {
+    var fit = function (el) {
+      var f = el.querySelector("iframe"), w = Number(el.dataset.w);
+      if (f && w) el.style.setProperty("--s", (el.clientWidth / w).toFixed(4));
+    };
+    lives.forEach(function (el) {
+      var f = el.querySelector("iframe");
+      if (f) f.addEventListener("load", function () { el.classList.add("ready"); });
+      fit(el);
+    });
+    if ("ResizeObserver" in window) { var ro = new ResizeObserver(function (en) { en.forEach(function (e) { fit(e.target); }); }); lives.forEach(function (el) { ro.observe(el); }); }
+    else window.addEventListener("resize", function () { lives.forEach(fit); });
+  }
 })();

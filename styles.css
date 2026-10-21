@@ -2,33 +2,33 @@
    Project Sarae — "White gallery" design system
    Layout language: quiet gallery canvas, oversized product
    imagery, compact type, one accent blue for actions.
-   Colors: Project Sarae baby blue, creme and navy.
+   Colors: royal blue actions, creme canvas, black text.
    ========================================================= */
 :root {
   /* Surfaces */
   --canvas: #FFFDF9;        /* gallery white: page canvas, hero, cards on bands */
-  --mist: #F1F6FB;          /* full-width feature bands, cards on canvas */
+  --mist: #F7F2E9;          /* full-width feature bands, cards on canvas */
   --creme: #FBF7F0;         /* alternate warm band, footer */
   --frost: #F6EFE4;         /* opened menu / pale fill */
   --hairline: #E8DFD0;      /* 1px dividers */
-  --control: #E4EEF8;       /* subdued control fill */
-  --stage: #CFE2F3;         /* product stage behind device renders */
+  --control: #ECECF6;       /* subdued control fill */
+  --stage: #E4E4F3;         /* product stage behind device renders */
 
   /* Text */
-  --ink: #2A3644;
-  --slate: #5D6B79;
-  --steel: #6C7986;
+  --ink: #111111;
+  --slate: #3D3D3D;
+  --steel: #5A5A5A;
 
   /* Action */
-  --link: #4F7A9E;          /* inline + section links */
-  --action: #3E6585;        /* filled conversion pills */
-  --action-hover: #2A3644;
+  --link: #151581;          /* inline + section links */
+  --action: #151581;        /* filled conversion pills */
+  --action-hover: #0C0C55;
   --label: #B8645A;         /* small "New" status labels */
   --gold: #C2A878;
 
   /* Type */
-  --display: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --text: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --display: "Playfair Display", "Times New Roman", Times, serif;
+  --text: "Times New Roman", Times, Georgia, serif;
 
   /* Shape + space */
   --r-card: 28px;
@@ -41,11 +41,11 @@
   --max-wide: 1240px;
 
   /* Legacy names (used by admin + checkout scripts) */
-  --navy: var(--ink); --navy-2: #3A4859; --navy-3: #4A5868;
+  --navy: var(--ink); --navy-2: #2A2A2A; --navy-3: #3D3D3D;
   --cream: var(--creme); --cream-2: var(--frost); --line: var(--hairline);
   --blue: var(--link); --blue-dark: var(--action);
-  --baby: var(--stage); --baby-2: #BCD6EC; --blue-soft: var(--control);
-  --blue-pale: var(--mist); --blue-mist: #C6D9EA;
+  --baby: var(--stage); --baby-2: #CFCFEA; --blue-soft: var(--control);
+  --blue-pale: var(--mist); --blue-mist: #D6D6EE;
   --muted: var(--slate); --muted-2: var(--steel); --coral: var(--label);
   --white: var(--canvas); --radius: var(--r-card); --shadow: none;
   --band: var(--mist); --serif: var(--display);
@@ -55,7 +55,7 @@
 html { scroll-behavior: smooth; }
 body {
   margin: 0; background: var(--canvas); color: var(--ink);
-  font-family: var(--text); font-size: 17px; line-height: 1.47; letter-spacing: -0.022em;
+  font-family: var(--text); font-size: 18px; line-height: 1.5; letter-spacing: 0;
   -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
   font-feature-settings: "cv11", "ss01";
 }
@@ -112,14 +112,14 @@ section { padding: var(--section) 0; }
 .nav {
   position: sticky; top: 0; z-index: 50; background: rgba(255, 253, 249, .8);
   -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
-  border-bottom: 1px solid rgba(42, 54, 68, .08);
+  border-bottom: 1px solid rgba(17, 17, 17, .08);
 }
 .nav .wrap { max-width: var(--max-wide); display: flex; align-items: center; justify-content: space-between; height: 52px; }
 .brand { display: flex; align-items: center; gap: 8px; color: var(--ink); text-decoration: none !important; font-weight: 600; letter-spacing: .16em; font-size: 12px; }
 .brand-logo { height: 26px; width: auto; }
 .brand span { white-space: nowrap; }
 .nav-links { display: flex; gap: 28px; align-items: center; }
-.nav-links a { color: rgba(42, 54, 68, .8); font-size: 12px; letter-spacing: -0.01em; text-decoration: none; }
+.nav-links a { color: rgba(17, 17, 17, .8); font-size: 12px; letter-spacing: -0.01em; text-decoration: none; }
 .nav-links a:hover, .nav-links a[aria-current=page] { color: var(--ink); }
 .nav-links .btn { font-size: 12px; padding: 6px 14px; color: #fff; }
 .menu-btn { display: none; background: none; border: 0; color: var(--ink); padding: 6px; cursor: pointer; }
@@ -195,10 +195,10 @@ section { padding: var(--section) 0; }
 .tile .art { margin-top: auto; padding-top: 28px; display: flex; justify-content: center; align-items: flex-end; }
 .rail-controls { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
 .rail-controls button {
-  width: 36px; height: 36px; border-radius: 50%; border: 0; background: rgba(42, 54, 68, .08); color: var(--ink);
+  width: 36px; height: 36px; border-radius: 50%; border: 0; background: rgba(17, 17, 17, .08); color: var(--ink);
   font-size: 18px; cursor: pointer; display: grid; place-items: center;
 }
-.rail-controls button:hover { background: rgba(42, 54, 68, .14); }
+.rail-controls button:hover { background: rgba(17, 17, 17, .14); }
 
 /* Tile art pieces (pure CSS illustrations) */
 .serp { width: 100%; background: var(--mist); border-radius: 20px 20px 0 0; padding: 18px 18px 26px; text-align: left; }
@@ -622,3 +622,21 @@ footer a:hover { color: var(--ink); }
   .closer { padding: 88px 0; }
   .tile { min-height: 460px; }
 }
+
+/* ---------- Live website embeds (real demo sites, animations intact) ---------- */
+.live { position: relative; width: 100%; aspect-ratio: var(--ar); overflow: hidden; border-radius: 6px; background: var(--mist); }
+.live .live-poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; border-radius: 0; aspect-ratio: auto; }
+.live iframe { position: absolute; top: 0; left: 0; border: 0; transform-origin: 0 0; transform: scale(var(--s, .5)); background: transparent; opacity: 0; transition: opacity .6s ease; }
+.live.ready iframe { opacity: 1; }
+.live iframe { pointer-events: none; }
+.lf-media { display: block; transition: transform .5s cubic-bezier(.2,.7,.2,1); }
+.lf-media:hover { transform: translateY(-4px); }
+.phone .live { border-radius: 34px; }
+@media (max-width: 734px) { .phone .live { border-radius: 21px; } }
+.live-feature { display: grid; grid-template-columns: 1.25fr 1fr; gap: 48px; align-items: center; background: var(--canvas); border-radius: var(--r-card); padding: 44px; margin-bottom: var(--gap); }
+.live-feature.on-canvas { background: var(--mist); }
+.live-feature .laptop { width: 100%; }
+.live-feature .laptop .base { margin: 0 -5%; }
+.lf-body h3 { font-size: clamp(26px, 3vw, 34px); line-height: 1.12; }
+.lf-body p { color: var(--slate); font-size: 19px; line-height: 1.45; margin: 14px 0 24px; }
+@media (max-width: 860px) { .live-feature { grid-template-columns: 1fr; padding: 26px 22px 30px; gap: 28px; } }

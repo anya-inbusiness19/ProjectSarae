@@ -13,8 +13,8 @@
 <link rel="apple-touch-icon" href="images/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=7">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=8">
 </head>
 <body data-page="home">
 <div id="site-header"></div>
@@ -35,10 +35,10 @@
   <div class="devices" aria-hidden="true">
     <div class="tilt">
     <div class="laptop">
-      <div class="screen"><img src="images/mock-bakery.svg" alt=""></div>
+      <div class="screen"><div class="live " data-w="1440" data-h="900" style="--ar:1440/900"><img src="images/mock-salon.svg" alt="" class="live-poster"><iframe src="https://anya-inbusiness19.github.io/salon-demo/" title="Your Salon live demo" loading="eager" tabindex="-1" scrolling="no" width="1440" height="900"></iframe></div></div>
       <div class="base"></div>
     </div>
-    <div class="phone"><img src="images/mock-phone.svg" alt=""></div>
+    <div class="phone"><div class="live live-phone" data-w="390" data-h="844" style="--ar:390/844"><img src="images/mock-phone.svg" alt="" class="live-poster"><iframe src="https://anya-inbusiness19.github.io/salon-demo/" title="Your Salon live demo" loading="eager" tabindex="-1" scrolling="no" width="390" height="844"></iframe></div></div>
     </div>
   </div>
   <div class="wrap">
@@ -222,6 +222,7 @@
     <a class="text-link" href="work.html">View all work</a>
   </div>
   <div class="wrap">
+    <article class="live-feature reveal"><a class="lf-media" href="https://anya-inbusiness19.github.io/salon-demo/" target="_blank" rel="noopener" aria-label="Open the Your Salon live demo"><div class="laptop"><div class="screen"><div class="live " data-w="1440" data-h="900" style="--ar:1440/900"><img src="images/mock-salon.svg" alt="" class="live-poster"><iframe src="https://anya-inbusiness19.github.io/salon-demo/" title="Your Salon live demo" loading="lazy" tabindex="-1" scrolling="no" width="1440" height="900"></iframe></div></div><div class="base"></div></div></a><div class="lf-body"><span class="label-new">Live demo</span><h3>Your Salon — Book Online</h3><p>A full salon site with stylist menus, step-by-step online booking, a live chat helper and smooth animations throughout. Open it and try booking an appointment yourself.</p><div class="hero-actions"><a class="btn btn-primary" href="https://anya-inbusiness19.github.io/salon-demo/" target="_blank" rel="noopener" data-track="salon_demo">Visit the live site</a></div></div></article>
     <div class="gallery">
       <article class="shot"><div class="frame"><img src="images/work-placeholder.svg" alt="College meetup web app homepage" data-setting="work_1" loading="lazy"></div><div class="body"><h3 data-setting-text="work_1_title">College Meet Up</h3><p data-setting-text="work_1_desc">A web app for college students with sign-ups and profiles.</p></div></article>
       <article class="shot"><div class="frame"><img src="images/work-placeholder.svg" alt="Artist profile webpage" data-setting="work_2" loading="lazy"></div><div class="body"><h3 data-setting-text="work_2_title">Profile Webpage</h3><p data-setting-text="work_2_desc">A personal portfolio site for an artist.</p></div></article>
@@ -244,8 +245,8 @@
       <div class="plan-tile" style="background:var(--ink);color:var(--canvas)">
         <span class="label-new" style="color:var(--stage)">Most popular</span>
         <span class="nm" style="color:var(--canvas)">Business</span>
-        <div class="amt" data-count="80">$80<small style="color:#A9B6C4">/mo</small></div>
-        <p style="color:#C6D2DE">Your own domain, online payments, booking, live chat, and up to 3 updates a month.</p>
+        <div class="amt" data-count="80">$80<small style="color:#BDBDBD">/mo</small></div>
+        <p style="color:#D6D6D6">Your own domain, online payments, booking, live chat, and up to 3 updates a month.</p>
         <div class="links"><a class="btn btn-sm" style="background:var(--canvas);color:var(--ink)" href="book.html?plan=business">Choose</a><a class="text-link" style="color:var(--stage)" href="pricing.html">Learn more</a></div>
       </div>
       <div class="plan-tile" style="background:var(--mist)">
@@ -285,6 +286,6 @@
 <div id="site-footer"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=6"></script>
-<script src="site.js?v=7"></script>
+<script src="site.js?v=8"></script>
 </body>
 </html>
