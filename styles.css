@@ -652,3 +652,5 @@ footer a:hover { color: var(--ink); }
   50% { box-shadow: 0 0 0 1px rgba(120,120,255,.55), 0 14px 48px rgba(21,21,129,.55), 0 0 90px rgba(80,80,240,.50); }
 }
 @media (prefers-reduced-motion: reduce) { .plan-glow, .plan.featured { animation: none; } }
+
+.ed-photo img { width: 100%; aspect-ratio: 4/3; object-fit: cover; object-position: 55% 40%; display: block; }
