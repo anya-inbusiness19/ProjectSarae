@@ -331,11 +331,11 @@ section { padding: var(--section) 0; }
 .toggle button.on { background: var(--canvas); color: var(--ink); font-weight: 600; }
 .toggle small { color: var(--action); font-weight: 600; }
 .plan { display: flex; flex-direction: column; position: relative; padding: 36px 30px; }
-.plan.featured { background: var(--ink); }
+.plan.featured { background: var(--action); box-shadow: 0 0 0 1px rgba(90,90,255,.35), 0 12px 40px rgba(21,21,129,.45), 0 0 70px rgba(70,70,230,.35); animation: glow 3.2s ease-in-out infinite; }
 .plan.featured .name, .plan.featured .price, .plan.featured li { color: var(--canvas); }
-.plan.featured .price small, .plan.featured .note { color: #A9B6C4; }
+.plan.featured .price small, .plan.featured .note { color: #C9CBF2; }
 .plan.featured li svg { color: var(--stage); }
-.plan.featured .btn-primary { background: var(--canvas); color: var(--ink); }
+.plan.featured .btn-primary { background: var(--canvas); color: #000; }
 .plan.featured .btn-primary:hover { background: var(--stage); }
 .plan .badge { position: absolute; top: 36px; right: 30px; color: var(--stage); font-size: 12px; font-weight: 600; }
 .plan .name { font-size: 21px; font-weight: 600; letter-spacing: 0.011em; color: var(--ink); text-transform: capitalize; }
@@ -640,3 +640,15 @@ footer a:hover { color: var(--ink); }
 .lf-body h3 { font-size: clamp(26px, 3vw, 34px); line-height: 1.12; }
 .lf-body p { color: var(--slate); font-size: 19px; line-height: 1.45; margin: 14px 0 24px; }
 @media (max-width: 860px) { .live-feature { grid-template-columns: 1fr; padding: 26px 22px 30px; gap: 28px; } }
+
+/* ---------- Glowing blue featured plan ---------- */
+.plan-glow { background: var(--action); color: var(--canvas); box-shadow: 0 0 0 1px rgba(90,90,255,.35), 0 12px 40px rgba(21,21,129,.45), 0 0 70px rgba(70,70,230,.35); animation: glow 3.2s ease-in-out infinite; }
+.plan-glow .nm, .plan-glow .amt, .plan-glow h3 { color: var(--canvas); }
+.plan-glow .label-new, .plan-glow .text-link, .plan.featured .badge { color: #DADBFF; }
+.btn-white { background: var(--canvas); color: #000 !important; }
+.btn-white:hover { background: #E4E4F3; color: #000 !important; }
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(90,90,255,.35), 0 12px 40px rgba(21,21,129,.40), 0 0 50px rgba(70,70,230,.28); }
+  50% { box-shadow: 0 0 0 1px rgba(120,120,255,.55), 0 14px 48px rgba(21,21,129,.55), 0 0 90px rgba(80,80,240,.50); }
+}
+@media (prefers-reduced-motion: reduce) { .plan-glow, .plan.featured { animation: none; } }
