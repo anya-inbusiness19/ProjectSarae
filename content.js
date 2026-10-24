@@ -64,7 +64,7 @@ window.SITE_CONTENT = {
   ticker: [
     "Website design", "Google Business Profile setup", "Online booking", "Appointment reminders",
     "Online payments", "Follow-up emails", "Win back past clients",
-    "Social media scheduling", "Weekly reports", "Online store", "Member area"
+    "Weekly reports", "Online store", "Member area"
   ],
 
   /* ---------- Benefits beside the laptop demo ---------- */
@@ -102,7 +102,6 @@ window.SITE_CONTENT = {
     { key: "addon_reminders", name: "Appointment reminders", text: "Automatic email reminders before every appointment, so fewer no-shows.", price: 40, unit: "setup" },
     { key: "addon_followups", name: "Request review & follow-ups", text: "Instant replies to every request, a summary for you, and follow-up emails for anyone who doesn’t book.", price: 25, unit: "month" },
     { key: "addon_winback", name: "Win back past clients", text: "“We miss you” emails with your offer for clients who haven’t been back.", price: 25, unit: "month" },
-    { key: "addon_social", name: "Social media scheduling", text: "8 posts a month. You send photos; we write captions and schedule them.", price: 40, unit: "month" },
     { key: "addon_reports", name: "Weekly reports", text: "A short email every week with your requests, bookings, follow-ups, and reviews.", price: 10, unit: "month" },
     { key: "addonAccounts", name: "Customer accounts / member area", text: "A private portal and member access for your customers.", price: 100, unit: "one-time" },
     { key: "addonStore", name: "Online store", text: "Products, options, and a checkout cart.", price: 150, unit: "one-time" }
