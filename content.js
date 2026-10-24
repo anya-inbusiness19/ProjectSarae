@@ -63,7 +63,7 @@ window.SITE_CONTENT = {
   /* ---------- Sliding services bar (under the top section) ---------- */
   ticker: [
     "Website design", "Google Business Profile setup", "Online booking", "Appointment reminders",
-    "Online payments", "Automated texts & calls", "Follow-up emails", "Win back past clients",
+    "Online payments", "Follow-up emails", "Win back past clients",
     "Social media scheduling", "Weekly reports", "Online store", "Member area"
   ],
 
@@ -99,10 +99,9 @@ window.SITE_CONTENT = {
   /* unit: "one-time", "month", or "setup" (one-time setup) */
   addons: [
     { key: "addon_gbp", name: "Google Business Profile setup", text: "Show up on Google Maps with the right hours, photos, and services.", price: 50, unit: "one-time" },
-    { key: "addon_reminders", name: "Appointment reminders", text: "Automatic reminders before every appointment, so fewer no-shows.", price: 40, unit: "setup" },
-    { key: "addon_followups", name: "Request review & follow-ups", text: "Instant replies to every request, a summary for you, and follow-up emails and calls for anyone who doesn’t book.", price: 25, unit: "month" },
+    { key: "addon_reminders", name: "Appointment reminders", text: "Automatic email reminders before every appointment, so fewer no-shows.", price: 40, unit: "setup" },
+    { key: "addon_followups", name: "Request review & follow-ups", text: "Instant replies to every request, a summary for you, and follow-up emails for anyone who doesn’t book.", price: 25, unit: "month" },
     { key: "addon_winback", name: "Win back past clients", text: "“We miss you” emails with your offer for clients who haven’t been back.", price: 25, unit: "month" },
-    { key: "addon_texts", name: "Automated texts & calls", text: "Text confirmations and follow-ups. Texting fees are billed at cost.", price: 30, unit: "month" },
     { key: "addon_social", name: "Social media scheduling", text: "8 posts a month. You send photos; we write captions and schedule them.", price: 40, unit: "month" },
     { key: "addon_reports", name: "Weekly reports", text: "A short email every week with your requests, bookings, follow-ups, and reviews.", price: 10, unit: "month" },
     { key: "addonAccounts", name: "Customer accounts / member area", text: "A private portal and member access for your customers.", price: 100, unit: "one-time" },
