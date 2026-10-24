@@ -535,7 +535,11 @@
         sb.rpc("sign_and_get_links", { p_code: code, p_name: name, p_plan: sel.plan, p_period: sel.period, p_addons: chosen }).then(function (res) {
           if (res.error || !res.data) {
             btn.disabled = false; btn.textContent = "Sign & continue to payment";
-            msg.className = "msg err"; msg.textContent = "This link may have expired. Please email me and I’ll send a new one.";
+            var why = (res.error && res.error.message) || "";
+            msg.className = "msg err";
+            msg.textContent = /add-on/i.test(why)
+              ? "One of the add-ons you picked can’t be checked out yet. Please email me and I’ll fix it right away."
+              : "This link may have expired. Please email me and I’ll send a new one.";
             return;
           }
           track("contract_signed", sel.plan + "_" + sel.period);
