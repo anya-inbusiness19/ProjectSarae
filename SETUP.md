@@ -2,8 +2,15 @@
 
 Everything here uses free plans. Stripe only takes its normal fee (about 2.9% + 30¢) when a client actually pays you.
 
+## Update — October 24, 2026 (do these 3 things once)
+1. Upload every file in this folder to your GitHub repo (replace the old ones). New files: `content.js`, `images/hero.jpg`.
+2. In Supabase, open **SQL Editor → New query**, paste all of `supabase-setup.sql`, and click **Run**. This lets checkout use your setup fee and any add-on you create.
+3. In Stripe, make a one-time Payment Link for your setup fee and for each add-on, then paste them in **Admin → Clients & checkout → Stripe payment links**.
+
+What's new: photo homepage with an announcement bar, a sliding services bar, a live demo inside a laptop that visitors can click and use, and reviews. The menu is now Home · Pricing · Booking. The chat circle is removed. In your admin, **Site content** changes every photo and text, and **Pricing & add-ons** changes the setup fee, plan prices, and add-on services.
+
 ## Pages
-Home · Services · Work · Pricing · About · Book a Zoom call · Reviews · Service Agreement · Terms & Refunds · Privacy Policy
+Home · Pricing · Booking · Service Agreement · Terms & Refunds · Privacy Policy
 
 Hidden pages: **checkout.html** (opens only with a private link) and **admin.html** (only you can log in).
 

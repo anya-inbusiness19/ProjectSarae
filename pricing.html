@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Pricing | Project Sarae</title>
-<meta name="description" content="Simple website plans for local businesses: Starter $50, Business $80, Pro $120 per month, with no setup fee.">
+<meta name="description" content="Simple website plans for local businesses, plus add-on services. Book a free Zoom meeting to get started.">
 
 <meta property="og:title" content="Pricing | Project Sarae">
-<meta property="og:description" content="Simple website plans for local businesses: Starter $50, Business $80, Pro $120 per month, with no setup fee.">
+<meta property="og:description" content="Simple website plans for local businesses, plus add-on services. Book a free Zoom meeting to get started.">
 <meta property="og:image" content="images/favicon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32.png">
 <link rel="icon" type="image/png" sizes="512x512" href="images/favicon.png">
@@ -15,62 +15,28 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=11">
+<link rel="stylesheet" href="styles.css?v=12">
 </head>
 <body data-page="pricing">
 <div id="site-header"></div>
 <main>
-<section class="page-head"><div class="wrap"><span class="eyebrow">Transparent plans</span><h1>Pricing.</h1><p>No setup fee. Pick the plan that fits, then add only what you need. Pick a plan, book a free Zoom call, and check out privately after we talk.</p></div></section>
+<section class="page-head"><div class="wrap"><span class="eyebrow" data-edit="pricing_eyebrow">Transparent plans</span><h1 data-edit="pricing_title">Pricing.</h1><p data-edit="pricing_sub">Pick the plan that fits, then add only the services you need. Book a free Zoom meeting first, and check out privately after we talk.</p></div></section>
 <section>
   <div class="wrap">
     <div class="pricing-bar">
-      <span class="setup-pill">No setup fee</span>
+      <span class="setup-pill" data-setup-pill>One-time setup fee</span>
       <div class="toggle" role="group" aria-label="Billing period">
-        <button type="button" class="on" data-period="monthly">Monthly</button>
-        <button type="button" data-period="yearly">Yearly <small>2 months free</small></button>
+        <button type="button" class="on" aria-pressed="true" data-period="monthly">Monthly</button>
+        <button type="button" aria-pressed="false" data-period="yearly">Yearly <small>2 months free</small></button>
       </div>
     </div>
-    <div class="grid g3">
-      
-      <div class="card plan" data-plan="starter">
-        
-        <div class="name">Starter</div>
-        <div class="price"><span>$50</span> <small>/month</small></div>
-        <div class="note"></div>
-        <ul><li><svg width="14" height="14"><use href="#i-check"/></svg>Free projectsarae.com web address</li><li><svg width="14" height="14"><use href="#i-check"/></svg>Fast, reliable hosting</li><li><svg width="14" height="14"><use href="#i-check"/></svg>Contact form &amp; Google Maps</li><li><svg width="14" height="14"><use href="#i-check"/></svg>1 update per month</li></ul>
-        <a class="btn btn-ghost btn-block" href="book.html?plan=starter">Choose Starter</a>
-      </div>
-      
-      <div class="card plan featured" data-plan="business">
-        <span class="badge">Most popular</span>
-        <div class="name">Business</div>
-        <div class="price"><span>$80</span> <small>/month</small></div>
-        <div class="note"></div>
-        <ul><li><svg width="14" height="14"><use href="#i-check"/></svg>Your own domain (registered in your name)</li><li><svg width="14" height="14"><use href="#i-check"/></svg>Online payments</li><li><svg width="14" height="14"><use href="#i-check"/></svg>Booking and scheduling</li><li><svg width="14" height="14"><use href="#i-check"/></svg>Live customer chat</li><li><svg width="14" height="14"><use href="#i-check"/></svg>Up to 3 updates per month</li></ul>
-        <a class="btn btn-primary btn-block" href="book.html?plan=business">Choose Business</a>
-      </div>
-      
-      <div class="card plan" data-plan="pro">
-        
-        <div class="name">Pro</div>
-        <div class="price"><span>$120</span> <small>/month</small></div>
-        <div class="note"></div>
-        <ul><li><svg width="14" height="14"><use href="#i-check"/></svg>Everything in Business</li><li><svg width="14" height="14"><use href="#i-check"/></svg>Customer sign-ups &amp; accounts</li><li><svg width="14" height="14"><use href="#i-check"/></svg>Sales and money dashboard</li><li><svg width="14" height="14"><use href="#i-check"/></svg>Up to 8 updates per month</li><li><svg width="14" height="14"><use href="#i-check"/></svg>Same-day priority support</li></ul>
-        <a class="btn btn-ghost btn-block" href="book.html?plan=pro">Choose Pro</a>
-      </div>
+    <div class="grid g3" id="plan-grid"></div>
+    <div class="card setup-card" data-setup-box>
+      <div><h3 data-setup-title>One-time setup fee</h3><p data-setup-text>A one-time fee that covers designing, building, and launching your site.</p></div>
+      <span class="amt"><span data-setup-amount>$180</span> <small>one-time</small></span>
     </div>
-    <div class="section-head" style="margin-top:56px"><span class="eyebrow">Add-ons</span><h2>Add what your business needs</h2><p>Add any of these to your plan. We’ll pick the right ones together on your Zoom call.</p></div>
-    <div class="grid g2 addons">
-      <div class="card addon"><div><h3>Google Business Profile setup</h3><p>Show up on Google Maps with the right hours, photos and services.</p></div><span class="amt">$50 <small>one-time</small></span></div>
-      <div class="card addon"><div><h3>Appointment reminders</h3><p>Automatic reminders before every appointment, so fewer no-shows.</p></div><span class="amt">$40 <small>one-time setup</small></span></div>
-      <div class="card addon"><div><h3>Request review &amp; follow-ups</h3><p>Instant replies to every request, a summary for you, and follow-up emails and calls for anyone who doesn’t book.</p></div><span class="amt">$25 <small>/month</small></span></div>
-      <div class="card addon"><div><h3>Win back past clients</h3><p>“We miss you” emails with your offer for clients who haven’t been back.</p></div><span class="amt">$25 <small>/month</small></span></div>
-      <div class="card addon"><div><h3>Automated texts &amp; calls</h3><p>Text confirmations and follow-ups. Texting fees are billed at cost.</p></div><span class="amt">$30 <small>/month</small></span></div>
-      <div class="card addon"><div><h3>Social media scheduling</h3><p>8 posts a month. You send photos, I write captions and schedule them.</p></div><span class="amt">$40 <small>/month</small></span></div>
-      <div class="card addon"><div><h3>Weekly reports</h3><p>A short email every week with your requests, bookings, follow-ups and reviews.</p></div><span class="amt">$10 <small>/month</small></span></div>
-      <div class="card addon"><div><h3>Customer accounts / member area</h3><p>Private portal &amp; member access.</p></div><span class="amt">$100 <small>one-time</small></span></div>
-      <div class="card addon"><div><h3>Online store</h3><p>Products, options &amp; checkout cart.</p></div><span class="amt">$150 <small>one-time</small></span></div>
-    </div>
+    <div class="section-head" style="margin-top:72px"><span class="eyebrow">Add-ons</span><h2 data-edit="addons_title">Add-on services.</h2><p data-edit="addons_sub">Add any of these to your plan. We’ll choose the right ones together on your Zoom meeting.</p></div>
+    <div class="grid g2 addons" id="addon-list"></div>
     <p class="fine">Add-ons can be added at checkout or anytime later. Texts only go to customers who agreed to receive them.</p>
   </div>
 </section>
@@ -96,7 +62,7 @@
       <div class="card term"><div class="icon"><svg width="18" height="18"><use href="#i-bell"/></svg></div><div><h3>14-day grace period</h3><p>Friendly reminders before a site is paused for nonpayment.</p></div></div>
       <div class="card term"><div class="icon"><svg width="18" height="18"><use href="#i-receipt"/></svg></div><div><h3>No hidden fees</h3><p>Card processing fees (about 3%) go to Stripe or Square, not me.</p></div></div>
       <div class="card term"><div class="icon"><svg width="18" height="18"><use href="#i-info"/></svg></div><div><h3>Clear quotes upfront</h3><p>Larger custom projects and full redesigns are quoted before work starts.</p></div></div>
-      <div class="card term"><div class="icon"><svg width="18" height="18"><use href="#i-shield"/></svg></div><div><h3>No setup fee</h3><p>You only pay for your plan. There’s no upfront charge to design and launch your site.</p></div></div>
+      <div class="card term"><div class="icon"><svg width="18" height="18"><use href="#i-shield"/></svg></div><div><h3 data-setup-title>One-time setup fee</h3><p data-setup-text>A one-time fee that covers designing, building, and launching your site.</p></div></div>
     </div>
     <p class="fine">Full details: <a href="contract.html">Service Agreement</a> · <a href="terms.html">Terms &amp; Refund Policy</a> · <a href="privacy.html">Privacy Policy</a></p>
   </div>
@@ -106,15 +72,15 @@
   <div class="wrap">
     <img src="images/logo-dark.png" alt="" class="ps-mark">
     <h2>Let’s get started.</h2>
-    <p>Book a free Zoom call. We’ll plan your site together, and your first draft arrives within a few hours to a few days after you sign up.</p>
-    <div class="hero-actions center"><a class="btn btn-primary" href="book.html" data-track="cta_book">Book a free Zoom call</a></div>
+    <p>Book a Zoom meeting. We’ll plan your site together, and your first draft arrives within a few hours to a few days after you sign up.</p>
+    <div class="hero-actions center"><a class="btn btn-primary" href="book.html" data-track="cta_book">Book a Zoom meeting</a></div>
   </div>
 </section>
 </main>
 <div id="site-footer"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=6"></script>
-<script src="site.js?v=11"></script>
-  <script src="https://widgets.leadconnectorhq.com/loader.js" data-resources-url="https://widgets.leadconnectorhq.com/chat-widget/loader.js" data-widget-id="6adcce2b4e3a6a8f9516dea6" data-source="WEB_USER"></script>
+<script src="content.js?v=1"></script>
+<script src="site.js?v=12"></script>
 </body>
 </html>

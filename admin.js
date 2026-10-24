@@ -22,7 +22,7 @@
       return;
     }
     show($("#login"), false); show($("#dash"), true); show($("#logout"), true);
-    loadAnalytics(); loadReviews(); loadSettings(); loadInvites(); loadLinks();
+    loadAnalytics(); loadReviews(); loadInvites(); loadSettings().then(loadLinks);
   }
   $("#login").addEventListener("submit", async function (e) {
     e.preventDefault();
@@ -37,7 +37,7 @@
   $$(".tabs button").forEach(function (b) {
     b.addEventListener("click", function () {
       $$(".tabs button").forEach(function (x) { x.classList.toggle("on", x === b); });
-      ["analytics", "clients", "reviews", "content"].forEach(function (t) { show($("#tab-" + t), t === b.dataset.tab); });
+      ["analytics", "clients", "reviews", "content", "pricing"].forEach(function (t) { show($("#tab-" + t), t === b.dataset.tab); });
     });
   });
 
@@ -73,7 +73,7 @@
   var clickNames = {
     nav_book: "Book call (menu)", hero_book: "Book call (top)", cta_book: "Book call (bottom)",
     booking_open: "Opened booking page", booking_email: "Email to book", email: "Email link", instagram: "Instagram link",
-    about_book: "Book call (about page)", toggle_yearly: "Viewed yearly prices", toggle_monthly: "Viewed monthly prices"
+    announce_book: "Book (announcement bar)", demo_book: "Book call (demo section)", demo_try: "Tried the live demo", demo_open: "Opened demo full screen", pay_setup: "Clicked pay: setup fee", toggle_yearly: "Viewed yearly prices", toggle_monthly: "Viewed monthly prices"
   };
   function niceClick(l) {
     if (clickNames[l]) return clickNames[l];
@@ -161,11 +161,16 @@
     });
   }
 
-  /* ---------- Photos & About ---------- */
+  /* ---------- Site content + pricing (saved in site_settings) ---------- */
+  var D = window.SITE_CONTENT || { fields: [], groups: {}, ticker: [], benefits: [], demos: [], plans: [], addons: [] };
   async function saveSetting(key, value) {
     var r = await sb.from("site_settings").upsert({ key: key, value: value, updated_at: new Date().toISOString() });
     if (r.error) throw r.error;
     return r;
+  }
+  async function clearSetting(key) {
+    var r = await sb.from("site_settings").delete().eq("key", key);
+    if (r.error) throw r.error;
   }
   async function uploadImage(file, name) {
     if (file.size > 5 * 1024 * 1024) throw new Error("Please use an image under 5 MB.");
@@ -175,71 +180,246 @@
     if (up.error) throw up.error;
     return sb.storage.from("site-images").getPublicUrl(path).data.publicUrl;
   }
-  function setThumb(el, url) { if (url) { el.style.backgroundImage = "url('" + url.replace(/'/g, "%27") + "')"; el.textContent = ""; } }
+  function setThumb(el, url) { if (url) { el.style.backgroundImage = "url('" + String(url).replace(/'/g, "%27") + "')"; el.textContent = ""; } }
+  function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+  function savedList(key) {
+    try { var v = JSON.parse(settings[key] || "null"); if (Array.isArray(v) && v.length) return v; } catch (e) {}
+    return JSON.parse(JSON.stringify(D[key] || []));
+  }
+  function card(title, intro) {
+    var c = el("div", "card");
+    c.appendChild(el("h3")).textContent = title;
+    if (intro) c.appendChild(el("p")).textContent = intro;
+    return c;
+  }
+  function actions(c, label, onSave) {
+    var row = el("div", "card-actions");
+    var btn = el("button", "btn btn-primary"); btn.type = "button"; btn.textContent = label || "Save";
+    var msg = el("div", "msg"); msg.setAttribute("role", "status");
+    row.appendChild(btn); row.appendChild(msg); c.appendChild(row);
+    btn.addEventListener("click", async function () {
+      msg.className = "msg"; msg.textContent = "Saving…"; btn.disabled = true;
+      try { await onSave(); msg.className = "msg ok"; msg.textContent = "Saved. It’s live on your site."; }
+      catch (e) { msg.className = "msg err"; msg.textContent = (e && e.message) || "Couldn’t save. Try again."; }
+      btn.disabled = false;
+    });
+    return row;
+  }
+  function inputFor(f, value) {
+    var wrap = el("div", f.full ? "full" : "");
+    var lab = el("label"); lab.textContent = f.label; wrap.appendChild(lab);
+    var inp;
+    if (f.type === "textarea") { inp = el("textarea"); inp.style.minHeight = (f.rows || 90) + "px"; }
+    else if (f.type === "select") {
+      inp = el("select"); inp.style.width = "100%";
+      f.options.forEach(function (o) { var op = el("option"); op.value = o[0]; op.textContent = o[1]; inp.appendChild(op); });
+    } else { inp = el("input"); inp.type = f.type === "number" ? "number" : f.type === "url" ? "url" : "text"; if (f.type === "number") { inp.min = "0"; inp.step = "1"; } }
+    if (f.placeholder) inp.placeholder = f.placeholder;
+    inp.value = value == null ? "" : value;
+    inp.dataset.k = f.k;
+    wrap.appendChild(inp);
+    if (f.hint) wrap.appendChild(el("div", "hint")).textContent = f.hint;
+    return wrap;
+  }
 
-  var workDefaults = [
-    { img: "", title: "College Meet Up" },
-    { img: "", title: "Profile Webpage" },
-    { img: "", title: "Clothing Brand" }
-  ];
-  function buildWorkSlots() {
-    var wrap = $("#work-slots"); wrap.innerHTML = "";
-    [1, 2, 3].forEach(function (n) {
-      var row = document.createElement("div"); row.className = "photo-row";
-      row.innerHTML =
-        '<div class="thumb wide"></div><div>' +
-        '<label>Project ' + n + ' screenshot</label><input type="file" accept="image/*" class="f">' +
-        '<label>Title</label><input class="t" maxlength="60">' +
-        '<label>Short description</label><input class="d" maxlength="120">' +
-        '<button class="btn btn-primary" style="margin-top:12px">Save project ' + n + '</button><div class="msg" role="status"></div></div>';
-      var thumb = row.querySelector(".thumb");
-      setThumb(thumb, settings["work_" + n] || workDefaults[n - 1].img);
-      row.querySelector(".t").value = settings["work_" + n + "_title"] || "";
-      row.querySelector(".t").placeholder = workDefaults[n - 1].title;
-      row.querySelector(".d").value = settings["work_" + n + "_desc"] || "";
-      row.querySelector(".f").onchange = function () { var f = this.files[0]; if (f) setThumb(thumb, URL.createObjectURL(f)); };
-      row.querySelector("button").onclick = async function () {
-        var msg = row.querySelector(".msg"); msg.className = "msg"; msg.textContent = "Saving…";
-        try {
-          var f = row.querySelector(".f").files[0];
-          if (f) { var url = await uploadImage(f, "work-" + n); await saveSetting("work_" + n, url); settings["work_" + n] = url; }
-          var t = row.querySelector(".t").value.trim(), d = row.querySelector(".d").value.trim();
-          if (t) await saveSetting("work_" + n + "_title", t);
-          if (d) await saveSetting("work_" + n + "_desc", d);
-          msg.className = "msg ok"; msg.textContent = "Saved. It’s live on your site.";
-        } catch (e) { msg.className = "msg err"; msg.textContent = e.message || "Couldn’t save. Try again."; }
-      };
-      wrap.appendChild(row);
+  /* Repeatable rows (benefits, demos, add-ons): add, remove, reorder */
+  function rowEditor(container, items, schema, opts) {
+    opts = opts || {};
+    var box = el("div"); container.appendChild(box);
+    function addRow(item) {
+      var r = el("div", "ed-row"); r._item = item || {};
+      var g = el("div", "ed-grid");
+      schema.forEach(function (f) { g.appendChild(inputFor(f, r._item[f.k] != null ? r._item[f.k] : (f.def != null ? f.def : ""))); });
+      r.appendChild(g);
+      var tools = el("div", "ed-tools");
+      [["↑", "Move up", function () { if (r.previousElementSibling) box.insertBefore(r, r.previousElementSibling); }],
+       ["↓", "Move down", function () { if (r.nextElementSibling) box.insertBefore(r.nextElementSibling, r); }],
+       ["Remove", "Remove", function () { if (confirm("Remove this " + (opts.noun || "item") + "?")) r.remove(); }]
+      ].forEach(function (t) {
+        var b = el("button", "btn " + (t[0] === "Remove" ? "btn-danger" : "btn-ghost")); b.type = "button";
+        b.textContent = t[0]; b.setAttribute("aria-label", t[1]); b.onclick = t[2]; tools.appendChild(b);
+      });
+      r.appendChild(tools);
+      box.appendChild(r);
+      return r;
+    }
+    items.forEach(addRow);
+    var add = el("button", "btn btn-ghost ed-add"); add.type = "button"; add.textContent = "+ Add " + (opts.noun || "item");
+    add.style.marginTop = "12px";
+    add.onclick = function () { var r = addRow({}); var i = r.querySelector("input,textarea"); if (i) i.focus(); };
+    container.appendChild(add);
+    return function read() {
+      return Array.prototype.map.call(box.children, function (r) {
+        var o = JSON.parse(JSON.stringify(r._item));
+        r.querySelectorAll("[data-k]").forEach(function (i) {
+          var f = schema.filter(function (s) { return s.k === i.dataset.k; })[0];
+          o[i.dataset.k] = f.type === "number" ? Math.max(0, Math.round(+i.value || 0)) : i.value.trim();
+        });
+        return o;
+      });
+    };
+  }
+  async function saveList(key, rows) {
+    if (JSON.stringify(rows) === JSON.stringify(D[key])) { await clearSetting(key); delete settings[key]; return; }
+    var v = JSON.stringify(rows); await saveSetting(key, v); settings[key] = v;
+  }
+
+  function buildContent() {
+    var host = $("#content-cards"); host.innerHTML = "";
+    Object.keys(D.groups).forEach(function (g) {
+      var fields = D.fields.filter(function (f) { return f.group === g; });
+      var c = card(D.groups[g]);
+      var pending = {};
+      fields.forEach(function (f) {
+        if (f.type === "image") {
+          var w = el("div");
+          w.appendChild(el("label")).textContent = f.label;
+          var row = el("div", "img-field");
+          var th = el("div", "thumb wide"); setThumb(th, settings[f.key] || f.def);
+          var right = el("div");
+          var fi = el("input"); fi.type = "file"; fi.accept = "image/*";
+          fi.onchange = function () { var file = fi.files[0]; if (file) { pending[f.key] = file; setThumb(th, URL.createObjectURL(file)); } };
+          right.appendChild(fi);
+          right.appendChild(el("div", "hint")).textContent = "Wide photos work best (at least 1600px across). Under 5 MB.";
+          var reset = el("button", "btn btn-ghost"); reset.type = "button"; reset.textContent = "Use the original photo"; reset.style.marginTop = "10px";
+          reset.onclick = function () { pending[f.key] = "reset"; fi.value = ""; setThumb(th, f.def); };
+          right.appendChild(reset);
+          row.appendChild(th); row.appendChild(right); w.appendChild(row); c.appendChild(w);
+        } else {
+          var wrap = inputFor({ k: f.key, label: f.label, type: f.type, placeholder: f.def }, settings[f.key] || "");
+          c.appendChild(wrap);
+        }
+      });
+      if (g === "home_top") {
+        var tk = inputFor({ k: "__ticker", label: "Sliding services bar (one service per line)", type: "textarea", rows: 200 }, savedList("ticker").join("\n"));
+        c.appendChild(tk);
+      }
+      var readBenefits = null, readDemos = null;
+      if (g === "home_demo") {
+        c.appendChild(el("label")).textContent = "Benefits beside the laptop";
+        readBenefits = rowEditor(c, savedList("benefits"), [
+          { k: "title", label: "Title", type: "text", full: true },
+          { k: "text", label: "Text", type: "textarea", full: true, rows: 70 }
+        ], { noun: "benefit" });
+        var dl = el("label"); dl.textContent = "Live demos in the laptop"; dl.style.marginTop = "26px"; c.appendChild(dl);
+        c.appendChild(el("div", "hint")).textContent = "Add the web address of any live site you’ve built. With two or more, visitors get buttons to switch between them.";
+        readDemos = rowEditor(c, savedList("demos"), [
+          { k: "name", label: "Site name", type: "text" },
+          { k: "label", label: "Small label (type of business · plan)", type: "text" },
+          { k: "url", label: "Live site address (https://…)", type: "url", full: true, placeholder: "https://" },
+          { k: "text", label: "Short description", type: "textarea", full: true, rows: 70 }
+        ], { noun: "demo" });
+      }
+      actions(c, "Save " + D.groups[g].replace(/^[^:]*: /, "").toLowerCase(), async function () {
+        for (var i = 0; i < fields.length; i++) {
+          var f = fields[i];
+          if (f.type === "image") {
+            var p = pending[f.key];
+            if (p === "reset") { await clearSetting(f.key); delete settings[f.key]; }
+            else if (p) { var url = await uploadImage(p, f.key.replace(/_/g, "-")); await saveSetting(f.key, url); settings[f.key] = url; }
+            delete pending[f.key];
+            continue;
+          }
+          var inp = c.querySelector('[data-k="' + f.key + '"]'), v = inp.value.trim();
+          if (!v || v === f.def) { if (settings[f.key] != null) { await clearSetting(f.key); delete settings[f.key]; } }
+          else if (v !== settings[f.key]) { await saveSetting(f.key, v); settings[f.key] = v; }
+        }
+        var tki = c.querySelector('[data-k="__ticker"]');
+        if (tki) await saveList("ticker", tki.value.split("\n").map(function (s) { return s.trim(); }).filter(Boolean));
+        if (readBenefits) await saveList("benefits", readBenefits().filter(function (b) { return b.title || b.text; }));
+        if (readDemos) {
+          var demos = readDemos().filter(function (d) { return d.url; });
+          if (demos.some(function (d) { return d.url.indexOf("https://") !== 0; })) throw new Error("Each demo address should start with https://");
+          await saveList("demos", demos);
+        }
+      });
+      host.appendChild(c);
     });
   }
+
+  function slug(s) { return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "").slice(0, 28) || "item"; }
+  function buildPricing() {
+    var host = $("#pricing-cards"); host.innerHTML = "";
+
+    // Setup fee
+    var sc = card("Setup fee", "A one-time fee added at checkout. Set it to 0 to show “No setup fee” everywhere.");
+    var g = el("div", "ed-grid");
+    g.appendChild(inputFor({ k: "setup_fee", label: "Setup fee amount ($)", type: "number" }, settings.setup_fee != null ? settings.setup_fee : D.setup_fee));
+    g.appendChild(inputFor({ k: "setup_fee_text", label: "What it covers (shown on the Pricing page)", type: "textarea", full: true, placeholder: D.setup_fee_text }, settings.setup_fee_text || ""));
+    sc.appendChild(g);
+    actions(sc, "Save setup fee", async function () {
+      var amt = Math.max(0, Math.round(+sc.querySelector('[data-k="setup_fee"]').value || 0));
+      if (amt === D.setup_fee) { await clearSetting("setup_fee"); delete settings.setup_fee; } else { await saveSetting("setup_fee", String(amt)); settings.setup_fee = String(amt); }
+      var t = sc.querySelector('[data-k="setup_fee_text"]').value.trim();
+      if (!t || t === D.setup_fee_text) { await clearSetting("setup_fee_text"); delete settings.setup_fee_text; } else { await saveSetting("setup_fee_text", t); settings.setup_fee_text = t; }
+      loadLinks();
+    });
+    host.appendChild(sc);
+
+    // Plans
+    var pc = card("Plans", "Names, prices, and the checklist on each plan card. A plan with a badge (like “Most popular”) gets the glowing blue card.");
+    var saved = savedList("plans"), byKey = {};
+    saved.forEach(function (p) { byKey[p.key] = p; });
+    D.plans.forEach(function (base) {
+      var p = byKey[base.key] || base;
+      var r = el("div", "ed-row"); r.dataset.plan = base.key;
+      var gg = el("div", "ed-grid");
+      gg.appendChild(inputFor({ k: "name", label: "Plan name", type: "text" }, p.name));
+      gg.appendChild(inputFor({ k: "badge", label: "Badge (optional)", type: "text", placeholder: "e.g. Most popular" }, p.badge || ""));
+      gg.appendChild(inputFor({ k: "monthly", label: "Monthly price ($)", type: "number" }, p.monthly));
+      gg.appendChild(inputFor({ k: "yearly", label: "Yearly price ($)", type: "number" }, p.yearly));
+      gg.appendChild(inputFor({ k: "features", label: "What’s included (one per line)", type: "textarea", full: true, rows: 120 }, (p.features || []).join("\n")));
+      r.appendChild(gg); pc.appendChild(r);
+    });
+    actions(pc, "Save plans", async function () {
+      var rows = Array.prototype.map.call(pc.querySelectorAll(".ed-row"), function (r) {
+        var q = function (k) { return r.querySelector('[data-k="' + k + '"]').value.trim(); };
+        return { key: r.dataset.plan, name: q("name") || r.dataset.plan, monthly: Math.max(0, Math.round(+q("monthly") || 0)), yearly: Math.max(0, Math.round(+q("yearly") || 0)), badge: q("badge"),
+          features: q("features").split("\n").map(function (s) { return s.trim(); }).filter(Boolean) };
+      });
+      await saveList("plans", rows);
+    });
+    host.appendChild(pc);
+
+    // Add-ons
+    var ac = card("Add-on services", "Everything listed here shows on the Pricing page and can be picked at checkout. Use the arrows to change the order.");
+    var readAddons = rowEditor(ac, savedList("addons"), [
+      { k: "name", label: "Service name", type: "text" },
+      { k: "price", label: "Price ($)", type: "number" },
+      { k: "unit", label: "Billed", type: "select", options: [["one-time", "One-time"], ["setup", "One-time setup"], ["month", "Monthly"]], def: "one-time" },
+      { k: "text", label: "Short description", type: "textarea", full: true, rows: 70 }
+    ], { noun: "add-on" });
+    actions(ac, "Save add-ons", async function () {
+      var used = {};
+      var rows = readAddons().filter(function (x) { return x.name; }).map(function (x) {
+        if (!x.key) { var k = "addon_" + slug(x.name), n = 2, base = k; while (used[k] || D.addons.some(function (d) { return d.key === k && d.name !== x.name; })) k = base + "_" + (n++); x.key = k; }
+        used[x.key] = 1;
+        x.unit = ["one-time", "setup", "month"].indexOf(x.unit) >= 0 ? x.unit : "one-time";
+        return x;
+      });
+      await saveList("addons", rows);
+      buildPricing(); loadLinks();
+    });
+    host.appendChild(ac);
+  }
+
   async function loadSettings() {
     var r = await sb.from("site_settings").select("key,value");
     settings = {}; (r.data || []).forEach(function (x) { settings[x.key] = x.value; });
-    setThumb($("#about-thumb"), settings.about_photo);
-    $("#about-text").value = settings.about_text || "";
-    buildWorkSlots();
+    buildContent(); buildPricing();
   }
-  $("#about-file").addEventListener("change", function () { var f = this.files[0]; if (f) setThumb($("#about-thumb"), URL.createObjectURL(f)); });
-  $("#save-about").addEventListener("click", async function () {
-    var msg = $("#about-msg"); msg.className = "msg"; msg.textContent = "Saving…";
-    try {
-      var f = $("#about-file").files[0];
-      if (f) { var url = await uploadImage(f, "about"); await saveSetting("about_photo", url); }
-      var t = $("#about-text").value.trim();
-      if (t) await saveSetting("about_text", t);
-      else await sb.from("site_settings").delete().eq("key", "about_text");
-      msg.className = "msg ok"; msg.textContent = "Saved. It’s live on your site.";
-    } catch (e) { msg.className = "msg err"; msg.textContent = e.message || "Couldn’t save. Try again."; }
-  });
 
   /* ---------- Clients & private checkout ---------- */
   var PLAN_NAMES = { starter: "Starter", business: "Business", pro: "Pro" };
-  var LINK_KEYS = [
-    ["starterMonthly", "Starter monthly"], ["starterYearly", "Starter yearly"],
-    ["businessMonthly", "Business monthly"], ["businessYearly", "Business yearly"],
-    ["proMonthly", "Pro monthly"], ["proYearly", "Pro yearly"],
-    ["addonAccounts", "Member area add-on"], ["addonStore", "Online store add-on"]
-  ];
+  try { savedList("plans").forEach(function (p) { PLAN_NAMES[p.key] = p.name; }); } catch (e) {}
+  function linkKeys() {
+    var plans = savedList("plans"), out = [];
+    plans.forEach(function (p) { out.push([p.key + "Monthly", p.name + " monthly"]); out.push([p.key + "Yearly", p.name + " yearly"]); });
+    var fee = settings.setup_fee != null ? +settings.setup_fee : D.setup_fee;
+    if (fee) out.push(["setupFee", "Setup fee ($" + fee + " one-time)"]);
+    savedList("addons").forEach(function (x) { out.push([x.key, x.name + " ($" + x.price + (x.unit === "month" ? "/month" : " one-time") + ")"]); });
+    return out;
+  }
   function makeCode() {
     var chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789", out = "";
     var arr = new Uint32Array(16); crypto.getRandomValues(arr);
@@ -249,7 +429,7 @@
   function checkoutUrl(code) { return new URL("checkout.html?code=" + code, location.href).href; }
   function emailHref(inv) {
     var first = (inv.client_name || "").split(" ")[0];
-    var body = "Hi " + first + ",\n\nThank you for meeting with me today! Here is your private checkout link. You can choose your plan, review and sign the service agreement, and pay securely with Stripe:\n\n" +
+    var body = "Hi " + first + ",\n\nThank you for meeting with me today! Here is your private checkout link. You can choose your plan and add-on services, review and sign the service agreement, and pay securely with Stripe:\n\n" +
       checkoutUrl(inv.code) + "\n\nThe link is valid for 14 days. Once you've paid, send me your logo, photos, hours, and services, and I'll get started on your first draft.\n\n" +
       (C.ownerName || "") + "\nProject Sarae";
     return "mailto:" + encodeURIComponent(inv.client_email || "") + "?subject=" + encodeURIComponent("Your Project Sarae checkout link") + "&body=" + encodeURIComponent(body);
@@ -321,7 +501,7 @@
     var r = await sb.from("payment_links").select("key,url");
     var map = {}; (r.data || []).forEach(function (x) { map[x.key] = x.url; });
     var f = $("#links-form"); f.innerHTML = "";
-    LINK_KEYS.forEach(function (k) {
+    linkKeys().forEach(function (k) {
       var row = document.createElement("label"); row.className = "link-row";
       row.innerHTML = "<span></span><input type='url' placeholder='https://buy.stripe.com/...'>";
       row.querySelector("span").textContent = k[1];
@@ -333,6 +513,7 @@
   $("#save-links").addEventListener("click", async function () {
     var msg = $("#links-msg"); msg.className = "msg"; msg.textContent = "Saving…";
     var rows = [], bad = false;
+    if (!$$("#links-form input").length) { msg.textContent = ""; return; }
     $$("#links-form input").forEach(function (i) {
       var v = i.value.trim();
       if (v && v.indexOf("https://") !== 0) bad = true;

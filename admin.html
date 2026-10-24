@@ -10,8 +10,21 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=11">
+<link rel="stylesheet" href="styles.css?v=12">
 <style>
+  .ed-row { border: 1px solid var(--line); border-radius: 16px; padding: 4px 16px 16px; margin-top: 12px; background: var(--canvas); }
+  .ed-row .ed-tools { display: flex; gap: 6px; justify-content: flex-end; margin-top: 10px; flex-wrap: wrap; }
+  .ed-row .ed-tools .btn, .ed-add { padding: 6px 12px; font-size: .85rem; }
+  .ed-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+  @media (max-width: 640px) { .ed-grid { grid-template-columns: 1fr; } }
+  .ed-grid .full { grid-column: 1 / -1; }
+  .card-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 18px; }
+  .card-actions .msg { margin: 0; }
+  .hint { font-size: .82rem; color: var(--muted-2); margin-top: 4px; }
+  .img-field { display: grid; grid-template-columns: 220px 1fr; gap: 18px; align-items: start; margin-top: 8px; }
+  @media (max-width: 640px) { .img-field { grid-template-columns: 1fr; } }
+  .img-field .thumb { aspect-ratio: 16/10; }
+  .link-row small { display:block; font-weight:400; color: var(--muted-2); }
   body { min-height: 100vh; }
   .admin-wrap { max-width: 1120px; margin: 0 auto; padding: 28px 20px 60px; }
   .login { max-width: 400px; margin: 9vh auto; }
@@ -90,7 +103,8 @@
       <button class="on" data-tab="analytics">Analytics</button>
       <button data-tab="clients">Clients &amp; checkout</button>
       <button data-tab="reviews">Reviews <span id="pending-badge"></span></button>
-      <button data-tab="content">Photos &amp; About</button>
+      <button data-tab="content">Site content</button>
+      <button data-tab="pricing">Pricing &amp; add-ons</button>
     </div>
 
     <!-- ANALYTICS -->
@@ -163,33 +177,21 @@
 
     <!-- CONTENT -->
     <section id="tab-content" class="hidden" style="padding:0">
-      <div class="stack">
-        <div class="card">
-          <h3>Your photo &amp; About text</h3>
-          <div class="photo-row" style="margin-top:16px">
-            <div class="thumb" id="about-thumb">AS</div>
-            <div>
-              <label for="about-file">Upload a new photo</label>
-              <input id="about-file" type="file" accept="image/*">
-              <label for="about-text">About me text</label>
-              <textarea id="about-text" style="min-height:180px" placeholder="Leave blank to keep the default text"></textarea>
-              <button class="btn btn-primary" style="margin-top:14px" id="save-about">Save</button>
-              <div class="msg" id="about-msg" role="status"></div>
-            </div>
-          </div>
-        </div>
-        <div class="card">
-          <h3>Portfolio (“Recent work”)</h3>
-          <p>Swap in screenshots of client sites as you finish them. Blank fields keep what’s there now.</p>
-          <div id="work-slots" class="stack" style="margin-top:16px"></div>
-        </div>
-      </div>
+      <p class="muted" style="margin-bottom:16px">Change any photo or text on your site. Each box saves on its own. Clear a field and save to bring back the original wording.</p>
+      <div id="content-cards" class="stack"></div>
+    </section>
+
+    <!-- PRICING -->
+    <section id="tab-pricing" class="hidden" style="padding:0">
+      <p class="muted" style="margin-bottom:16px">These prices show on your Pricing page and at private checkout. After you add a new add-on or set a setup fee, paste its Stripe link under <b>Clients &amp; checkout → Stripe payment links</b>.</p>
+      <div id="pricing-cards" class="stack"></div>
     </section>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=6"></script>
-<script src="admin.js"></script>
+<script src="content.js?v=1"></script>
+<script src="admin.js?v=12"></script>
 </body>
 </html>

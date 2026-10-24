@@ -3,6 +3,8 @@
 -- BEFORE RUNNING: replace anya.sarae@yahoo.com below if your admin login
 -- will use a different email. Only this email can use the admin dashboard.
 -- Safe to run again later; it won't delete your data.
+-- UPDATE (Oct 24, 2026): run this whole file again once. It adds the setup fee
+-- payment link and lets clients pick any add-on you create in your admin page.
 -- =========================================================
 
 create extension if not exists pgcrypto;
@@ -75,7 +77,7 @@ create policy "admin writes settings" on public.site_settings
 
 -- ---------- Stripe payment links (hidden — only admin can read them directly) ----------
 create table if not exists public.payment_links (
-  key         text primary key,   -- starterMonthly, businessYearly, addonStore, ...
+  key         text primary key,   -- starterMonthly, businessYearly, setupFee, addon_social, addonStore, ...
   url         text check (url is null or url like 'https://%'),
   updated_at  timestamptz not null default now()
 );
@@ -113,6 +115,7 @@ returns json language sql stable security definer set search_path = public as $$
   select json_build_object(
     'plan_url', (select url from payment_links
                  where key = inv.chosen_plan || case when inv.chosen_period = 'yearly' then 'Yearly' else 'Monthly' end),
+    'setup_url', (select url from payment_links where key = 'setupFee'),
     'addons', coalesce((select json_agg(json_build_object('key', key, 'url', url))
                         from payment_links
                         where key = any(coalesce(inv.chosen_addons, '{}'))), '[]'::json)
@@ -149,12 +152,14 @@ begin
   if p_plan not in ('starter','business','pro') then raise exception 'invalid plan'; end if;
   if p_period not in ('monthly','yearly') then raise exception 'invalid period'; end if;
   if char_length(coalesce(trim(p_name), '')) < 2 or char_length(p_name) > 100 then raise exception 'invalid name'; end if;
-  if exists (select 1 from unnest(coalesce(p_addons, '{}')) a where a not in ('addonAccounts','addonStore')) then
+  -- add-on keys come from your admin page (e.g. addon_social, addonStore)
+  if exists (select 1 from unnest(coalesce(p_addons, '{}')) a where a !~ '^addon[A-Za-z0-9_]{1,48}$') then
     raise exception 'invalid add-on';
   end if;
+  if coalesce(array_length(p_addons, 1), 0) > 25 then raise exception 'too many add-ons'; end if;
   update checkout_invites
      set signed_name = trim(p_name), signed_at = now(), chosen_plan = p_plan,
-         chosen_period = p_period, chosen_addons = coalesce(p_addons, '{}'), contract_version = '2026-10'
+         chosen_period = p_period, chosen_addons = coalesce(p_addons, '{}'), contract_version = '2026-10b'
    where code = p_code and expires_at > now() and signed_at is null
    returning * into inv;
   if not found then

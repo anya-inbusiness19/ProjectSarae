@@ -1,6 +1,7 @@
 (function () {
   "use strict";
   var C = window.SITE_CONFIG || {};
+  var D = window.SITE_CONTENT || { fields: [], ticker: [], benefits: [], demos: [], plans: [], addons: [] };
   var sb = null;
   if (C.supabaseUrl && C.supabaseAnonKey && window.supabase) {
     sb = window.supabase.createClient(C.supabaseUrl, C.supabaseAnonKey);
@@ -8,64 +9,71 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var page = document.body.getAttribute("data-page") || "";
-  var PRICES = {
-    starter:  { name: "Starter",  monthly: 50,  yearly: 500 },
-    business: { name: "Business", monthly: 80,  yearly: 800 },
-    pro:      { name: "Pro",      monthly: 120, yearly: 1200 }
-  };
-  var ADDONS = {
-    addonAccounts: { name: "Customer accounts / member area", price: 100 },
-    addonStore:    { name: "Online store", price: 150 }
-  };
-  function money(n) { return "$" + n.toLocaleString("en-US"); }
+  function money(n) { return "$" + Number(n || 0).toLocaleString("en-US"); }
+  function esc(s) { var d = document.createElement("div"); d.textContent = s == null ? "" : String(s); return d.innerHTML; }
+
+  /* ---------- Content settings (saved in admin, cached for instant loads) ---------- */
+  var S = {};
+  try { S = JSON.parse(localStorage.getItem("ps_settings") || "{}") || {}; } catch (e) { S = {}; }
+  var DEF = {};
+  D.fields.forEach(function (f) { DEF[f.key] = f.def; });
+  function txt(key) { var v = S[key]; return v != null && String(v).trim() !== "" ? v : (DEF[key] != null ? DEF[key] : ""); }
+  function list(key) {
+    try { var v = JSON.parse(S[key] || "null"); if (Array.isArray(v) && v.length) return v; } catch (e) {}
+    return D[key] || [];
+  }
+  function setupFee() {
+    var v = S.setup_fee;
+    if (v != null && String(v).trim() !== "" && !isNaN(+v)) return Math.max(0, +v);
+    return +D.setup_fee || 0;
+  }
+  function setupText() { return S.setup_fee_text && S.setup_fee_text.trim() ? S.setup_fee_text : D.setup_fee_text; }
+  function plans() {
+    var saved = list("plans"), out = {};
+    D.plans.forEach(function (p) { out[p.key] = p; });
+    saved.forEach(function (p) { if (out[p.key]) out[p.key] = p; });
+    return D.plans.map(function (p) { return out[p.key]; });
+  }
+  function planMap() { var m = {}; plans().forEach(function (p) { m[p.key] = p; }); return m; }
+  function addons() { return list("addons").filter(function (a) { return a && a.key && a.name; }); }
+  function addonMap() { var m = {}; addons().forEach(function (a) { m[a.key] = a; }); return m; }
+  function unitLabel(u) { return u === "month" ? "/month" : u === "setup" ? "one-time setup" : "one-time"; }
+  window.PS = { txt: txt, list: list, setupFee: setupFee, plans: plans, addons: addons, unitLabel: unitLabel };
 
   /* ---------- Icons ---------- */
   var P = {
     check: '<path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>',
-    search: '<circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 16l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
-    down: '<path d="M3 7l7 7 4-4 7 7M21 12v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
     info: '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 11v6M12 7.5v.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>',
-    phone: '<rect x="6.5" y="2.5" width="11" height="19" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M11 18h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
     clock: '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
-    pin: '<path d="M12 21s-7-6.2-7-11.5A7 7 0 0119 9.5C19 14.8 12 21 12 21z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="9.5" r="2.5" fill="currentColor"/>',
-    chart: '<path d="M4 20V4M4 20h16M8 16l4-5 3 3 5-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
     shield: '<path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6l8-3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
     card: '<rect x="3" y="5.5" width="18" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 10h18" stroke="currentColor" stroke-width="2"/>',
     cal: '<rect x="3.5" y="5" width="17" height="15.5" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 10h17M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
-    chat: '<path d="M4 5h16v11H9l-5 4V5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
-    users: '<circle cx="9" cy="8" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2.5 20c.5-3.5 3.2-5.5 6.5-5.5s6 2 6.5 5.5M16 4.8a3.4 3.4 0 010 6.4M18 14.8c2 .7 3.3 2.5 3.6 5.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
-    pie: '<path d="M12 3a9 9 0 109 9h-9V3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M15 3.5A9 9 0 0120.5 9H15V3.5z" fill="currentColor"/>',
-    globe: '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 12h18M12 3c2.5 2.5 3.8 5.5 3.8 9s-1.3 6.5-3.8 9c-2.5-2.5-3.8-5.5-3.8-9S9.5 5.5 12 3z" fill="none" stroke="currentColor" stroke-width="2"/>',
     key: '<circle cx="8" cy="15" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M11 12l9-9M16 7l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
     file: '<path d="M6 3h8l4 4v14H6V3z M14 3v4h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
     repeat: '<path d="M4 11V9a3 3 0 013-3h12l-3-3M20 13v2a3 3 0 01-3 3H5l3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
     bell: '<path d="M6 16V11a6 6 0 0112 0v5l2 2H4l2-2zM10 21h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>',
     receipt: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3zM9 8h6M9 12h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>',
-    mail: '<rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 6l8.5 7 8.5-7" fill="none" stroke="currentColor" stroke-width="2"/>',
-    ig: '<rect x="3.5" y="3.5" width="17" height="17" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.2" cy="6.8" r="1.2" fill="currentColor"/>',
-    video: '<rect x="3" y="6" width="13" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 10l5-3v10l-5-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
     lock: '<rect x="5" y="10.5" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 10.5V8a4 4 0 018 0v2.5" fill="none" stroke="currentColor" stroke-width="2"/>',
     pen: '<path d="M4 20l4-1 11-11-3-3L5 16l-1 4zM14 6l3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
     arrow: '<path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>',
-    plus: '<path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>'
+    out: '<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+    hand: '<path d="M9 11V5.5a1.5 1.5 0 013 0V11m0-1.5a1.5 1.5 0 013 0V12m0-1a1.5 1.5 0 013 0v4a6 6 0 01-6 6h-1a6 6 0 01-5-2.7L4 15.5a1.5 1.5 0 012.4-1.8L9 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>'
   };
   var sprite = '<svg width="0" height="0" style="position:absolute" aria-hidden="true">';
   Object.keys(P).forEach(function (k) { sprite += '<symbol id="i-' + k + '" viewBox="0 0 24 24">' + P[k] + "</symbol>"; });
   document.body.insertAdjacentHTML("afterbegin", sprite + "</svg>");
 
   /* ---------- Header & footer (same on every page) ---------- */
-  var links = [
-    ["index.html", "Home", "home"], ["pricing.html", "Pricing", "pricing"], ["book.html#reviews", "Reviews", "reviews"]
-  ];
+  var links = [["index.html", "Home", "home"], ["pricing.html", "Pricing", "pricing"], ["book.html", "Booking", "book"]];
   var head = $("#site-header");
   if (head) {
     head.outerHTML =
       '<header class="nav"><div class="wrap">' +
       '<a class="brand" href="index.html" aria-label="Project Sarae home"><img src="images/logo-dark.png" alt="" class="brand-logo"><span>PROJECT SARAE</span></a>' +
       '<button class="menu-btn" aria-label="Open menu" aria-expanded="false"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>' +
-      '<nav class="nav-links">' +
+      '<nav class="nav-links" aria-label="Main">' +
       links.map(function (l) { return '<a href="' + l[0] + '"' + (page === l[2] ? ' aria-current="page"' : "") + ">" + l[1] + "</a>"; }).join("") +
-      '<a class="btn btn-primary" href="book.html" data-track="nav_book">Book a Zoom call</a></nav></div></header>';
+      '<a class="btn btn-primary" href="book.html" data-track="nav_book">Book a Zoom meeting</a></nav></div></header>';
     var mb = $(".menu-btn");
     mb.addEventListener("click", function () {
       var open = $(".nav-links").classList.toggle("open");
@@ -78,12 +86,12 @@
       '<footer><div class="wrap footer-grid">' +
       '<div><a class="brand" href="index.html"><img src="images/logo-dark.png" alt="" class="brand-logo"><span>PROJECT SARAE</span></a>' +
       '<p class="foot-tag">Websites for local businesses, built for you and kept up for you.</p></div>' +
-      '<div><h4>Explore</h4>' + links.map(function (l) { return '<a href="' + l[0] + '">' + l[1] + "</a>"; }).join("") + "</div>" +
+      '<div><h4>Explore</h4>' + links.map(function (l) { return '<a href="' + l[0] + '">' + l[1] + "</a>"; }).join("") + '<a href="index.html#reviews">Reviews</a></div>' +
       '<div><h4>Policies</h4><a href="contract.html">Service Agreement</a><a href="terms.html">Terms &amp; Refunds</a><a href="privacy.html">Privacy Policy</a></div>' +
       '<div><h4>Contact</h4>' +
       (C.email ? '<a href="mailto:' + C.email + '" data-track="email">' + C.email + "</a>" : "") +
       (C.instagram ? '<a href="https://instagram.com/' + C.instagram + '" target="_blank" rel="noopener" data-track="instagram">@' + C.instagram + "</a>" : "") +
-      '<a href="book.html">Book a Zoom call</a></div>' +
+      '<a href="book.html">Book a Zoom meeting</a></div>' +
       '</div><div class="wrap foot-bottom"><span>© ' + new Date().getFullYear() + ' Project Sarae. All rights reserved.</span>' +
       '<span>This site counts visits anonymously. <a href="admin.html" rel="nofollow">Admin</a></span></div></footer>';
   }
@@ -114,64 +122,183 @@
     if (el) track("click", el.getAttribute("data-track"));
   });
 
-  /* ---------- Photo, About text, portfolio (managed in admin) ---------- */
-  if (sb && $("[data-setting], [data-setting-text], #portrait, #about-text")) {
-    sb.from("site_settings").select("key,value").then(function (res) {
-      if (res.error || !res.data) return;
-      var map = {};
-      res.data.forEach(function (r) { map[r.key] = r.value; });
-      var por = $("#portrait");
-      if (por && map.about_photo) {
-        por.innerHTML = "";
-        var img = document.createElement("img"); img.src = map.about_photo; img.alt = C.ownerName || "Owner photo";
-        por.appendChild(img);
-      }
-      if ($("#about-text") && map.about_text) $("#about-text").textContent = map.about_text;
-      $$("[data-setting]").forEach(function (el) { var v = map[el.dataset.setting]; if (v) { el.src = v; el.hidden = false; } });
-      if (map.work_1 || map.work_2 || map.work_3) { var shw = $(".showcase"); if (shw) shw.classList.remove("no-shots"); }
-      $$("[data-setting-text]").forEach(function (el) { var v = map[el.dataset.settingText]; if (v) el.textContent = v; });
-    });
+  /* ---------- Put content on the page ---------- */
+  function observeNew(nodes) { if (window.__psReveal) window.__psReveal(nodes); }
+
+  function renderTicker() {
+    var t = $("#ticker-track"); if (!t) return;
+    var items = list("ticker").filter(function (x) { return String(x).trim(); });
+    var one = items.map(function (x) { return '<span class="tk-item">' + esc(x) + '</span><span class="tk-dot" aria-hidden="true">✦</span>'; }).join("");
+    // two copies make the loop seamless
+    t.innerHTML = '<div class="tk-set">' + one + '</div><div class="tk-set" aria-hidden="true">' + one + "</div>";
+    t.style.setProperty("--tk-dur", Math.max(24, items.length * 4.5) + "s");
+    var sr = $("#ticker-sr"); if (sr) sr.textContent = "Our services: " + items.join(", ") + ".";
   }
 
-  /* ---------- Pricing page ---------- */
+  function renderBenefits() {
+    var ol = $("#benefits"); if (!ol) return;
+    ol.innerHTML = "";
+    list("benefits").forEach(function (b, i) {
+      var li = document.createElement("li");
+      li.innerHTML = '<span class="bn-n">' + String(i + 1).padStart(2, "0") + '</span><div><h3></h3><p></p></div>';
+      $("h3", li).textContent = b.title || ""; $("p", li).textContent = b.text || "";
+      ol.appendChild(li);
+    });
+    observeNew(Array.prototype.slice.call(ol.children));
+  }
+
+  var currentDemo = 0;
+  function renderDemos() {
+    var stage = $("#demo-stage"); if (!stage) return;
+    var demos = list("demos").filter(function (d) { return d && d.url; });
+    if (!demos.length) { stage.closest("section").hidden = true; return; }
+    if (currentDemo >= demos.length) currentDemo = 0;
+    var tabs = $("#demo-tabs");
+    tabs.innerHTML = "";
+    tabs.hidden = demos.length < 2;
+    demos.forEach(function (d, i) {
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "chip" + (i === currentDemo ? " on" : "");
+      b.setAttribute("aria-pressed", i === currentDemo ? "true" : "false");
+      b.textContent = d.name;
+      b.addEventListener("click", function () { currentDemo = i; renderDemos(); track("click", "demo_tab_" + (i + 1)); });
+      tabs.appendChild(b);
+    });
+    var d = demos[currentDemo];
+    var live = $(".live", stage), frame = $("iframe", live);
+    if (frame.getAttribute("src") !== d.url) {
+      live.classList.remove("ready", "active");
+      frame.setAttribute("src", d.url);
+      frame.title = (d.name || "Website") + " live demo";
+    }
+    $("#demo-name").textContent = d.name || "";
+    $("#demo-label").textContent = d.label || "";
+    $("#demo-text").textContent = d.text || "";
+    $("#demo-open").href = d.url;
+  }
+
+  function renderPricing(period) {
+    var grid = $("#plan-grid"); if (!grid) return;
+    period = period || grid.dataset.period || "monthly";
+    grid.dataset.period = period;
+    grid.innerHTML = "";
+    plans().forEach(function (p) {
+      var feat = !!(p.badge && String(p.badge).trim());
+      var card = document.createElement("div");
+      card.className = "card plan" + (feat ? " featured" : "");
+      card.innerHTML = (feat ? '<span class="badge"></span>' : "") +
+        '<div class="name"></div><div class="price"><span></span> <small></small></div><div class="note"></div><ul></ul>' +
+        '<a class="btn btn-block ' + (feat ? "btn-primary" : "btn-ghost") + '"></a>';
+      if (feat) $(".badge", card).textContent = p.badge;
+      $(".name", card).textContent = p.name;
+      $(".price span", card).textContent = money(p[period]);
+      $(".price small", card).textContent = period === "yearly" ? "/year" : "/month";
+      $(".note", card).textContent = period === "yearly" && p.monthly * 12 > p.yearly ? "Save " + money(p.monthly * 12 - p.yearly) + " vs. monthly" : "";
+      var ul = $("ul", card);
+      (p.features || []).forEach(function (f) {
+        var li = document.createElement("li");
+        li.innerHTML = '<svg width="14" height="14"><use href="#i-check"/></svg><span></span>';
+        $("span", li).textContent = f; ul.appendChild(li);
+      });
+      var a = $("a", card);
+      a.textContent = "Choose " + p.name;
+      a.href = "book.html?plan=" + p.key + "&period=" + period;
+      a.setAttribute("data-track", "choose_" + p.key + "_" + period);
+      grid.appendChild(card);
+    });
+    if (grid.dataset.shown) grid.classList.add("swap"), setTimeout(function () { grid.classList.remove("swap"); }, 500);
+    grid.dataset.shown = "1";
+    observeNew(Array.prototype.slice.call(grid.children));
+  }
+
+  function renderAddons() {
+    var box = $("#addon-list"); if (!box) return;
+    box.innerHTML = "";
+    addons().forEach(function (a) {
+      var el = document.createElement("div"); el.className = "card addon";
+      el.innerHTML = '<div><h3></h3><p></p></div><span class="amt"><span class="v"></span> <small></small></span>';
+      $("h3", el).textContent = a.name; $("p", el).textContent = a.text || "";
+      $(".v", el).textContent = money(a.price); $("small", el).textContent = unitLabel(a.unit);
+      box.appendChild(el);
+    });
+    observeNew(Array.prototype.slice.call(box.children));
+  }
+
+  function renderSetupFee() {
+    var fee = setupFee();
+    $$("[data-setup-pill]").forEach(function (el) { el.textContent = fee ? "One-time setup fee: " + money(fee) : "No setup fee"; });
+    $$("[data-setup-amount]").forEach(function (el) { el.textContent = fee ? money(fee) : "$0"; });
+    $$("[data-setup-title]").forEach(function (el) { el.textContent = fee ? "One-time setup fee" : "No setup fee"; });
+    $$("[data-setup-text]").forEach(function (el) { el.textContent = fee ? setupText() : "You only pay for your plan. There’s no upfront charge to design and launch your site."; });
+    $$("[data-setup-line]").forEach(function (el) {
+      el.textContent = fee ? money(fee) + " one time, due at checkout together with your first plan payment." : "None. Your first plan payment is due at checkout.";
+    });
+    $$("[data-setup-box]").forEach(function (el) { el.hidden = !fee; });
+  }
+
+  function applyContent() {
+    $$("[data-edit]").forEach(function (el) { var v = txt(el.getAttribute("data-edit")); if (v) el.textContent = v; });
+    $$("[data-edit-img]").forEach(function (el) {
+      var v = txt(el.getAttribute("data-edit-img")); if (!v) return;
+      if (el.tagName === "IMG") { if (el.getAttribute("src") !== v) el.src = v; }
+      else el.style.backgroundImage = "url('" + String(v).replace(/'/g, "%27") + "')";
+    });
+    renderTicker(); renderBenefits(); renderDemos(); renderPricing(); renderAddons(); renderSetupFee();
+  }
+  applyContent();
+
+  var settingsReady = new Promise(function (resolve) {
+    if (!sb) { resolve(); return; }
+    sb.from("site_settings").select("key,value").then(function (res) {
+      if (res.error || !res.data) { resolve(); return; }
+      var map = {};
+      res.data.forEach(function (r) { map[r.key] = r.value; });
+      var changed = JSON.stringify(map) !== JSON.stringify(S);
+      S = map;
+      try { localStorage.setItem("ps_settings", JSON.stringify(map)); } catch (e) {}
+      if (changed) applyContent();
+      resolve();
+    }, function () { resolve(); });
+  });
+
+  /* Pricing page: monthly / yearly toggle */
   function bindToggle(onChange) {
     $$(".toggle button").forEach(function (b) {
       b.addEventListener("click", function () {
-        $$(".toggle button").forEach(function (x) { x.classList.toggle("on", x === b); });
+        $$(".toggle button").forEach(function (x) { x.classList.toggle("on", x === b); x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
         onChange(b.dataset.period);
       });
     });
   }
-  if (page === "pricing") {
-    var setPeriod = function (period) {
-      $$(".plan[data-plan]").forEach(function (card) {
-        var key = card.dataset.plan, p = PRICES[key];
-        $(".price span", card).textContent = money(p[period]);
-        $(".price small", card).textContent = period === "yearly" ? "/year" : "/month";
-        $(".note", card).textContent = period === "yearly" ? "Save " + money(p.monthly * 12 - p.yearly) + " vs. monthly" : "";
-        var a = $("a.btn", card);
-        a.href = "book.html?plan=" + key + "&period=" + period;
-        a.setAttribute("data-track", "choose_" + key + "_" + period);
-      });
-      track("click", "toggle_" + period);
-    };
-    bindToggle(setPeriod);
-    setPeriod("monthly");
+  if (page === "pricing") bindToggle(function (period) { renderPricing(period); track("click", "toggle_" + period); });
+
+  /* ---------- Homepage: live demo in the laptop ---------- */
+  var tryBtn = $("#demo-try");
+  if (tryBtn) {
+    tryBtn.addEventListener("click", function () {
+      var live = tryBtn.closest(".live");
+      live.classList.add("active");
+      track("click", "demo_try");
+    });
   }
 
   /* ---------- Booking page ---------- */
   if (page === "book") {
     var q = new URLSearchParams(location.search);
-    var plan = PRICES[q.get("plan")] ? q.get("plan") : "";
     var period = q.get("period") === "yearly" ? "yearly" : "monthly";
-    var banner = $("#picked");
-    if (plan && banner) {
-      banner.hidden = false;
-      $("#picked-plan", banner).textContent = PRICES[plan].name + " plan · " + money(PRICES[plan][period]) + (period === "yearly" ? "/year" : "/month");
-    }
+    var showPicked = function () {
+      var pm = planMap(), plan = pm[q.get("plan")] ? q.get("plan") : "";
+      var banner = $("#picked");
+      if (plan && banner) {
+        banner.hidden = false;
+        $("#picked-plan", banner).textContent = pm[plan].name + " plan · " + money(pm[plan][period]) + (period === "yearly" ? "/year" : "/month");
+      }
+      return plan ? "Interested in the " + pm[plan].name + " plan (" + period + ")" : "";
+    };
+    var note = showPicked();
+    settingsReady.then(showPicked);
     var booking = $("#booking");
     var url = C.bookingLink || "https://cal.com/projectsarae/30min";
-    var note = plan ? "Interested in the " + PRICES[plan].name + " plan (" + period + ")" : "";
     var calLink = url.replace(/^https?:\/\/(app\.)?cal\.com\//, "").replace(/[?#].*$/, "").replace(/\/$/, "");
     var box = document.createElement("div");
     box.id = "cal-inline"; box.className = "booking-frame card";
@@ -184,11 +311,11 @@
     if (note) calConfig.notes = note;
     Cal.ns.booking("inline", { elementOrSelector: "#cal-inline", calLink: calLink, config: calConfig });
     Cal.ns.booking("ui", { hideEventTypeDetails: false, layout: "month_view" });
-    var p = document.createElement("p");
-    p.className = "fine"; p.style.textAlign = "center";
-    p.innerHTML = 'Calendar not loading? <a target="_blank" rel="noopener" data-track="booking_open">Open the booking page</a>.';
-    $("a", p).href = url + (note ? "?notes=" + encodeURIComponent(note) : "");
-    booking.appendChild(p);
+    var pp = document.createElement("p");
+    pp.className = "fine"; pp.style.textAlign = "center";
+    pp.innerHTML = 'Calendar not loading? <a target="_blank" rel="noopener" data-track="booking_open">Open the booking page</a>.';
+    $("a", pp).href = url + (note ? "?notes=" + encodeURIComponent(note) : "");
+    booking.appendChild(pp);
   }
 
   /* ---------- Reviews ---------- */
@@ -211,8 +338,8 @@
       reviewList.innerHTML = "";
       var sum = $("#rating-summary");
       if (!rows.length) {
-        if (limit < 50) { var sec = reviewList.closest("section"); if (sec) sec.hidden = true; return; }
-        reviewList.innerHTML = '<div class="empty">No reviews yet. Be the first to share your experience.</div>';
+        reviewList.innerHTML = '<div class="empty">No reviews yet. Worked with us? Be the first to share your experience.</div>';
+        if (sum) sum.innerHTML = "";
         return;
       }
       if (sum) {
@@ -228,8 +355,18 @@
     if (sb) {
       sb.from("reviews").select("name,business,rating,body,created_at").eq("approved", true)
         .order("created_at", { ascending: false }).limit(limit)
-        .then(function (res) { render(res.error ? [] : res.data || []); });
+        .then(function (res) { render(res.error ? [] : res.data || []); }, function () { render([]); });
     } else render([]);
+  }
+  var revToggle = $("#review-toggle");
+  if (revToggle) {
+    revToggle.addEventListener("click", function () {
+      var f = $("#review-form"), open = f.hidden;
+      f.hidden = !open;
+      revToggle.setAttribute("aria-expanded", open ? "true" : "false");
+      revToggle.textContent = open ? "Close" : "Leave a review";
+      if (open) { f.classList.add("pop"); $("#r-name").focus(); }
+    });
   }
   var form = $("#review-form");
   if (form) {
@@ -262,29 +399,31 @@
 
   /* ---------- Private checkout (only reachable with a link from A'Nya) ---------- */
   if (page === "checkout") {
-    var box = $("#checkout");
+    var cbox = $("#checkout");
     var code = new URLSearchParams(location.search).get("code") || "";
     var showLocked = function (title, text) {
-      box.innerHTML =
+      cbox.innerHTML =
         '<div class="card locked"><div class="icon" style="margin:0 auto 16px"><svg width="20" height="20"><use href="#i-lock"/></svg></div>' +
         "<h2></h2><p></p>" +
-        '<div class="hero-actions" style="justify-content:center;margin-top:22px"><a class="btn btn-primary" href="book.html">Book a free Zoom call</a><a class="btn btn-ghost" href="pricing.html">See pricing</a></div></div>';
-      $("h2", box).textContent = title; $("p", box).textContent = text;
+        '<div class="hero-actions" style="justify-content:center;margin-top:22px"><a class="btn btn-primary" href="book.html">Book a Zoom meeting</a><a class="btn btn-ghost" href="pricing.html">See pricing</a></div></div>';
+      $("h2", cbox).textContent = title; $("p", cbox).textContent = text;
     };
+    var addonLine = function (a) { return a.name + (a.unit === "month" ? " (monthly)" : " (one-time)"); };
     var showPay = function (inv, links) {
-      var plan = PRICES[inv.chosen_plan], per = inv.chosen_period;
-      var addons = (inv.chosen_addons || []).filter(function (k) { return ADDONS[k]; });
-      var planToday = plan[per];
-      var total = planToday + addons.reduce(function (a, k) { return a + ADDONS[k].price; }, 0);
-      box.innerHTML =
+      var PR = planMap(), AD = addonMap();
+      var plan = PR[inv.chosen_plan], per = inv.chosen_period;
+      var chosen = (inv.chosen_addons || []).filter(function (k) { return AD[k]; });
+      var fee = setupFee();
+      var total = plan[per] + fee + chosen.reduce(function (a, k) { return a + (+AD[k].price || 0); }, 0);
+      cbox.innerHTML =
         '<div class="card pay-card"><div class="icon"><svg width="20" height="20"><use href="#i-check"/></svg></div>' +
         "<h2>You’re all set to pay</h2>" +
         '<p class="signed-line"></p>' +
         '<div class="summary" id="pay-sum"></div>' +
         '<div class="pay-buttons"></div>' +
         '<p class="fine">Payments are processed securely by Stripe. After today, your plan renews automatically ' + (per === "yearly" ? "each year" : "on the same date each month") + ". Questions? <a data-email></a></p></div>";
-      $(".signed-line", box).textContent = "Agreement signed by " + inv.signed_name + ". You can read the full terms anytime on the Service Agreement page." +
-        (addons.length ? " Your add-ons are paid as a separate one-time payment." : "");
+      $(".signed-line", cbox).textContent = "Agreement signed by " + inv.signed_name + ". You can read the full terms anytime on the Service Agreement page." +
+        ((fee || chosen.length) ? " Each item below has its own secure payment button." : "");
       var sum = $("#pay-sum");
       var line = function (label, amt, cls) {
         var d = document.createElement("div"); if (cls) d.className = cls;
@@ -293,32 +432,35 @@
         d.appendChild(a); d.appendChild(b); sum.appendChild(d);
       };
       line(plan.name + " plan (" + per + ")", money(plan[per]) + (per === "yearly" ? "/year" : "/month"));
-      addons.forEach(function (k) { line(ADDONS[k].name + " (one-time)", money(ADDONS[k].price)); });
+      if (fee) line("Setup fee (one-time)", money(fee));
+      chosen.forEach(function (k) { line(addonLine(AD[k]), money(AD[k].price) + (AD[k].unit === "month" ? "/month" : "")); });
       line("Due today", money(total), "total");
-      var pb = $(".pay-buttons", box);
+      var pb = $(".pay-buttons", cbox), n = 0, multi = !!(fee || chosen.length);
       var addBtn = function (label, url, track_) {
+        n++;
         var a = document.createElement("a");
-        a.className = "btn btn-primary btn-block"; a.textContent = label;
+        a.className = "btn btn-primary btn-block"; a.textContent = (multi ? "Step " + n + ": " : "") + label;
         if (url) { a.href = url; a.target = "_blank"; a.rel = "noopener"; a.setAttribute("data-track", track_); }
-        else { a.className = "btn btn-ghost btn-block"; a.textContent = label + " (link coming by email)"; }
+        else { a.className = "btn btn-ghost btn-block"; a.textContent += " (link coming by email)"; }
         pb.appendChild(a);
       };
-      var n = addons.length ? 1 : 0;
-      addBtn((n ? "Step 1: " : "") + "Pay " + money(planToday) + " for your plan", links && links.plan_url, "pay_" + inv.chosen_plan + "_" + per);
-      addons.forEach(function (k, i) {
+      addBtn("Pay " + money(plan[per]) + " for your plan", links && links.plan_url, "pay_" + inv.chosen_plan + "_" + per);
+      if (fee) addBtn("Pay the " + money(fee) + " setup fee", links && links.setup_url, "pay_setup");
+      chosen.forEach(function (k) {
         var l = links && (links.addons || []).filter(function (x) { return x.key === k; })[0];
-        addBtn("Step " + (i + 2) + ": Pay " + money(ADDONS[k].price) + " for " + ADDONS[k].name.toLowerCase(), l && l.url, "pay_" + k);
+        addBtn("Pay " + money(AD[k].price) + " for " + AD[k].name.toLowerCase(), l && l.url, "pay_" + k);
       });
-      var em = $("[data-email]", box); if (C.email) { em.href = "mailto:" + C.email; em.textContent = C.email; }
+      var em = $("[data-email]", cbox); if (C.email) { em.href = "mailto:" + C.email; em.textContent = C.email; }
     };
     var showForm = function (inv) {
-      var sel = { plan: inv.recommended_plan || "business", period: "monthly", addons: {} };
-      box.innerHTML =
+      var PR = planMap(), ADL = addons(), AD = addonMap(), fee = setupFee();
+      var sel = { plan: PR[inv.recommended_plan] ? inv.recommended_plan : "business", period: "monthly", addons: {} };
+      cbox.innerHTML =
         '<div class="checkout-grid"><div class="stack">' +
         '<div class="card"><span class="step-label">Step 1</span><h3>Choose your plan</h3>' +
         '<div class="toggle" role="group" aria-label="Billing period" style="margin:14px 0 16px"><button type="button" class="on" data-period="monthly">Monthly</button><button type="button" data-period="yearly">Yearly <small>2 months free</small></button></div>' +
         '<div class="plan-pick" role="radiogroup"></div></div>' +
-        '<div class="card"><span class="step-label">Step 2</span><h3>Add-ons <span class="muted-inline">(optional)</span></h3><div class="addon-pick"></div></div>' +
+        '<div class="card"><span class="step-label">Step 2</span><h3>Add-on services <span class="muted-inline">(optional)</span></h3><div class="addon-pick"></div></div>' +
         '<div class="card"><span class="step-label">Step 3</span><h3>Review &amp; sign the agreement</h3>' +
         '<ul class="key-terms">' +
         "<li>3-month minimum, then month-to-month. Cancel anytime after that.</li>" +
@@ -332,52 +474,55 @@
         '<aside class="card summary-card"><h3>Summary</h3><div class="summary" id="sum"></div>' +
         '<button class="btn btn-primary btn-block" id="sign-btn" style="margin-top:18px"><svg width="16" height="16"><use href="#i-pen"/></svg>Sign &amp; continue to payment</button>' +
         '<div class="msg" id="sign-msg" role="status"></div><p class="fine">Secure payment by Stripe on the next step.</p></aside></div>';
-      var pick = $(".plan-pick", box);
-      Object.keys(PRICES).forEach(function (k) {
+      var pick = $(".plan-pick", cbox);
+      plans().forEach(function (p) {
         var lab = document.createElement("label"); lab.className = "pick";
-        lab.innerHTML = '<input type="radio" name="plan"><span class="pick-name"></span><span class="pick-price"></span>' + (k === inv.recommended_plan ? '<span class="rec">Recommended for you</span>' : "");
-        $("input", lab).value = k; $("input", lab).checked = k === sel.plan;
-        $(".pick-name", lab).textContent = PRICES[k].name;
+        lab.innerHTML = '<input type="radio" name="plan"><span class="pick-name"></span><span class="pick-price"></span>' + (p.key === inv.recommended_plan ? '<span class="rec">Recommended for you</span>' : "");
+        $("input", lab).value = p.key; $("input", lab).checked = p.key === sel.plan;
+        $(".pick-name", lab).textContent = p.name;
         pick.appendChild(lab);
       });
-      var ap = $(".addon-pick", box);
-      Object.keys(ADDONS).forEach(function (k) {
+      var ap = $(".addon-pick", cbox);
+      if (!ADL.length) ap.innerHTML = '<p class="muted-inline">No add-ons available right now.</p>';
+      ADL.forEach(function (a) {
         var lab = document.createElement("label"); lab.className = "pick";
         lab.innerHTML = '<input type="checkbox"><span class="pick-name"></span><span class="pick-price"></span>';
-        $("input", lab).value = k;
-        $(".pick-name", lab).textContent = ADDONS[k].name;
-        $(".pick-price", lab).textContent = money(ADDONS[k].price) + " one-time";
+        $("input", lab).value = a.key;
+        $(".pick-name", lab).textContent = a.name;
+        $(".pick-price", lab).textContent = money(a.price) + " " + unitLabel(a.unit);
         ap.appendChild(lab);
       });
       var update = function () {
-        $$(".plan-pick .pick", box).forEach(function (lab) {
+        $$(".plan-pick .pick", cbox).forEach(function (lab) {
           var k = $("input", lab).value;
-          $(".pick-price", lab).textContent = money(PRICES[k][sel.period]) + (sel.period === "yearly" ? "/year" : "/month");
+          $(".pick-price", lab).textContent = money(PR[k][sel.period]) + (sel.period === "yearly" ? "/year" : "/month");
           lab.classList.toggle("on", $("input", lab).checked);
         });
-        $$(".addon-pick .pick", box).forEach(function (lab) { lab.classList.toggle("on", $("input", lab).checked); });
-        var p = PRICES[sel.plan], today = p[sel.period];
-        var rows = '<div><span></span><b></b></div>';
-        var extra = Object.keys(sel.addons).filter(function (k) { return sel.addons[k]; });
-        extra.forEach(function () { rows += "<div><span></span><b></b></div>"; });
-        rows += '<div class="total"><span>Due today</span><b></b></div>';
-        var sum = $("#sum"); sum.innerHTML = rows;
-        var lines = $$("div", sum);
-        $("span", lines[0]).textContent = p.name + " plan (" + sel.period + ")";
-        $("b", lines[0]).textContent = money(p[sel.period]);
-        extra.forEach(function (k, i) {
-          $("span", lines[1 + i]).textContent = ADDONS[k].name;
-          $("b", lines[1 + i]).textContent = money(ADDONS[k].price);
-          today += ADDONS[k].price;
+        $$(".addon-pick .pick", cbox).forEach(function (lab) { lab.classList.toggle("on", $("input", lab).checked); });
+        var p = PR[sel.plan], today = p[sel.period], monthlyAdd = 0;
+        var sum = $("#sum"); sum.innerHTML = "";
+        var row = function (label, amt, cls) {
+          var d = document.createElement("div"); if (cls) d.className = cls;
+          var a = document.createElement("span"); a.textContent = label;
+          var b = document.createElement("b"); b.textContent = amt;
+          d.appendChild(a); d.appendChild(b); sum.appendChild(d);
+        };
+        row(p.name + " plan (" + sel.period + ")", money(p[sel.period]));
+        if (fee) { row("Setup fee (one-time)", money(fee)); today += fee; }
+        Object.keys(sel.addons).filter(function (k) { return sel.addons[k] && AD[k]; }).forEach(function (k) {
+          row(addonLine(AD[k]), money(AD[k].price));
+          today += +AD[k].price || 0;
+          if (AD[k].unit === "month") monthlyAdd += +AD[k].price || 0;
         });
-        $("b", lines[lines.length - 1]).textContent = money(today);
-        var after = $(".after", sum) || document.createElement("p");
+        row("Due today", money(today), "total");
+        var after = document.createElement("p");
         after.className = "fine after";
-        after.textContent = "Then " + money(p[sel.period]) + (sel.period === "yearly" ? " per year." : " per month.");
+        after.textContent = "Then " + money(p[sel.period]) + (sel.period === "yearly" ? " per year" : " per month") +
+          (monthlyAdd ? ", plus " + money(monthlyAdd) + " per month for add-ons." : ".");
         sum.appendChild(after);
       };
-      $$('input[name="plan"]', box).forEach(function (r) { r.addEventListener("change", function () { sel.plan = r.value; update(); }); });
-      $$(".addon-pick input", box).forEach(function (c) { c.addEventListener("change", function () { sel.addons[c.value] = c.checked; update(); }); });
+      $$('input[name="plan"]', cbox).forEach(function (r) { r.addEventListener("change", function () { sel.plan = r.value; update(); }); });
+      $$(".addon-pick input", cbox).forEach(function (c) { c.addEventListener("change", function () { sel.addons[c.value] = c.checked; update(); }); });
       bindToggle(function (per) { sel.period = per; update(); });
       update();
       $("#sign-btn").addEventListener("click", function () {
@@ -386,8 +531,8 @@
         if (name.length < 2) { msg.className = "msg err"; msg.textContent = "Please type your full name to sign."; $("#sig").focus(); return; }
         if (!$("#agree").checked) { msg.className = "msg err"; msg.textContent = "Please check the box to agree to the terms."; return; }
         var btn = this; btn.disabled = true; btn.textContent = "Signing…";
-        var addons = Object.keys(sel.addons).filter(function (k) { return sel.addons[k]; });
-        sb.rpc("sign_and_get_links", { p_code: code, p_name: name, p_plan: sel.plan, p_period: sel.period, p_addons: addons }).then(function (res) {
+        var chosen = Object.keys(sel.addons).filter(function (k) { return sel.addons[k]; });
+        sb.rpc("sign_and_get_links", { p_code: code, p_name: name, p_plan: sel.plan, p_period: sel.period, p_addons: chosen }).then(function (res) {
           if (res.error || !res.data) {
             btn.disabled = false; btn.textContent = "Sign & continue to payment";
             msg.className = "msg err"; msg.textContent = "This link may have expired. Please email me and I’ll send a new one.";
@@ -395,20 +540,22 @@
           }
           track("contract_signed", sel.plan + "_" + sel.period);
           window.scrollTo(0, 0);
-          showPay({ signed_name: name, chosen_plan: sel.plan, chosen_period: sel.period, chosen_addons: addons }, res.data);
+          showPay({ signed_name: name, chosen_plan: sel.plan, chosen_period: sel.period, chosen_addons: chosen }, res.data);
         });
       });
     };
-    if (!sb) showLocked("Checkout isn’t available yet", "Please book a Zoom call first. After the call, you’ll get a private checkout link.");
-    else if (!code) showLocked("Checkout opens after your Zoom call", "To keep things personal, payment is only available through a private link I send after we meet. Book your free call to get started.");
+    if (!sb) showLocked("Checkout isn’t available yet", "Please book a Zoom meeting first. After the call, you’ll get a private checkout link.");
+    else if (!code) showLocked("Checkout opens after your Zoom meeting", "To keep things personal, payment is only available through a private link I send after we meet. Book your free call to get started.");
     else {
-      sb.rpc("get_invite", { p_code: code }).then(function (res) {
-        var inv = res.data;
-        if (res.error || !inv) { showLocked("This checkout link isn’t valid", "It may have expired (links last 14 days). Email me and I’ll send a fresh one, or book a new call."); return; }
-        var hi = $("#hello");
-        if (hi) hi.textContent = "Hi " + inv.client_name.split(" ")[0] + ", thanks for meeting with me!";
-        if (inv.signed) showPay(inv, inv.links);
-        else showForm(inv);
+      settingsReady.then(function () {
+        sb.rpc("get_invite", { p_code: code }).then(function (res) {
+          var inv = res.data;
+          if (res.error || !inv) { showLocked("This checkout link isn’t valid", "It may have expired (links last 14 days). Email me and I’ll send a fresh one, or book a new call."); return; }
+          var hi = $("#hello");
+          if (hi) hi.textContent = "Hi " + inv.client_name.split(" ")[0] + ", thanks for meeting with me!";
+          if (inv.signed) showPay(inv, inv.links);
+          else showForm(inv);
+        });
       });
     }
   }
@@ -420,43 +567,19 @@
   var root = document.documentElement;
   var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
-
-  /* Highlights rail arrows (always on) */
-  var rail = document.getElementById("rail");
-  if (rail) {
-    $$("[data-rail]").forEach(function (b) {
-      b.addEventListener("click", function () {
-        var tile = rail.querySelector(".tile");
-        var step = tile ? tile.getBoundingClientRect().width + 20 : 380;
-        rail.scrollBy({ left: step * Number(b.getAttribute("data-rail")), behavior: reduce ? "auto" : "smooth" });
-      });
-    });
-  }
-  /* Showcase: swap the laptop screen as each story scrolls by */
-  var steps = $$(".sc-step"), screens = $$(".sc-screens img"), dots = $$(".sc-dots i");
-  if (steps.length && "IntersectionObserver" in window) {
-    var setActive = function (i) {
-      steps.forEach(function (s, k) { s.classList.toggle("is-active", k === i); });
-      screens.forEach(function (s, k) { s.classList.toggle("on", k === i); });
-      dots.forEach(function (s, k) { s.classList.toggle("on", k === i); });
-    };
-    var so = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) { if (e.isIntersecting) setActive(Number(e.target.getAttribute("data-i"))); });
-    }, { rootMargin: "-45% 0px -45% 0px" });
-    steps.forEach(function (s) { so.observe(s); });
-  }
   if (reduce || !("IntersectionObserver" in window)) return;
   root.classList.add("js-reveal");
 
   /* 1. Tag blocks to reveal, with a stagger inside groups */
-  $$("main section:not(.stage-hero):not(.page-head) .section-head, main .head-row h2, main .closer .wrap > *, main .about-text > *, main .portrait, main .doc, main .picked, main #booking, main .pricing-bar")
+  $$("main section:not(.photo-hero):not(.page-head) .section-head, main .head-row > *, main .closer .wrap > *, main .doc, main .picked, main #booking, main .pricing-bar, main .demo-copy > *, main .lt-wrap, main .setup-card")
     .forEach(function (el) { el.classList.add("reveal"); });
-  $$(".steps, .gallery, .plans, .grid:not(#review-list), .flow, .facts-row, .stack, .split, .rail").forEach(function (g) {
+  function stagger(g) {
     Array.prototype.forEach.call(g.children, function (c, i) {
       c.classList.add("reveal");
       c.style.setProperty("--d", Math.min(i, 6) * 90 + "ms");
     });
-  });
+  }
+  $$(".steps, .plans, .grid:not(#review-list), .flow, .facts-row, .stack, .split, .benefits").forEach(stagger);
   $$(".closer .wrap > *").forEach(function (c, i) { c.style.setProperty("--d", i * 110 + "ms"); });
 
   /* 2. Reveal on scroll */
@@ -467,21 +590,21 @@
       io.unobserve(e.target);
       $$("[data-count]", e.target).forEach(countUp);
     });
-  }, { threshold: 0.15, rootMargin: "0px 0px -6% 0px" });
+  }, { threshold: 0.12, rootMargin: "0px 0px -6% 0px" });
   $$(".reveal").forEach(function (el) { io.observe(el); });
 
-  /* Reviews load later from the database: animate them as they arrive */
+  /* Content that is drawn later (reviews, saved settings): animate as it arrives */
+  window.__psReveal = function (nodes) {
+    nodes.forEach(function (c, i) {
+      if (c.classList.contains("reveal")) return;
+      c.classList.add("reveal"); c.style.setProperty("--d", Math.min(i, 6) * 90 + "ms"); io.observe(c);
+    });
+  };
   var rl = document.getElementById("review-list");
   if (rl && window.MutationObserver) {
-    new MutationObserver(function () {
-      Array.prototype.forEach.call(rl.children, function (c, i) {
-        if (c.classList.contains("reveal")) return;
-        c.classList.add("reveal"); c.style.setProperty("--d", Math.min(i, 6) * 90 + "ms"); io.observe(c);
-      });
-    }).observe(rl, { childList: true });
+    new MutationObserver(function () { window.__psReveal(Array.prototype.slice.call(rl.children)); }).observe(rl, { childList: true });
   }
 
-  /* 3. Count-up for plan prices on the homepage */
   function countUp(el) {
     var target = Number(el.getAttribute("data-count")), start = null, node = el.firstChild;
     function tick(t) {
@@ -493,64 +616,34 @@
     node.nodeValue = "$0"; requestAnimationFrame(tick);
   }
 
-  /* 4. Hero entrance on load */
+  /* 3. Hero entrance on load */
   requestAnimationFrame(function () { requestAnimationFrame(function () { root.classList.add("loaded"); }); });
 
-  /* 6. Computers: pinned showcase, mouse tilt, drag-to-scroll rail */
-  var fine = window.matchMedia("(pointer: fine)").matches;
-  var tilt = document.querySelector(".devices .tilt"), hero = document.querySelector(".stage-hero");
-  if (tilt && hero && fine) {
-    hero.addEventListener("pointermove", function (e) {
-      var r = hero.getBoundingClientRect();
-      var x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
-      tilt.style.setProperty("--tx", (x * 6).toFixed(2) + "deg");
-      tilt.style.setProperty("--ty", (-y * 4).toFixed(2) + "deg");
-    });
-    hero.addEventListener("pointerleave", function () { tilt.style.setProperty("--tx", "0deg"); tilt.style.setProperty("--ty", "0deg"); });
-  }
-  if (rail && fine) {
-    var down = false, sx = 0, sl = 0, moved = false;
-    rail.addEventListener("pointerdown", function (e) { if (e.pointerType !== "mouse") return; down = true; moved = false; sx = e.clientX; sl = rail.scrollLeft; });
-    window.addEventListener("pointermove", function (e) {
-      if (!down) return;
-      var dx = e.clientX - sx;
-      if (Math.abs(dx) > 4) { moved = true; rail.classList.add("dragging"); }
-      rail.scrollLeft = sl - dx;
-    });
-    window.addEventListener("pointerup", function () { if (!down) return; down = false; rail.classList.remove("dragging"); });
-    rail.addEventListener("click", function (e) { if (moved) { e.preventDefault(); e.stopPropagation(); } }, true);
-  }
-
-  /* 5. Scroll-linked device stage: laptop grows, phone slides in */
-  var stage = document.querySelector(".devices");
-  if (stage) {
+  /* 4. Hero photo drifts slightly as you scroll */
+  var bg = document.querySelector(".photo-hero .hero-bg");
+  if (bg) {
     var ticking = false;
-    var update = function () {
+    var upd = function () {
       ticking = false;
-      var r = stage.getBoundingClientRect(), vh = window.innerHeight;
-      var p = (vh - r.top) / (vh * 0.75);
-      p = Math.max(0, Math.min(1, p));
-      stage.style.setProperty("--p", p.toFixed(3));
+      var y = Math.min(window.scrollY, window.innerHeight);
+      bg.style.setProperty("--py", (y * 0.18).toFixed(1) + "px");
     };
-    window.addEventListener("scroll", function () { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
-    window.addEventListener("resize", update);
-    update();
+    window.addEventListener("scroll", function () { if (!ticking) { ticking = true; requestAnimationFrame(upd); } }, { passive: true });
   }
-
 })();
 
 (function () {
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
-  /* 7. Live demo embeds: scale a full-size site into each device frame */
+  /* 5. Live demo embeds: scale a full-size site into the laptop screen */
   var lives = $$(".live");
   if (lives.length) {
     var fit = function (el) {
-      var f = el.querySelector("iframe"), w = Number(el.dataset.w);
-      if (f && w) el.style.setProperty("--s", (el.clientWidth / w).toFixed(4));
+      var w = Number(el.dataset.w);
+      if (w) el.style.setProperty("--s", (el.clientWidth / w).toFixed(4));
     };
     lives.forEach(function (el) {
       var f = el.querySelector("iframe");
-      if (f) f.addEventListener("load", function () { el.classList.add("ready"); });
+      if (f) f.addEventListener("load", function () { if (f.getAttribute("src")) el.classList.add("ready"); });
       fit(el);
     });
     if ("ResizeObserver" in window) { var ro = new ResizeObserver(function (en) { en.forEach(function (e) { fit(e.target); }); }); lives.forEach(function (el) { ro.observe(el); }); }
