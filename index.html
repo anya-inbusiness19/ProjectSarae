@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=10">
+<link rel="stylesheet" href="styles.css?v=11">
 </head>
 <body data-page="home">
 <div id="site-header"></div>
@@ -38,7 +38,7 @@
       <div class="screen"><div class="live " data-w="1440" data-h="900" style="--ar:1440/900"><img src="images/mock-salon.svg" alt="" class="live-poster"><iframe src="https://anya-inbusiness19.github.io/salon-demo/" title="Your Salon live demo" loading="eager" tabindex="-1" scrolling="no" width="1440" height="900"></iframe></div></div>
       <div class="base"></div>
     </div>
-    <div class="phone"><div class="live live-phone" data-w="390" data-h="844" style="--ar:390/844"><img src="images/mock-phone.svg" alt="" class="live-poster"><iframe src="https://anya-inbusiness19.github.io/salon-demo/" title="Your Salon live demo" loading="eager" tabindex="-1" scrolling="no" width="390" height="844"></iframe></div></div>
+    <div class="phone"><div class="live live-phone" data-w="390" data-h="844" style="--ar:390/844"><iframe src="https://anya-inbusiness19.github.io/salon-demo/" title="Your Salon live demo" loading="eager" tabindex="-1" scrolling="no" width="390" height="844"></iframe></div></div>
     </div>
   </div>
   <div class="wrap">
@@ -51,9 +51,9 @@
     <div class="wrap">
       <a href="#showcase">Showcase</a>
       <a href="#highlights">Highlights</a>
-      <a href="#why">Why a website</a>
+      <a href="#services">Services</a>
       <a href="#how">How it works</a>
-      <a href="#work">Work</a>
+      <a href="#work">Demo</a>
       <a href="#plans">Plans</a>
       <a href="#reviews">Reviews</a>
     </div>
@@ -61,7 +61,7 @@
 </section>
 
 <!-- Showcase: pinned laptop on computers, stacked on phones -->
-<section class="showcase" id="showcase" aria-label="Sample website concepts">
+<section class="showcase no-shots" id="showcase" aria-label="Sample website concepts">
   <div class="wrap-wide sc-grid">
     <div class="sc-steps">
       <div class="sc-intro">
@@ -72,19 +72,19 @@
         <span class="label-new">Real project</span>
         <h3 data-setting-text="work_1_title">College Meet Up</h3>
         <p>Built for students: sign-ups, profiles and matches with people who are free when you are.</p>
-        <img class="sc-inline" src="images/work-placeholder.svg" alt="College Meet Up website" data-setting="work_1" loading="lazy">
+        <img class="sc-inline" hidden alt="College Meet Up website" data-setting="work_1" loading="lazy">
       </article>
       <article class="sc-step" data-i="1">
         <span class="label-new">Real project</span>
         <h3 data-setting-text="work_2_title">Profile Webpage</h3>
         <p>A portfolio that feels like the artist: hand-drawn details, a featured project and an easy way to get in touch.</p>
-        <img class="sc-inline" src="images/work-placeholder.svg" alt="Profile Webpage website" data-setting="work_2" loading="lazy">
+        <img class="sc-inline" hidden alt="Profile Webpage website" data-setting="work_2" loading="lazy">
       </article>
       <article class="sc-step" data-i="2">
         <span class="label-new">Real project</span>
         <h3 data-setting-text="work_3_title">Clothing Brand</h3>
         <p>An editorial storefront for a women’s apparel line, with bold type and a shop that works on every screen.</p>
-        <img class="sc-inline" src="images/work-placeholder.svg" alt="Clothing Brand website" data-setting="work_3" loading="lazy">
+        <img class="sc-inline" hidden alt="Clothing Brand website" data-setting="work_3" loading="lazy">
       </article>
     </div>
     <div class="sc-stage" aria-hidden="true">
@@ -92,9 +92,9 @@
         <div class="laptop sc-laptop">
           <div class="screen">
             <div class="sc-screens">
-              <img src="images/work-placeholder.svg" alt="" data-setting="work_1" class="on">
-              <img src="images/work-placeholder.svg" alt="" data-setting="work_2">
-              <img src="images/work-placeholder.svg" alt="" data-setting="work_3">
+              <img hidden alt="" data-setting="work_1" class="on">
+              <img hidden alt="" data-setting="work_2">
+              <img hidden alt="" data-setting="work_3">
             </div>
           </div>
           <div class="base"></div>
@@ -109,7 +109,7 @@
 <section class="band" id="highlights">
   <div class="wrap head-row">
     <h2>Get the highlights.</h2>
-    <a class="text-link" href="services.html">Everything that’s included</a>
+    <a class="text-link" href="#services">Everything that’s included</a>
   </div>
   <div class="rail" id="rail">
     <article class="tile">
@@ -126,7 +126,13 @@
     <article class="tile">
       <h3>Made for the phone in their hand.</h3>
       <p>Every page is built mobile-first, then polished for tablets and desktops.</p>
-      <div class="art"><div class="mini-phone"><img src="images/mock-phone.svg" alt="A mobile bakery website with call, directions and menu buttons"></div></div>
+      <div class="art">
+        <div class="pay">
+          <div class="row"><span>Call now</span><b>Tap</b></div>
+          <div class="row"><span>Get directions</span><b>Tap</b></div>
+          <div class="go">Book online</div>
+        </div>
+      </div>
     </article>
     <article class="tile">
       <h3>Book and get paid online.</h3>
@@ -164,6 +170,25 @@
   <div class="wrap rail-controls">
     <button type="button" data-rail="-1" aria-label="Previous highlight">‹</button>
     <button type="button" data-rail="1" aria-label="Next highlight">›</button>
+  </div>
+</section>
+
+<!-- Services -->
+<section id="services">
+  <div class="wrap">
+    <div class="section-head center"><span class="eyebrow">Services</span><h2>Everything your business needs online.</h2><p>A professional website, plus the tools that turn visitors into booked customers. I set it all up and keep it running.</p></div>
+    <div class="grid g3">
+      <div class="card list-card"><div class="icon"><svg width="20" height="20"><use href="#i-phone"/></svg></div><div><h3>Website design</h3><p>A modern, mobile-friendly site with your services, prices, photos and hours.</p></div></div>
+      <div class="card list-card"><div class="icon"><svg width="20" height="20"><use href="#i-pin"/></svg></div><div><h3>Google Business Profile</h3><p>Set up or fixed so you show up on Google Maps with the right details.</p></div></div>
+      <div class="card list-card"><div class="icon"><svg width="20" height="20"><use href="#i-cal"/></svg></div><div><h3>Booking &amp; reminders</h3><p>Clients book 24/7 and get automatic reminders, so fewer no-shows.</p></div></div>
+      <div class="card list-card"><div class="icon"><svg width="20" height="20"><use href="#i-mail"/></svg></div><div><h3>Request review &amp; follow-ups</h3><p>Every request gets an instant reply, you get a summary, and anyone who doesn’t book gets a follow-up.</p></div></div>
+      <div class="card list-card"><div class="icon"><svg width="20" height="20"><use href="#i-repeat"/></svg></div><div><h3>Win back past clients</h3><p>Clients who haven’t been back in a while get a “we miss you” email with your offer.</p></div></div>
+      <div class="card list-card"><div class="icon"><svg width="20" height="20"><use href="#i-chat"/></svg></div><div><h3>Texts &amp; calls</h3><p>Automated texts and phone follow-ups for new requests.</p></div></div>
+      <div class="card list-card"><div class="icon"><svg width="20" height="20"><use href="#i-ig"/></svg></div><div><h3>Social media scheduling</h3><p>Send me your photos. I write captions and schedule your posts.</p></div></div>
+      <div class="card list-card"><div class="icon"><svg width="20" height="20"><use href="#i-chart"/></svg></div><div><h3>Reports</h3><p>A simple summary of your requests, bookings, follow-ups and reviews.</p></div></div>
+      <div class="card list-card"><div class="icon"><svg width="20" height="20"><use href="#i-card"/></svg></div><div><h3>Online payments</h3><p>Deposits and payments through Stripe or Square.</p></div></div>
+    </div>
+    <p class="fine" style="text-align:center">Some services come with your plan and others are add-ons. <a href="pricing.html">See pricing</a></p>
   </div>
 </section>
 
@@ -208,7 +233,6 @@
         <h2>Every detail, considered.</h2>
         <p>I bring the same eye I use for realistic portraits to your website: clean layouts, careful type, and photos that make your business look its best.</p>
         <p>Your first draft arrives within a few hours to a few days after you sign up, and I keep refining until it feels right.</p>
-        <div class="hero-actions" style="margin-top:26px"><a class="text-link" href="about.html">Meet A’Nya</a></div>
       </div>
       <div class="ed-media ed-photo"><img src="images/anya-photo.jpg" alt="A’Nya Hill, designer behind Project Sarae" loading="lazy"></div>
     </div>
@@ -218,16 +242,10 @@
 <!-- Work -->
 <section class="band" id="work">
   <div class="wrap head-row">
-    <h2>Recent work.</h2>
-    <a class="text-link" href="work.html">View all work</a>
+    <h2>Try a live demo.</h2>
   </div>
   <div class="wrap">
     <article class="live-feature reveal"><a class="lf-media" href="https://anya-inbusiness19.github.io/salon-demo/" target="_blank" rel="noopener" aria-label="Open the Your Salon live demo"><div class="laptop"><div class="screen"><div class="live " data-w="1440" data-h="900" style="--ar:1440/900"><img src="images/mock-salon.svg" alt="" class="live-poster"><iframe src="https://anya-inbusiness19.github.io/salon-demo/" title="Your Salon live demo" loading="lazy" tabindex="-1" scrolling="no" width="1440" height="900"></iframe></div></div><div class="base"></div></div></a><div class="lf-body"><span class="label-new">Live demo</span><h3>Your Salon — Book Online</h3><p>A full salon site with stylist menus, step-by-step online booking, a live chat helper and smooth animations throughout. Open it and try booking an appointment yourself.</p><div class="hero-actions"><a class="btn btn-primary" href="https://anya-inbusiness19.github.io/salon-demo/" target="_blank" rel="noopener" data-track="salon_demo">Visit the live site</a></div></div></article>
-    <div class="gallery">
-      <article class="shot"><div class="frame"><img src="images/work-placeholder.svg" alt="College meetup web app homepage" data-setting="work_1" loading="lazy"></div><div class="body"><h3 data-setting-text="work_1_title">College Meet Up</h3><p data-setting-text="work_1_desc">A web app for college students with sign-ups and profiles.</p></div></article>
-      <article class="shot"><div class="frame"><img src="images/work-placeholder.svg" alt="Artist profile webpage" data-setting="work_2" loading="lazy"></div><div class="body"><h3 data-setting-text="work_2_title">Profile Webpage</h3><p data-setting-text="work_2_desc">A personal portfolio site for an artist.</p></div></article>
-      <article class="shot"><div class="frame"><img src="images/work-placeholder.svg" alt="Clothing brand website" data-setting="work_3" loading="lazy"></div><div class="body"><h3 data-setting-text="work_3_title">Clothing Brand</h3><p data-setting-text="work_3_desc">An online store and brand showcase for women’s apparel.</p></div></article>
-    </div>
   </div>
 </section>
 
@@ -263,7 +281,7 @@
 <section class="band" id="reviews">
   <div class="wrap head-row">
     <h2>What clients say.</h2>
-    <a class="text-link" href="reviews.html">Read all reviews</a>
+    <a class="text-link" href="book.html#reviews">Read all reviews</a>
   </div>
   <div class="wrap">
     <div id="review-list" class="grid g3" data-limit="3"></div>
@@ -278,7 +296,7 @@
     <p>Book a free Zoom call. We’ll plan your site together, and your first draft follows soon after you sign up.</p>
     <div class="hero-actions center">
       <a class="btn btn-primary" href="book.html" data-track="cta_book">Book a free Zoom call</a>
-      <a class="text-link" href="work.html">See my work</a>
+      <a class="text-link" href="pricing.html">See pricing</a>
     </div>
   </div>
 </section>
@@ -286,7 +304,7 @@
 <div id="site-footer"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=6"></script>
-<script src="site.js?v=9"></script>
+<script src="site.js?v=11"></script>
   <script src="https://widgets.leadconnectorhq.com/loader.js" data-resources-url="https://widgets.leadconnectorhq.com/chat-widget/loader.js" data-widget-id="6adcce2b4e3a6a8f9516dea6" data-source="WEB_USER"></script>
 </body>
 </html>

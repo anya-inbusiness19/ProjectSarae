@@ -654,3 +654,12 @@ footer a:hover { color: var(--ink); }
 @media (prefers-reduced-motion: reduce) { .plan-glow, .plan.featured { animation: none; } }
 
 .ed-photo img { width: 100%; aspect-ratio: 4/3; object-fit: cover; object-position: 55% 40%; display: block; }
+
+/* Showcase without uploaded screenshots: simple 3-column list, no empty laptop */
+.showcase.no-shots .sc-stage, .showcase.no-shots .sc-inline { display: none !important; }
+.showcase.no-shots .sc-grid { display: block; }
+.showcase.no-shots .sc-intro { min-height: 0; }
+.showcase.no-shots .sc-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0 40px; }
+.showcase.no-shots .sc-intro { grid-column: 1 / -1; }
+.showcase.no-shots .sc-step { min-height: 0; opacity: 1; padding: 28px 0; border-top: 1px solid var(--hairline); display: block; }
+@media (min-width: 1024px) { .showcase.no-shots { padding: var(--section) 0; } }
