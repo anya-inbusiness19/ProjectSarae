@@ -13,11 +13,21 @@
     business: { name: "Business", monthly: 80,  yearly: 800 },
     pro:      { name: "Pro",      monthly: 120, yearly: 1200 }
   };
+  // monthly: true = billed every month with your plan; otherwise one-time
   var ADDONS = {
-    addonAccounts: { name: "Customer accounts / member area", price: 100 },
-    addonStore:    { name: "Online store", price: 150 }
+    addonGoogle:    { name: "Google Business Profile setup", price: 50 },
+    addonReminders: { name: "Appointment reminders setup", price: 40 },
+    addonFollowups: { name: "Request review & follow-ups", price: 25, monthly: true },
+    addonWinback:   { name: "Win back past clients", price: 25, monthly: true },
+    addonTexts:     { name: "Automated texts & calls", price: 30, monthly: true },
+    addonSocial:    { name: "Social media scheduling", price: 40, monthly: true },
+    addonReports:   { name: "Weekly reports", price: 10, monthly: true },
+    addonAccounts:  { name: "Customer accounts / member area", price: 100 },
+    addonStore:     { name: "Online store", price: 150 }
   };
   function money(n) { return "$" + n.toLocaleString("en-US"); }
+  function addonPrice(k) { return money(ADDONS[k].price) + (ADDONS[k].monthly ? "/month" : " one-time"); }
+  function monthlyAddonTotal(keys) { return keys.reduce(function (a, k) { return a + (ADDONS[k].monthly ? ADDONS[k].price : 0); }, 0); }
 
   /* ---------- Icons ---------- */
   var P = {
@@ -284,7 +294,7 @@
         '<div class="pay-buttons"></div>' +
         '<p class="fine">Payments are processed securely by Stripe. After today, your plan renews automatically ' + (per === "yearly" ? "each year" : "on the same date each month") + ". Questions? <a data-email></a></p></div>";
       $(".signed-line", box).textContent = "Agreement signed by " + inv.signed_name + ". You can read the full terms anytime on the Service Agreement page." +
-        (addons.length ? " Your add-ons are paid as a separate one-time payment." : "");
+        (addons.length ? " Each add-on has its own payment button below. Monthly add-ons renew each month with your plan." : "");
       var sum = $("#pay-sum");
       var line = function (label, amt, cls) {
         var d = document.createElement("div"); if (cls) d.className = cls;
@@ -293,7 +303,7 @@
         d.appendChild(a); d.appendChild(b); sum.appendChild(d);
       };
       line(plan.name + " plan (" + per + ")", money(plan[per]) + (per === "yearly" ? "/year" : "/month"));
-      addons.forEach(function (k) { line(ADDONS[k].name + " (one-time)", money(ADDONS[k].price)); });
+      addons.forEach(function (k) { line(ADDONS[k].name + (ADDONS[k].monthly ? " (monthly)" : " (one-time)"), addonPrice(k)); });
       line("Due today", money(total), "total");
       var pb = $(".pay-buttons", box);
       var addBtn = function (label, url, track_) {
@@ -307,7 +317,7 @@
       addBtn((n ? "Step 1: " : "") + "Pay " + money(planToday) + " for your plan", links && links.plan_url, "pay_" + inv.chosen_plan + "_" + per);
       addons.forEach(function (k, i) {
         var l = links && (links.addons || []).filter(function (x) { return x.key === k; })[0];
-        addBtn("Step " + (i + 2) + ": Pay " + money(ADDONS[k].price) + " for " + ADDONS[k].name.toLowerCase(), l && l.url, "pay_" + k);
+        addBtn("Step " + (i + 2) + ": Pay " + addonPrice(k) + " for " + ADDONS[k].name, l && l.url, "pay_" + k);
       });
       var em = $("[data-email]", box); if (C.email) { em.href = "mailto:" + C.email; em.textContent = C.email; }
     };
@@ -346,7 +356,7 @@
         lab.innerHTML = '<input type="checkbox"><span class="pick-name"></span><span class="pick-price"></span>';
         $("input", lab).value = k;
         $(".pick-name", lab).textContent = ADDONS[k].name;
-        $(".pick-price", lab).textContent = money(ADDONS[k].price) + " one-time";
+        $(".pick-price", lab).textContent = addonPrice(k);
         ap.appendChild(lab);
       });
       var update = function () {
@@ -367,13 +377,15 @@
         $("b", lines[0]).textContent = money(p[sel.period]);
         extra.forEach(function (k, i) {
           $("span", lines[1 + i]).textContent = ADDONS[k].name;
-          $("b", lines[1 + i]).textContent = money(ADDONS[k].price);
+          $("b", lines[1 + i]).textContent = addonPrice(k);
           today += ADDONS[k].price;
         });
         $("b", lines[lines.length - 1]).textContent = money(today);
         var after = $(".after", sum) || document.createElement("p");
         after.className = "fine after";
-        after.textContent = "Then " + money(p[sel.period]) + (sel.period === "yearly" ? " per year." : " per month.");
+        var monthlyExtra = monthlyAddonTotal(extra);
+        after.textContent = "Then " + money(p[sel.period]) + (sel.period === "yearly" ? " per year" : " per month") +
+          (monthlyExtra ? (sel.period === "yearly" ? ", plus " + money(monthlyExtra) + " per month for add-ons." : " for your plan + " + money(monthlyExtra) + " for add-ons (" + money(p.monthly + monthlyExtra) + " per month total).") : ".");
         sum.appendChild(after);
       };
       $$('input[name="plan"]', box).forEach(function (r) { r.addEventListener("change", function () { sel.plan = r.value; update(); }); });

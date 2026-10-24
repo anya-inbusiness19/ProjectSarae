@@ -238,7 +238,11 @@
     ["starterMonthly", "Starter monthly"], ["starterYearly", "Starter yearly"],
     ["businessMonthly", "Business monthly"], ["businessYearly", "Business yearly"],
     ["proMonthly", "Pro monthly"], ["proYearly", "Pro yearly"],
-    ["addonAccounts", "Member area add-on"], ["addonStore", "Online store add-on"]
+    ["addonGoogle", "Google Business Profile setup ($50 one-time)"], ["addonReminders", "Appointment reminders setup ($40 one-time)"],
+    ["addonFollowups", "Request review & follow-ups ($25/month)"], ["addonWinback", "Win back past clients ($25/month)"],
+    ["addonTexts", "Automated texts & calls ($30/month)"], ["addonSocial", "Social media scheduling ($40/month)"],
+    ["addonReports", "Weekly reports ($10/month)"],
+    ["addonAccounts", "Member area add-on ($100 one-time)"], ["addonStore", "Online store add-on ($150 one-time)"]
   ];
   function makeCode() {
     var chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789", out = "";

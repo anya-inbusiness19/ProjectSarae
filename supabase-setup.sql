@@ -149,7 +149,7 @@ begin
   if p_plan not in ('starter','business','pro') then raise exception 'invalid plan'; end if;
   if p_period not in ('monthly','yearly') then raise exception 'invalid period'; end if;
   if char_length(coalesce(trim(p_name), '')) < 2 or char_length(p_name) > 100 then raise exception 'invalid name'; end if;
-  if exists (select 1 from unnest(coalesce(p_addons, '{}')) a where a not in ('addonAccounts','addonStore')) then
+  if exists (select 1 from unnest(coalesce(p_addons, '{}')) a where a not in ('addonAccounts','addonStore','addonGoogle','addonReminders','addonFollowups','addonWinback','addonTexts','addonSocial','addonReports')) then
     raise exception 'invalid add-on';
   end if;
   update checkout_invites
