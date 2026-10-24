@@ -55,8 +55,7 @@
 
   /* ---------- Header & footer (same on every page) ---------- */
   var links = [
-    ["index.html", "Home", "home"], ["services.html", "Services", "services"], ["work.html", "Work", "work"],
-    ["pricing.html", "Pricing", "pricing"], ["about.html", "About", "about"], ["reviews.html", "Reviews", "reviews"]
+    ["index.html", "Home", "home"], ["pricing.html", "Pricing", "pricing"], ["book.html#reviews", "Reviews", "reviews"]
   ];
   var head = $("#site-header");
   if (head) {
@@ -128,7 +127,8 @@
         por.appendChild(img);
       }
       if ($("#about-text") && map.about_text) $("#about-text").textContent = map.about_text;
-      $$("[data-setting]").forEach(function (el) { var v = map[el.dataset.setting]; if (v) el.src = v; });
+      $$("[data-setting]").forEach(function (el) { var v = map[el.dataset.setting]; if (v) { el.src = v; el.hidden = false; } });
+      if (map.work_1 || map.work_2 || map.work_3) { var shw = $(".showcase"); if (shw) shw.classList.remove("no-shots"); }
       $$("[data-setting-text]").forEach(function (el) { var v = map[el.dataset.settingText]; if (v) el.textContent = v; });
     });
   }
