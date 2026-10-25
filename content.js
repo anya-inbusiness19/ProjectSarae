@@ -89,7 +89,7 @@ window.SITE_CONTENT = {
 
   plans: [
     { key: "starter", name: "Starter", monthly: 50, yearly: 500, badge: "",
-      features: ["Free projectsarae.com web address", "Fast, reliable hosting", "Contact form & Google Maps", "1 update per month"] },
+      features: ["Fast, reliable hosting", "Contact form & Google Maps", "1 update per month"] },
     { key: "business", name: "Business", monthly: 80, yearly: 800, badge: "Most popular",
       features: ["Your own domain (registered in your name)", "Online payments", "Booking and scheduling", "Live customer chat", "Up to 3 updates per month"] },
     { key: "pro", name: "Pro", monthly: 120, yearly: 1200, badge: "",
