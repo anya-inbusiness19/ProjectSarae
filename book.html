@@ -33,6 +33,21 @@
       <div class="card"><div class="n">2</div><h3>We meet</h3><p>About 30 minutes to plan your site and pick your plan and add-ons.</p></div>
       <div class="card"><div class="n">3</div><h3>Private checkout</h3><p>I send your personal link to sign and pay. It’s valid for 14 days.</p></div>
     </div>
+
+    <form id="lead-form" class="card review-form" style="margin-top:34px" novalidate>
+      <h3>Not ready to book yet?</h3>
+      <p>Leave your info and I’ll follow up by email with ideas for your website.</p>
+      <div class="grid g2" style="gap:0 20px">
+        <div><label for="l-name">Your name</label><input id="l-name" maxlength="80" required autocomplete="name"></div>
+        <div><label for="l-business">Business name <span style="font-weight:400;color:var(--steel)">(optional)</span></label><input id="l-business" maxlength="100" autocomplete="organization"></div>
+      </div>
+      <label for="l-email">Email</label>
+      <input id="l-email" type="email" maxlength="200" required autocomplete="email">
+      <div style="position:absolute;left:-9999px" aria-hidden="true"><label for="l-website">Leave this empty</label><input id="l-website" tabindex="-1" autocomplete="off"></div>
+      <button class="btn btn-primary" style="margin-top:18px" type="submit">Send my info</button>
+      <div class="msg" id="lead-msg" role="status"></div>
+      <p class="fine">By sending this, you agree to get emails from Project Sarae. You can unsubscribe anytime.</p>
+    </form>
   </div>
 </section>
 </main>
@@ -40,6 +55,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=6"></script>
 <script src="content.js?v=2"></script>
-<script src="site.js?v=12"></script>
+<script src="site.js?v=13"></script>
 </body>
 </html>

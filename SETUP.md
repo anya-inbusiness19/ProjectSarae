@@ -51,6 +51,18 @@ Without a link, checkout.html only says "Checkout opens after your Zoom call." Y
 3. Go to **Payment Links → New**. For each of the six plan links, add only the plan price (there is no setup fee). Make one link for each add-on.
 4. Paste the links into **Admin → Clients & checkout → Stripe payment links** and click **Save links**. Don't put them in config.js.
 
+## 4b. Brevo email list (free)
+The Booking page has a "Not ready to book yet?" form. It sends each person to your Brevo contact list through `functions/api/lead.js`, which runs on Cloudflare Pages.
+1. In Brevo, go to **Settings → SMTP & API → API keys → Generate a new API key**. Copy it.
+2. In Cloudflare, open your Pages project → **Settings → Variables and Secrets → Add**:
+   - `BREVO_API_KEY` = the key you copied (choose type **Secret**)
+   - `BREVO_LIST_ID` = the number of the Brevo list for new leads (find it in **Contacts → Lists**; "Your first list" is 2)
+3. Redeploy (Deployments → ⋯ → Retry deployment) so the settings take effect.
+4. In Brevo, create the contact attribute **COMPANY** (text) so business names save too.
+5. In Brevo **Automations**, start an automation with the trigger **Contact added to list** (your leads list) and add the Lead follow-up emails (templates 2.1–2.3).
+
+Never put the API key in `config.js` or any file in this repo.
+
 ## 5. Your admin page
 Go to `yoursite.com/admin.html` and sign in.
 - **Analytics:** visitors per day, where visitors came from, devices, plan choices, signed agreements, and pay clicks.

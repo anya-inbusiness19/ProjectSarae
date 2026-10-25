@@ -318,6 +318,37 @@
     booking.appendChild(pp);
   }
 
+  /* ---------- "Not ready to book?" lead form → Brevo (via /api/lead) ---------- */
+  var leadForm = $("#lead-form");
+  if (leadForm) {
+    leadForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var msg = $("#lead-msg");
+      var name = $("#l-name").value.trim(), email = $("#l-email").value.trim();
+      msg.className = "msg";
+      if (!name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        msg.className = "msg err"; msg.textContent = "Please add your name and a valid email."; return;
+      }
+      var btn = $("button[type=submit]", leadForm);
+      btn.disabled = true; btn.textContent = "Sending…";
+      fetch("/api/lead", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ name: name, email: email, business: $("#l-business").value.trim(), website: $("#l-website").value })
+      }).then(function (r) { return r.ok; }, function () { return false; }).then(function (ok) {
+        btn.disabled = false; btn.textContent = "Send my info";
+        if (!ok) {
+          msg.className = "msg err";
+          msg.textContent = "Something went wrong. Please email me at " + (C.email || "the address below") + ".";
+          return;
+        }
+        leadForm.reset();
+        msg.className = "msg ok"; msg.textContent = "Got it! Check your inbox. I’ll be in touch soon.";
+        track("lead_submitted");
+      });
+    });
+  }
+
   /* ---------- Reviews ---------- */
   function stars(n) { return "★★★★★".slice(0, n) + "☆☆☆☆☆".slice(0, 5 - n); }
   function reviewCard(r) {
