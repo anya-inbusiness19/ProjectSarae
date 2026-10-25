@@ -410,7 +410,7 @@
   }
 
   /* ---------- Clients & private checkout ---------- */
-  var PLAN_NAMES = { starter: "Starter", business: "Business", pro: "Pro" };
+  var PLAN_NAMES = { starter: "Essentials", business: "Growth", pro: "Premium" };
   try { savedList("plans").forEach(function (p) { PLAN_NAMES[p.key] = p.name; }); } catch (e) {}
   function linkKeys() {
     var plans = savedList("plans"), out = [];
