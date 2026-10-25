@@ -16,9 +16,9 @@ window.SITE_CONTENT = {
     { key: "announce_link", group: "home_top", label: "Announcement bar link text", type: "text", def: "Book now" },
     { key: "hero_photo", group: "home_top", label: "Background photo (top of homepage)", type: "image", def: "images/hero.jpg" },
     { key: "hero_kicker", group: "home_top", label: "Small line above the heading", type: "text", def: "Project Sarae Web Design" },
-    { key: "hero_title", group: "home_top", label: "Heading", type: "text", def: "More clients. Less work." },
+    { key: "hero_title", group: "home_top", label: "Heading", type: "text", def: "Your business. Beautifully online." },
     { key: "hero_sub", group: "home_top", label: "Subheading (what we do)", type: "textarea",
-      def: "AI-powered websites, lead generation, ads, and marketing automation for local businesses. We bring you more clients and follow up for you, so you never touch anything technical." },
+      def: "We design, launch, and maintain professional websites for local businesses, with online booking, payments, and follow-ups built in. You never touch anything technical." },
     { key: "hero_cta", group: "home_top", label: "Button text", type: "text", def: "Book a Zoom meeting" },
 
     // Homepage: live demo
@@ -40,10 +40,10 @@ window.SITE_CONTENT = {
     { key: "pricing_eyebrow", group: "pricing", label: "Small line above the heading", type: "text", def: "Transparent plans" },
     { key: "pricing_title", group: "pricing", label: "Heading", type: "text", def: "Pricing." },
     { key: "pricing_sub", group: "pricing", label: "Description", type: "textarea",
-      def: "Pick the growth plan that fits, or start with just a website. Book a free Zoom meeting first, and check out privately after we talk." },
-    { key: "addons_title", group: "pricing", label: "Add-ons heading", type: "text", def: "Website packages." },
+      def: "Pick the plan that fits, then add only the services you need. Book a free Zoom meeting first, and check out privately after we talk." },
+    { key: "addons_title", group: "pricing", label: "Add-ons heading", type: "text", def: "Add-on services." },
     { key: "addons_sub", group: "pricing", label: "Add-ons description", type: "textarea",
-      def: "Just need a website? Pick the AI-powered site, or go fully custom. Either one can be added to a plan too." },
+      def: "Add any of these to your plan. We’ll choose the right ones together on your Zoom meeting." },
 
     // Booking page
     { key: "book_eyebrow", group: "book", label: "Small line above the heading", type: "text", def: "Free consultation" },
@@ -62,9 +62,9 @@ window.SITE_CONTENT = {
 
   /* ---------- Sliding services bar (under the top section) ---------- */
   ticker: [
-    "AI-powered websites", "AI chatbot & employee", "Automation setup", "Referral programs",
-    "Local partnerships", "Google reviews", "Lead generation", "AI follow-up",
-    "Facebook ads", "AI UGC videos", "Marketing automation", "Google Ads", "Local Services Ads"
+    "Website design", "Google Business Profile setup", "Online booking", "Appointment reminders",
+    "Online payments", "Follow-up emails", "Win back past clients",
+    "Weekly reports", "Online store", "Member area"
   ],
 
   /* ---------- Benefits beside the laptop demo ---------- */
@@ -88,17 +88,22 @@ window.SITE_CONTENT = {
   setup_fee_text: "A one-time fee that covers designing, building, and launching your site. Paid once at checkout, then just your monthly plan.",
 
   plans: [
-    { key: "starter", name: "Essentials", monthly: 500, yearly: 5000, badge: "",
-      features: ["AI-powered website", "Website chatbot & AI employee that answers clients 24/7", "Basic automation setup (booking, reminders, follow-ups)", "Referral program", "Local partnership outreach", "Review collection on Google"] },
-    { key: "business", name: "Growth", monthly: 1500, yearly: 15000, badge: "Most popular",
-      features: ["Starting price, final quote on our Zoom call", "Everything in Essentials", "Lead generation with AI follow-up", "Facebook ads with AI-made UGC videos", "Complete marketing automation"] },
-    { key: "pro", name: "Premium", monthly: 2500, yearly: 25000, badge: "",
-      features: ["Starting price, final quote on our Zoom call", "Everything in Growth", "Google Ads management", "Google Local Services Ads (LSA)"] }
+    { key: "starter", name: "Starter", monthly: 50, yearly: 500, badge: "",
+      features: ["Free projectsarae.com web address", "Fast, reliable hosting", "Contact form & Google Maps", "1 update per month"] },
+    { key: "business", name: "Business", monthly: 80, yearly: 800, badge: "Most popular",
+      features: ["Your own domain (registered in your name)", "Online payments", "Booking and scheduling", "Live customer chat", "Up to 3 updates per month"] },
+    { key: "pro", name: "Pro", monthly: 120, yearly: 1200, badge: "",
+      features: ["Everything in Business", "Customer sign-ups & accounts", "Sales and money dashboard", "Up to 8 updates per month", "Same-day priority support"] }
   ],
 
   /* unit: "one-time", "month", or "setup" (one-time setup) */
   addons: [
-    { key: "addonAiWebsite", name: "AI-powered website", text: "A fast, professional site built with AI, with hosting, updates, and support included.", price: 150, unit: "month" },
-    { key: "addonCustomWebsite", name: "Custom-built website", text: "A fully custom site designed and developed from scratch around your business.", price: 5000, unit: "one-time" }
+    { key: "addon_gbp", name: "Google Business Profile setup", text: "Show up on Google Maps with the right hours, photos, and services.", price: 50, unit: "one-time" },
+    { key: "addon_reminders", name: "Appointment reminders", text: "Automatic email reminders before every appointment, so fewer no-shows.", price: 40, unit: "setup" },
+    { key: "addon_followups", name: "Request review & follow-ups", text: "Instant replies to every request, a summary for you, and follow-up emails for anyone who doesn’t book.", price: 25, unit: "month" },
+    { key: "addon_winback", name: "Win back past clients", text: "“We miss you” emails with your offer for clients who haven’t been back.", price: 25, unit: "month" },
+    { key: "addon_reports", name: "Weekly reports", text: "A short email every week with your requests, bookings, follow-ups, and reviews.", price: 10, unit: "month" },
+    { key: "addonAccounts", name: "Customer accounts / member area", text: "A private portal and member access for your customers.", price: 100, unit: "one-time" },
+    { key: "addonStore", name: "Online store", text: "Products, options, and a checkout cart.", price: 150, unit: "one-time" }
   ]
 };

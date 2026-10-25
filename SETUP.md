@@ -44,11 +44,9 @@ Without a link, checkout.html only says "Checkout opens after your Zoom call." Y
 ## 4. Stripe payment links (free to set up)
 1. Create a Stripe account and finish verification.
 2. Go to **Product catalog** and add:
-   - Essentials $500/month and $5,000/year (recurring)
-   - Growth $1,500/month and $15,000/year (recurring)
-   - Premium $2,500/month and $25,000/year (recurring)
-   - AI-powered website $150/month (recurring, add-on key addonAiWebsite)
-   - Custom-built website $5,000 (one-time, add-on key addonCustomWebsite)
+   - Starter $50/month and $500/year (recurring)
+   - Business $80/month and $800/year (recurring)
+   - Pro $120/month and $1,200/year (recurring)
    - Member area add-on $100 (one-time) and Online store add-on $150 (one-time)
 3. Go to **Payment Links → New**. For each of the six plan links, add only the plan price (there is no setup fee). Make one link for each add-on.
 4. Paste the links into **Admin → Clients & checkout → Stripe payment links** and click **Save links**. Don't put them in config.js.
