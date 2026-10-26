@@ -54,7 +54,7 @@ Without a link, checkout.html only says "Checkout opens after your Zoom call." Y
 ## 4b. Brevo email list (free)
 The Booking page has a "Not ready to book yet?" form. It sends each person straight to a Brevo form, so it works on GitHub Pages with no server and no API key.
 1. In Brevo, go to **Contacts → Forms**, open your website form, and pick the list for new leads.
-2. In that form, add the fields **FIRSTNAME**, **LASTNAME** and **COMPANY** (hide them if you like). Brevo only saves fields that are in the form.
+2. In that form, add the fields **FIRSTNAME** (gets the full name) and **COMPANY** (hide them if you like). Brevo only saves fields that are in the form.
 3. Copy the form's `action="https://...sibforms.com/serve/..."` link into `brevoFormUrl` in `config.js`.
 4. In Brevo **Automations**, start an automation with the trigger **Contact added to list** (your leads list) and add the Lead follow-up emails.
 

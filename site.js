@@ -333,11 +333,10 @@
       btn.disabled = true; btn.textContent = "Sending…";
       // Spam bots fill the hidden "website" field; pretend it worked and send nothing.
       var bot = $("#l-website") && $("#l-website").value;
-      var parts = name.split(/\s+/);
       var fields = new URLSearchParams();
       fields.append("EMAIL", email);
-      fields.append("FIRSTNAME", parts[0]);
-      fields.append("LASTNAME", parts.slice(1).join(" "));
+      // The Brevo form has a First Name field only, so the full name goes there.
+      fields.append("FIRSTNAME", name);
       var biz = $("#l-business") ? $("#l-business").value.trim() : "";
       if (biz) fields.append("COMPANY", biz);
       fields.append("email_address_check", "");
