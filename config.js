@@ -18,6 +18,9 @@ window.SITE_CONFIG = {
   supabaseUrl: "https://skxwnhlnzylworsfxluw.supabase.co",
   supabaseAnonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNreHduaGxuenlsd29yc2Z4bHV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0NzAxNTQsImV4cCI6MjEwNzA0NjE1NH0.dRl7RBB4NUwXeTKzOcUufnerjgwwGs03VkzJPC1MszE",
 
+  // --- Brevo "Not ready to book yet?" form (Brevo → Contacts → Forms → Share/Embed → form action URL) ---
+  brevoFormUrl: "https://cf8937b4.sibforms.com/serve/MUIFANGeBrLAHlKVtfGmEx7WtBrZJm8ozwyC5_xJtQZZcJ0orJDnP64g46fXp65XWiI47vIvf_YZ66LVja1nsERGKvfLkZQwe_ig0g2BrAatFuQ7jjZHZMK3TyOQZ-jLz7Hc42Z65sYYbOTqXTH75Eaqiqe_8pw7VIxKcEN23sALkRAT9zen-Ysc1VdxEnPU7WDKtFJOU4nCAH-gZA==",
+
   // --- Zoom booking (Cal.com or Calendly link) ---
   bookingLink: "https://cal.com/projectsarae/30min"   // e.g. "https://cal.com/anya-sarae/zoom-consultation"
 };

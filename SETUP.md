@@ -52,16 +52,13 @@ Without a link, checkout.html only says "Checkout opens after your Zoom call." Y
 4. Paste the links into **Admin → Clients & checkout → Stripe payment links** and click **Save links**. Don't put them in config.js.
 
 ## 4b. Brevo email list (free)
-The Booking page has a "Not ready to book yet?" form. It sends each person to your Brevo contact list through `functions/api/lead.js`, which runs on Cloudflare Pages.
-1. In Brevo, go to **Settings → SMTP & API → API keys → Generate a new API key**. Copy it.
-2. In Cloudflare, open your Pages project → **Settings → Variables and Secrets → Add**:
-   - `BREVO_API_KEY` = the key you copied (choose type **Secret**)
-   - `BREVO_LIST_ID` = the number of the Brevo list for new leads (find it in **Contacts → Lists**; "Your first list" is 2)
-3. Redeploy (Deployments → ⋯ → Retry deployment) so the settings take effect.
-4. In Brevo, create the contact attribute **COMPANY** (text) so business names save too.
-5. In Brevo **Automations**, start an automation with the trigger **Contact added to list** (your leads list) and add the Lead follow-up emails (templates 2.1–2.3).
+The Booking page has a "Not ready to book yet?" form. It sends each person straight to a Brevo form, so it works on GitHub Pages with no server and no API key.
+1. In Brevo, go to **Contacts → Forms**, open your website form, and pick the list for new leads.
+2. In that form, add the fields **FIRSTNAME**, **LASTNAME** and **COMPANY** (hide them if you like). Brevo only saves fields that are in the form.
+3. Copy the form's `action="https://...sibforms.com/serve/..."` link into `brevoFormUrl` in `config.js`.
+4. In Brevo **Automations**, start an automation with the trigger **Contact added to list** (your leads list) and add the Lead follow-up emails.
 
-Never put the API key in `config.js` or any file in this repo.
+(`functions/api/lead.js` is only used if you ever move the site to Cloudflare Pages.)
 
 ## 5. Your admin page
 Go to `yoursite.com/admin.html` and sign in.

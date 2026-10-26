@@ -318,7 +318,7 @@
     booking.appendChild(pp);
   }
 
-  /* ---------- "Not ready to book?" lead form → Brevo (via /api/lead) ---------- */
+  /* ---------- "Not ready to book?" lead form → Brevo (hosted Brevo form) ---------- */
   var leadForm = $("#lead-form");
   if (leadForm) {
     leadForm.addEventListener("submit", function (e) {
@@ -331,11 +331,24 @@
       }
       var btn = $("button[type=submit]", leadForm);
       btn.disabled = true; btn.textContent = "Sending…";
-      fetch("/api/lead", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ name: name, email: email, business: $("#l-business").value.trim(), website: $("#l-website").value })
-      }).then(function (r) { return r.ok; }, function () { return false; }).then(function (ok) {
+      // Spam bots fill the hidden "website" field; pretend it worked and send nothing.
+      var bot = $("#l-website") && $("#l-website").value;
+      var parts = name.split(/\s+/);
+      var fields = new URLSearchParams();
+      fields.append("EMAIL", email);
+      fields.append("FIRSTNAME", parts[0]);
+      fields.append("LASTNAME", parts.slice(1).join(" "));
+      var biz = $("#l-business") ? $("#l-business").value.trim() : "";
+      if (biz) fields.append("COMPANY", biz);
+      fields.append("email_address_check", "");
+      fields.append("locale", "en");
+      fields.append("html_type", "simple");
+      var send = bot ? Promise.resolve(true) : !C.brevoFormUrl ? Promise.resolve(false) :
+        // Brevo's form endpoint doesn't return a readable reply to other sites,
+        // so "no-cors" is used and a finished request counts as success.
+        fetch(C.brevoFormUrl, { method: "POST", mode: "no-cors", body: fields })
+          .then(function () { return true; }, function () { return false; });
+      send.then(function (ok) {
         btn.disabled = false; btn.textContent = "Send my info";
         if (!ok) {
           msg.className = "msg err";
