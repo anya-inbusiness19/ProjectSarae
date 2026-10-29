@@ -832,3 +832,12 @@ footer a:hover { color: var(--ink); }
   .ticker { overflow-x: auto; }
   .ticker-track .tk-set + .tk-set { display: none; }
 }
+
+/* FAQ */
+.faq { max-width: 820px; display: grid; gap: 12px; }
+.faq-item { background: var(--canvas); border-radius: var(--r-card); padding: 20px 24px; }
+.faq-item summary { cursor: pointer; font-weight: 600; font-size: 19px; list-style: none; display: flex; justify-content: space-between; gap: 16px; }
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::after { content: "+"; color: var(--slate); font-weight: 400; }
+.faq-item[open] summary::after { content: "−"; }
+.faq-item p { color: var(--slate); font-size: 17px; margin-top: 10px; }

@@ -15,10 +15,10 @@ window.SITE_CONTENT = {
       def: "Now booking new websites for this season · Free 30-minute Zoom consultation" },
     { key: "announce_link", group: "home_top", label: "Announcement bar link text", type: "text", def: "Book now" },
     { key: "hero_photo", group: "home_top", label: "Background photo (top of homepage)", type: "image", def: "images/hero.jpg" },
-    { key: "hero_kicker", group: "home_top", label: "Small line above the heading", type: "text", def: "Project Sarae Web Design" },
+    { key: "hero_kicker", group: "home_top", label: "Small line above the heading", type: "text", def: "Huntsville web design for salons & med spas" },
     { key: "hero_title", group: "home_top", label: "Heading", type: "text", def: "Your business. Beautifully online." },
     { key: "hero_sub", group: "home_top", label: "Subheading (what we do)", type: "textarea",
-      def: "We design, launch, and maintain professional websites for local businesses, with online booking, payments, and follow-ups built in. You never touch anything technical." },
+      def: "We design, launch, and maintain professional websites for hair salons, med spas, and local small businesses, with online booking, payments, and follow-ups built in. You never touch anything technical." },
     { key: "hero_cta", group: "home_top", label: "Button text", type: "text", def: "Book a Zoom meeting" },
 
     // Homepage: live demo
@@ -62,7 +62,7 @@ window.SITE_CONTENT = {
 
   /* ---------- Sliding services bar (under the top section) ---------- */
   ticker: [
-    "Website design", "Google Business Profile setup", "Online booking", "Appointment reminders",
+    "Custom website design", "Online booking websites", "Google Business Profile setup", "Appointment reminders",
     "Online payments", "Follow-up emails", "Win back past clients",
     "Weekly reports", "Online store", "Member area"
   ],
@@ -71,7 +71,7 @@ window.SITE_CONTENT = {
   benefits: [
     { title: "Designed around your business", text: "A custom layout with your colors, photos, services, and prices. Never a template that looks like everyone else." },
     { title: "Clients book while you work", text: "Online booking, reminders, and payments run around the clock, so fewer missed calls and no-shows." },
-    { title: "Found on Google", text: "Set up for local search and Google Maps, so nearby customers find you before a competitor." },
+    { title: "Found on Google", text: "Set up for local SEO and Google Maps, so people searching nearby find you before a competitor." },
     { title: "Changes in one text", text: "New hours, prices, or photos? Send them over and we update your site for you." },
     { title: "One simple monthly price", text: "Hosting, updates, and support are included, and your domain is registered in your name." }
   ],

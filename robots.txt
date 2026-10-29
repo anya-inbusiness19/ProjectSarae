@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /admin.html
+Disallow: /checkout.html
+
+Sitemap: https://projectsarae.site/sitemap.xml
