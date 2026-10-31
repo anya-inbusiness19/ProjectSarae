@@ -66,6 +66,29 @@
   .link-row { display: grid; grid-template-columns: 150px 1fr; gap: 10px; align-items: center; margin-top: 10px; }
   .link-row span { font-size: .85rem; font-weight: 700; color: var(--navy-3); }
   @media (max-width: 640px) { .link-row { grid-template-columns: 1fr; gap: 4px; } }
+  .tool-off { border: 1px dashed var(--line); border-radius: 16px; padding: 18px; background: var(--canvas); }
+  .tool-off b { color: var(--navy); }
+  .pipe { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin: 16px 0; }
+  @media (max-width: 800px) { .pipe { grid-template-columns: repeat(3, 1fr); } }
+  .pipe button { background: var(--canvas); border: 1px solid var(--line); border-radius: 14px; padding: 10px; font: inherit; cursor: pointer; text-align: left; }
+  .pipe button.on { border-color: var(--blue); box-shadow: 0 0 0 2px var(--blue-soft); }
+  .pipe .v { font-size: 1.4rem; font-weight: 800; display: block; }
+  .pipe .l { font-size: .75rem; color: var(--muted-2); font-weight: 700; }
+  .lead { display: grid; grid-template-columns: 1fr auto; gap: 12px; border-bottom: 1px solid var(--line); padding: 12px 0; }
+  .lead:last-child { border: 0; }
+  .lead .meta { font-size: .85rem; color: var(--muted-2); margin-top: 2px; }
+  .lead .actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; align-items: center; }
+  .lead .actions .btn { padding: 6px 11px; font-size: .82rem; }
+  .lead.due b.name::after { content: "Follow up"; font-size: .7rem; font-weight: 800; padding: 2px 8px; border-radius: 999px; margin-left: 8px; background: #FBEBD3; color: #9A6212; }
+  .scene { border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; background: var(--canvas); }
+  .scene .n { font-size: .75rem; font-weight: 800; color: var(--muted-2); text-transform: uppercase; letter-spacing: .06em; }
+  .copyable { display: flex; justify-content: space-between; gap: 10px; align-items: start; }
+  .copyable p { margin: 4px 0 0; }
+  .copyable .btn { padding: 5px 10px; font-size: .78rem; flex: none; }
+  .pay-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: .92rem; }
+  .pay-row:last-child { border: 0; }
+  .pay-row small { display: block; color: var(--muted-2); }
+  progress { width: 100%; height: 8px; }
 </style>
 </head>
 <body>
@@ -105,6 +128,9 @@
       <button data-tab="reviews">Reviews <span id="pending-badge"></span></button>
       <button data-tab="content">Site content</button>
       <button data-tab="pricing">Pricing &amp; add-ons</button>
+      <button data-tab="sales">Sales</button>
+      <button data-tab="outreach">Outreach</button>
+      <button data-tab="studio">Content Studio</button>
     </div>
 
     <!-- ANALYTICS -->
@@ -186,12 +212,138 @@
       <p class="muted" style="margin-bottom:16px">These prices show on your Pricing page and at private checkout. After you add a new add-on or set a setup fee, paste its Stripe link under <b>Clients &amp; checkout → Stripe payment links</b>.</p>
       <div id="pricing-cards" class="stack"></div>
     </section>
+
+    <!-- SALES -->
+    <section id="tab-sales" class="hidden" style="padding:0">
+      <div class="top">
+        <p class="muted">Live from your Stripe account. Read-only.</p>
+        <div style="display:flex;gap:8px;align-items:center">
+          <select id="s-range" aria-label="Date range">
+            <option value="7">Last 7 days</option>
+            <option value="30" selected>Last 30 days</option>
+            <option value="90">Last 90 days</option>
+            <option value="365">Last 12 months</option>
+          </select>
+          <button class="btn btn-ghost" id="s-refresh" style="padding:8px 14px">Refresh</button>
+        </div>
+      </div>
+      <div id="s-off" class="tool-off hidden"><b>Stripe isn’t connected yet.</b> Add <code>STRIPE_SECRET_KEY</code> in Supabase (SETUP-TOOLS.md, step 3).</div>
+      <div id="s-msg" class="msg" role="status"></div>
+      <div id="s-body" class="hidden">
+        <div class="kpis">
+          <div class="card kpi"><div class="v" id="s-gross">–</div><div class="l">Revenue</div></div>
+          <div class="card kpi"><div class="v" id="s-net">–</div><div class="l">After fees &amp; refunds</div></div>
+          <div class="card kpi"><div class="v" id="s-count">–</div><div class="l">Payments</div></div>
+          <div class="card kpi"><div class="v" id="s-mrr">–</div><div class="l">Monthly recurring</div></div>
+          <div class="card kpi"><div class="v" id="s-subs">–</div><div class="l">Active clients</div></div>
+          <div class="card kpi"><div class="v" id="s-bal">–</div><div class="l">Stripe balance</div></div>
+        </div>
+        <div class="card"><h3>Money in per day</h3><svg id="s-chart" class="chart" role="img" aria-label="Revenue per day"></svg></div>
+        <div class="grid g2" style="margin-top:18px;align-items:start">
+          <div class="card"><h3>Recent payments</h3><div id="s-recent" style="margin-top:8px"></div></div>
+          <div class="card"><h3>Active plans</h3><ul class="rows" id="s-plans"></ul>
+            <p class="hint" id="s-mode"></p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- OUTREACH -->
+    <section id="tab-outreach" class="hidden" style="padding:0">
+      <p class="muted">Track every business you contact. Emails open in your own inbox, one at a time, so they read like a real person wrote them.</p>
+      <div class="pipe" id="o-pipe"></div>
+      <div class="grid g2" style="align-items:start">
+        <form id="o-form" class="card">
+          <h3 id="o-form-title">Add a business</h3>
+          <input type="hidden" id="o-id">
+          <div class="ed-grid">
+            <div class="full"><label for="o-business">Business name</label><input id="o-business" maxlength="120" required></div>
+            <div><label for="o-contact">Owner / contact</label><input id="o-contact" maxlength="100"></div>
+            <div><label for="o-niche">Niche</label><input id="o-niche" maxlength="60" placeholder="Hair salon, med spa…"></div>
+            <div><label for="o-email">Email</label><input id="o-email" type="email" maxlength="200"></div>
+            <div><label for="o-phone">Phone</label><input id="o-phone" maxlength="40"></div>
+            <div><label for="o-ig">Instagram</label><input id="o-ig" maxlength="80" placeholder="handle"></div>
+            <div><label for="o-city">City</label><input id="o-city" maxlength="80"></div>
+            <div><label for="o-status">Stage</label><select id="o-status" style="width:100%"></select></div>
+            <div><label for="o-value">Deal value ($/mo)</label><input id="o-value" type="number" min="0" step="1"></div>
+            <div><label for="o-follow">Next follow-up</label><input id="o-follow" type="date"></div>
+            <div class="full"><label for="o-notes">Notes</label><textarea id="o-notes" rows="3" maxlength="2000"></textarea></div>
+          </div>
+          <div class="card-actions">
+            <button class="btn btn-primary" type="submit">Save</button>
+            <button class="btn btn-ghost hidden" type="button" id="o-cancel">Cancel</button>
+            <div class="msg" id="o-msg" role="status"></div>
+          </div>
+        </form>
+        <div class="card">
+          <h3>Cold email template</h3>
+          <p class="hint">Used when you click <b>Email</b>. {name}, {business} and {niche} fill in automatically. Keep your mailing address and the opt-out line; the CAN-SPAM law requires them.</p>
+          <label for="o-subj">Subject</label><input id="o-subj" maxlength="150">
+          <label for="o-tpl">Message</label><textarea id="o-tpl" rows="11" maxlength="3000"></textarea>
+          <div class="card-actions"><button class="btn btn-ghost" type="button" id="o-tpl-save">Save template</button><div class="msg" id="o-tpl-msg"></div></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:18px">
+        <div class="top"><h3 id="o-list-title">All businesses</h3><input id="o-search" placeholder="Search" style="max-width:220px"></div>
+        <div id="o-list" style="margin-top:8px"></div>
+      </div>
+    </section>
+
+    <!-- CONTENT STUDIO -->
+    <section id="tab-studio" class="hidden" style="padding:0">
+      <p class="muted">1. Write the script here → 2. make the clips in a free AI video app (Kling, Seedance, Pika) and edit in CapCut → 3. upload and post to Instagram here.</p>
+      <div class="grid g2" style="align-items:start;margin-top:16px">
+        <form id="c-form" class="card">
+          <h3>1 · Write a Reel script</h3>
+          <div id="c-ai-off" class="tool-off hidden" style="margin:10px 0"><b>AI writing isn’t connected yet.</b> Add a free <code>GEMINI_API_KEY</code> (SETUP-TOOLS.md, step 4).</div>
+          <label for="c-topic">What’s the video about?</label>
+          <textarea id="c-topic" rows="3" maxlength="400" required placeholder="A salon owner loses clients because people can’t book online at night"></textarea>
+          <label for="c-style">Character &amp; look (optional)</label>
+          <input id="c-style" maxlength="300" placeholder="Original 3D cartoon woman with curly hair, royal blue blazer, warm sunset light">
+          <label for="c-goal">Goal (optional)</label>
+          <input id="c-goal" maxlength="200" placeholder="Get salon owners to book a free website call">
+          <div class="card-actions"><button class="btn btn-primary" type="submit" id="c-go">Write it</button><div class="msg" id="c-msg" role="status"></div></div>
+          <div class="hint" style="margin-top:14px">Need a quick idea? <a href="#" data-idea="Before and after: a hair salon with no website vs. one with online booking">Before/after</a> · <a href="#" data-idea="3 signs your med spa is losing clients because of your website">3 signs</a> · <a href="#" data-idea="What happens when a customer finds your business on Google at 11pm">11pm customer</a> · <a href="#" data-idea="POV: you finally stop taking bookings in your DMs">POV: no more DMs</a></div>
+        </form>
+        <div class="card" id="c-out-card">
+          <h3>Your script</h3>
+          <div id="c-out"><p class="muted" style="margin-top:8px">Your hooks, scenes, caption and hashtags will show up here.</p></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h3>3 · Post to Instagram</h3>
+        <div id="c-ig-off" class="tool-off hidden" style="margin:10px 0"><b>Instagram isn’t connected yet.</b> Follow SETUP-TOOLS.md, step 5. You can still write scripts above.</div>
+        <p class="muted" id="c-ig-acct"></p>
+        <div class="grid g2" style="align-items:start">
+          <div>
+            <label for="c-file">Finished video (.mp4, under 50 MB, vertical 9:16) or a .jpg photo</label>
+            <input id="c-file" type="file" accept="video/mp4,video/quicktime,image/jpeg">
+            <p class="hint">Instagram Reels must be 3 seconds to 15 minutes. Your file is deleted from your storage after it posts.</p>
+          </div>
+          <div>
+            <label for="c-caption">Caption</label>
+            <textarea id="c-caption" rows="6" maxlength="2200"></textarea>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-primary" type="button" id="c-post">Post to Instagram</button>
+          <div class="msg" id="c-post-msg" role="status"></div>
+        </div>
+        <progress id="c-prog" class="hidden" max="100" value="0"></progress>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h3>Saved scripts &amp; posts</h3>
+        <div id="c-history" style="margin-top:8px"></div>
+      </div>
+    </section>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=6"></script>
 <script src="content.js?v=3"></script>
-<script src="admin.js?v=12"></script>
+<script src="admin.js?v=13"></script>
+<script src="admin-tools.js?v=1"></script>
 </body>
 </html>

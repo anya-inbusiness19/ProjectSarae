@@ -23,6 +23,8 @@
     }
     show($("#login"), false); show($("#dash"), true); show($("#logout"), true);
     loadAnalytics(); loadReviews(); loadInvites(); loadSettings().then(loadLinks);
+    window.PS_ADMIN = { sb: sb };
+    document.dispatchEvent(new Event("ps-admin-ready"));
   }
   $("#login").addEventListener("submit", async function (e) {
     e.preventDefault();
@@ -37,7 +39,7 @@
   $$(".tabs button").forEach(function (b) {
     b.addEventListener("click", function () {
       $$(".tabs button").forEach(function (x) { x.classList.toggle("on", x === b); });
-      ["analytics", "clients", "reviews", "content", "pricing"].forEach(function (t) { show($("#tab-" + t), t === b.dataset.tab); });
+      $$(".tabs button").forEach(function (x) { show($("#tab-" + x.dataset.tab), x === b); });
     });
   });
 
