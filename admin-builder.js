@@ -48,7 +48,12 @@
 
     async function api(action, payload) {
       var r = await sb.functions.invoke("admin-api", { body: Object.assign({ action: action }, payload || {}) });
-      if (r.error) return { error: "The admin API isn’t set up yet (SETUP-TOOLS.md, step 2)." };
+      if (r.error) {
+        var msg = "";
+        try { var body = await r.error.context.json(); msg = body && (body.error || body.message); } catch (e) {}
+        if (msg === "Unknown action") msg = "Your admin-api function is the old version. Redeploy it with the new code (SETUP-BUILDER.md, step 2).";
+        return { error: msg || "Couldn’t reach the admin API (" + (r.error.message || "network error") + "). Check that admin-api is deployed." };
+      }
       return r.data || {};
     }
     function blank() {
@@ -398,7 +403,7 @@
       if (!status.gemini) { say("#b-ai-msg", "Connect Gemini first (SETUP-TOOLS.md, step 4).", "err"); return; }
       if (!list.length) { say("#b-ai-msg", "Every page is already written. Use Rewrite to redo them.", "ok"); return; }
       busy = true; var prog = $("#b-prog"); prog.classList.remove("hidden"); prog.value = 0;
-      var titles = st.pages.map(function (p) { return p.title; }), done = 0, failed = 0;
+      var titles = st.pages.map(function (p) { return p.title; }), done = 0, failed = 0, lastErr = "";
       for (var i = 0; i < list.length; i++) {
         var p = list[i]; say("#b-ai-msg", "Writing “" + p.title + "” (" + (i + 1) + " of " + list.length + ")…");
         var tries = 0, ok = false;
@@ -406,7 +411,12 @@
           tries++;
           var r = await api("build_page", { site: st, page: { title: p.title, type: p.type, brief: p.brief }, pages: titles });
           if (r.rateLimited) { say("#b-ai-msg", "Gemini’s free limit is catching its breath. Waiting 40 seconds, then continuing…"); await sleep(40000); continue; }
-          if (r.error || !r.hero) { if (tries >= 2) { failed++; break; } await sleep(4000); continue; }
+          if (r.notConnected) { lastErr = "GEMINI_API_KEY isn’t set in Supabase secrets."; failed = list.length - done; i = list.length; break; }
+          if (r.error || !r.hero) {
+            lastErr = r.error || "Gemini sent back an empty page.";
+            if (/admin-api|Redeploy|API key|API_KEY|not found|permission|billing/i.test(lastErr)) { failed = list.length - done; i = list.length; break; }
+            if (tries >= 2) { failed++; break; } await sleep(4000); continue;
+          }
           var d = B.defaultSections(st, p, r); p.sections = d.sections; p.meta = d.meta; p.written = true; ok = true; done++;
         }
         prog.value = Math.round((i + 1) / list.length * 100);
@@ -415,7 +425,7 @@
       }
       busy = false; prog.classList.add("hidden");
       await save(true);
-      say("#b-ai-msg", done + " page" + (done === 1 ? "" : "s") + " written" + (failed ? ", " + failed + " couldn’t be written (try “Write” on those again)" : "") + ". Saved.", failed ? "err" : "ok");
+      say("#b-ai-msg", done + " page" + (done === 1 ? "" : "s") + " written" + (failed ? ", " + failed + " couldn’t be written" : "") + ". " + (lastErr && failed ? "Reason: " + lastErr : "Saved."), failed ? "err" : "ok");
     }
 
     /* ---------------- Visual editor ---------------- */
