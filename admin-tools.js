@@ -496,11 +496,44 @@
       var btn = $("#c-go"); btn.disabled = true; say("#c-msg", "Writing your post and drawing the images…");
       var payload = { topic: $("#c-topic").value, format: $("#c-format").value, goal: $("#c-goal").value,
         platform: $("#c-platform").value, photos: $("#c-photos").checked, look: $("#c-look").value };
-      var d = await api("generate", payload);
+      // Gemini sometimes shapes its JSON differently (a bare list of slides, or slides nested
+      // under another key). Find the slides wherever they are, and retry once before giving up.
+      function isSlideList(a) { return Array.isArray(a) && a.length && a.every(function (x) { return x && typeof x === "object" && (x.headline || x.title || x.text); }); }
+      function findSlides(o, depth) {
+        if (!o || typeof o !== "object" || depth > 4) return null;
+        if (isSlideList(o)) return o;
+        if (Array.isArray(o)) { for (var i = 0; i < o.length; i++) { var a = findSlides(o[i], depth + 1); if (a) return a; } return null; }
+        for (var k in o) { if (/slide/i.test(k) && isSlideList(o[k])) return o[k]; }
+        for (var k2 in o) { var b = findSlides(o[k2], depth + 1); if (b) return b; }
+        return null;
+      }
+      function normalize(raw) {
+        if (!raw || raw.error || raw.notConnected) return raw || {};
+        var d = Array.isArray(raw) ? (isSlideList(raw) ? { slides: raw } : (raw[0] || {})) : raw;
+        if (!isSlideList(d.slides)) {
+          var found = findSlides(d, 0);
+          var holder = found && !Array.isArray(d) ? (Object.keys(d).map(function (k) { return d[k]; }).filter(function (v) { return v && v.slides === found; })[0]) : null;
+          if (holder) d = Object.assign({}, holder, d);
+          d.slides = found || [];
+        }
+        d.slides = d.slides.map(function (s) {
+          return { kind: s.kind || "point", kicker: s.kicker || "", headline: s.headline || s.title || s.text || "",
+            body: s.body || s.subline || s.description || "", image_prompt: s.image_prompt };
+        });
+        if (d.slides.length) d.slides[0].kind = "cover";
+        if (!Array.isArray(d.hashtags)) d.hashtags = typeof d.hashtags === "string" ? d.hashtags.split(/[\s,]+/).map(function (h) { return h.replace(/^#/, ""); }).filter(Boolean) : [];
+        if (!Array.isArray(d.hooks)) d.hooks = [];
+        return d;
+      }
+      var d = normalize(await api("generate", payload));
+      if (!d.error && !d.notConnected && !d.slides.length) {
+        say("#c-msg", "The AI’s first try came back empty. Trying once more…");
+        d = normalize(await api("generate", payload));
+      }
       btn.disabled = false;
       if (d.notConnected) { show($("#c-ai-off"), true); say("#c-msg", ""); return; }
       if (d.error) { say("#c-msg", d.error, "err"); return; }
-      if (!d.slides || !d.slides.length) { say("#c-msg", "The AI didn’t return any slides. Try again.", "err"); return; }
+      if (!d.slides || !d.slides.length) { say("#c-msg", "The AI didn’t return any slides after two tries. Try a shorter topic or a different format.", "err"); return; }
       d.slides = d.slides.slice(0, 10);
       d.type = "photo"; d.platform = payload.platform; d.photos = payload.photos;
       if (d.photos) d.slides.forEach(function (sl) { if (sl.image_prompt == null) sl.image_prompt = ""; });
