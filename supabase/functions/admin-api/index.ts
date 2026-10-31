@@ -12,6 +12,7 @@
 //   IG_ACCESS_TOKEN     long-lived Instagram/Meta access token
 //   META_GRAPH_HOST     optional: graph.facebook.com (default) or graph.instagram.com
 //   META_API_VERSION    optional, defaults to v23.0
+//   GITHUB_TOKEN        fine-grained GitHub token (Site Builder publishing)
 // =========================================================
 import { createClient } from "npm:@supabase/supabase-js@2";
 
@@ -121,6 +122,134 @@ Return JSON only, with this shape:
   catch { throw new Error("The AI reply wasn't in the right format. Try again."); }
 }
 
+// ---------- Site Builder: Gemini writes one page at a time ----------
+async function gemini(prompt: string, temperature = 0.7) {
+  const model = env("GEMINI_MODEL", "gemini-3.8-flash");
+  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-goog-api-key": env("GEMINI_API_KEY") },
+    body: JSON.stringify({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: "application/json", temperature },
+    }),
+  });
+  const data = await r.json();
+  if (r.status === 429) throw new Error("RATE_LIMIT");
+  if (!r.ok) throw new Error(data?.error?.message || `Gemini error ${r.status}`);
+  const text = data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text || "").join("") || "";
+  try { return JSON.parse(text.replace(/^```(json)?|```$/g, "").trim()); }
+  catch { throw new Error("The AI reply wasn't in the right format. Try again."); }
+}
+
+async function buildPage(body: any) {
+  const s = body.site || {}, p = body.page || {};
+  const facts = {
+    business: clean(s.business, 120), niche: clean(s.niche, 80), city: clean(s.city, 80),
+    tagline: clean(s.tagline, 200), about: clean(s.about, 1500), audience: clean(s.audience, 300),
+    tone: clean(s.tone, 120), services: clean(s.servicesText, 2500), hours: clean(s.hoursText, 400),
+    extra: clean(s.extra, 1500),
+  };
+  const page = { title: clean(p.title, 80), type: clean(p.type, 30), brief: clean(p.brief, 400) };
+  const others = (Array.isArray(body.pages) ? body.pages : []).slice(0, 40).map((x: unknown) => clean(x, 60)).join(", ");
+  if (!facts.business || !page.title) throw new Error("Business name and page title are required.");
+  const prompt = `You are writing website copy for a real local small business. Write ONE page.
+BUSINESS FACTS (the only facts you may use):
+${JSON.stringify(facts, null, 1)}
+PAGE: "${page.title}" (type: ${page.type})${page.brief ? `\nWhat this page should cover: ${page.brief}` : ""}
+Other pages on the site: ${others}
+
+Rules:
+- Tone: ${facts.tone || "warm, professional, confident"}. Plain, specific language. No clichés like "look no further" or "elevate".
+- NEVER invent prices, years in business, awards, certifications, licenses, staff names, statistics, guarantees, or testimonials. If a detail isn't in the facts, write around it.
+- Don't write contact details, hours, prices, forms, maps, or booking widgets: the site adds those automatically.
+- Write for ${facts.city || "local"} customers. Short paragraphs. 250-600 words total.
+Return JSON only:
+{"meta_description": string under 155 chars,
+ "hero": {"eyebrow": string under 6 words, "title": string under 10 words, "sub": string under 35 words},
+ "sections": [2 to 5 objects, each one of:
+   {"kind":"text","heading":string,"body":string (paragraphs separated by \\n\\n)}
+   {"kind":"cards","heading":string,"intro":string,"items":[3-6 {"title":string,"text":string}]}
+   {"kind":"steps","heading":string,"items":[3-5 {"title":string,"text":string}]}
+   {"kind":"faq","heading":string,"items":[4-8 {"q":string,"a":string}]}
+   {"kind":"split","heading":string,"body":string,"bullets":[3-6 strings]}
+ ]}`;
+  return await gemini(prompt, 0.7);
+}
+
+// ---------- Site Builder: publish to GitHub Pages ----------
+async function gh(method: string, path: string, payload?: unknown, okStatuses: number[] = []) {
+  const r = await fetch(`https://api.github.com${path}`, {
+    method,
+    headers: {
+      Authorization: `Bearer ${env("GITHUB_TOKEN")}`, Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28", "User-Agent": "project-sarae-admin",
+      ...(payload ? { "content-type": "application/json" } : {}),
+    },
+    body: payload ? JSON.stringify(payload) : undefined,
+  });
+  const text = await r.text();
+  let data: any = {};
+  try { data = text ? JSON.parse(text) : {}; } catch { data = {}; }
+  if (!r.ok && !okStatuses.includes(r.status)) {
+    throw new Error(`GitHub: ${data?.message || r.status}${data?.errors?.[0]?.message ? " (" + data.errors[0].message + ")" : ""}`);
+  }
+  return { status: r.status, data };
+}
+const wait = (ms: number) => new Promise((res) => setTimeout(res, ms));
+
+async function publish(body: any) {
+  const repo = clean(body.repo, 100).toLowerCase();
+  if (!/^[a-z0-9][a-z0-9._-]{0,99}$/.test(repo)) throw new Error("Repo name can only use letters, numbers, - and _.");
+  const files = body.files && typeof body.files === "object" ? body.files : {};
+  const paths = Object.keys(files);
+  if (!paths.length || paths.length > 120) throw new Error("Nothing to publish.");
+  let total = 0;
+  for (const p of paths) {
+    if (!/^(CNAME|\.nojekyll|[a-z0-9][a-z0-9_\-/]*\.(html|css|js|txt|xml|json|svg))$/.test(p)) throw new Error(`Bad file name: ${p}`);
+    total += String(files[p]).length;
+  }
+  if (total > 4_000_000) throw new Error("Site is too big to publish in one go.");
+
+  const me = (await gh("GET", "/user")).data;
+  const owner = me.login;
+  const exists = await gh("GET", `/repos/${owner}/${repo}`, undefined, [404]);
+  if (exists.status === 404) {
+    await gh("POST", "/user/repos", {
+      name: repo, description: clean(body.description, 200), homepage: "",
+      private: false, auto_init: true, has_issues: false, has_wiki: false, has_projects: false,
+    });
+  }
+  // Wait for the first commit to exist (brand-new repos take a moment).
+  let ref: any = null;
+  for (let i = 0; i < 8 && !ref; i++) {
+    const r = await gh("GET", `/repos/${owner}/${repo}/git/ref/heads/main`, undefined, [404, 409]);
+    if (r.status === 200) ref = r.data; else await wait(1500);
+  }
+  if (!ref) throw new Error("GitHub didn't finish creating the repo. Wait a minute and publish again.");
+  const parentSha = ref.object.sha;
+  const parent = (await gh("GET", `/repos/${owner}/${repo}/git/commits/${parentSha}`)).data;
+
+  // Replace the whole site in one commit (old pages you removed are deleted).
+  const tree = (await gh("POST", `/repos/${owner}/${repo}/git/trees`, {
+    tree: paths.map((p) => ({ path: p, mode: "100644", type: "blob", content: String(files[p]) })),
+  })).data;
+  const commit = (await gh("POST", `/repos/${owner}/${repo}/git/commits`, {
+    message: clean(body.message, 200) || "Publish site from Project Sarae admin", tree: tree.sha, parents: [parent.sha],
+  })).data;
+  await gh("PATCH", `/repos/${owner}/${repo}/git/refs/heads/main`, { sha: commit.sha, force: true });
+
+  // Turn on GitHub Pages (409 = already on).
+  await gh("POST", `/repos/${owner}/${repo}/pages`, { source: { branch: "main", path: "/" } }, [409]);
+  const cname = clean(body.cname, 120).toLowerCase();
+  if (cname) await gh("PUT", `/repos/${owner}/${repo}/pages`, { cname, source: { branch: "main", path: "/" } }, [400, 422]);
+
+  return {
+    owner, repo, repoUrl: `https://github.com/${owner}/${repo}`,
+    liveUrl: cname ? `https://${cname}/` : `https://${owner}.github.io/${repo}/`,
+    pagesUrl: `https://${owner}.github.io/${repo}/`,
+  };
+}
+
 // ---------- Instagram publishing ----------
 function graph(path: string) {
   return `https://${env("META_GRAPH_HOST", "graph.facebook.com")}/${env("META_API_VERSION", "v23.0")}/${path}`;
@@ -154,7 +283,15 @@ Deno.serve(async (req) => {
         return json(200, {
           stripe: !!env("STRIPE_SECRET_KEY"), gemini: !!env("GEMINI_API_KEY"),
           instagram: !!(env("IG_USER_ID") && env("IG_ACCESS_TOKEN")),
+          github: !!env("GITHUB_TOKEN"),
         });
+      case "build_page":
+        if (!env("GEMINI_API_KEY")) return json(200, { notConnected: true });
+        try { return json(200, await buildPage(body)); }
+        catch (e) { if ((e as Error).message === "RATE_LIMIT") return json(200, { rateLimited: true }); throw e; }
+      case "gh_publish":
+        if (!env("GITHUB_TOKEN")) return json(200, { notConnected: true });
+        return json(200, await publish(body));
       case "sales": {
         if (!env("STRIPE_SECRET_KEY")) return json(200, { notConnected: true });
         const days = [7, 30, 90, 365].includes(+body.days) ? +body.days : 30;

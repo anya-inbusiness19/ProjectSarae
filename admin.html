@@ -89,6 +89,7 @@
   .pay-row:last-child { border: 0; }
   .pay-row small { display: block; color: var(--muted-2); }
   progress { width: 100%; height: 8px; }
+  @media (max-width: 760px) { #b-pages .pg > div:first-child { grid-template-columns: 1fr !important; } }
 </style>
 </head>
 <body>
@@ -131,6 +132,7 @@
       <button data-tab="sales">Sales</button>
       <button data-tab="outreach">Outreach</button>
       <button data-tab="studio">Content Studio</button>
+      <button data-tab="builder">Site Builder</button>
     </div>
 
     <!-- ANALYTICS -->
@@ -337,6 +339,9 @@
         <div id="c-history" style="margin-top:8px"></div>
       </div>
     </section>
+
+    <!-- SITE BUILDER (filled in by admin-builder.js) -->
+    <section id="tab-builder" class="hidden" style="padding:0"></section>
   </div>
 </div>
 
@@ -345,5 +350,7 @@
 <script src="content.js?v=3"></script>
 <script src="admin.js?v=13"></script>
 <script src="admin-tools.js?v=1"></script>
+<script src="builder-generator.js?v=1"></script>
+<script src="admin-builder.js?v=1"></script>
 </body>
 </html>
