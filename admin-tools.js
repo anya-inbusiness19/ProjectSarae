@@ -509,6 +509,7 @@
       }
       function normalize(raw) {
         if (!raw || raw.error || raw.notConnected) return raw || {};
+        if (raw.scenes && !raw.slides) return { error: "Your Supabase admin-api is still the old video-script version. Redeploy it: Supabase → Edge Functions → admin-api → Code, paste the latest supabase/functions/admin-api/index.ts from GitHub, click Deploy." };
         var d = Array.isArray(raw) ? (isSlideList(raw) ? { slides: raw } : (raw[0] || {})) : raw;
         if (!isSlideList(d.slides)) {
           var found = findSlides(d, 0);
