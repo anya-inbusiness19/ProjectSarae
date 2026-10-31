@@ -53,6 +53,18 @@ You don't need Meta's app review, because you're only posting to your own accoun
 
 ---
 
+## 6. Content Studio, free AI photos: Cloudflare (5 minutes, free)
+Puts a real-looking AI photo behind every slide. Cloudflare's free plan covers about 150 photos a day (resets at 5pm Pacific).
+1. Go to **dash.cloudflare.com** and sign in (the same account you use for your Brevo form is fine).
+2. **Account ID:** on the account home page, click the **⋯** next to your account name → **Copy account ID**. (It's also shown on **Workers & Pages** → right side.)
+3. **Token:** profile icon (top right) → **My Profile** → **API Tokens** → **Create Token** → find the **Workers AI** template → **Use template** → **Continue to summary** → **Create Token** → copy it.
+4. In Supabase Secrets, add:
+   - `CF_ACCOUNT_ID` = the account ID
+   - `CF_AI_TOKEN` = the token
+5. Redeploy `admin-api` with the latest `supabase/functions/admin-api/index.ts`.
+
+**TikTok:** pick "TikTok photo mode (9:16)", make the post, then **Download all images**, send them to your phone, and in TikTok tap **+ → Photo** and pick them in order. TikTok only lets apps it has reviewed post photo carousels for you, so this last step is by hand. "Make an Instagram (4:5) version" redraws the same post for Instagram, and that one can post straight from here.
+
 ## How to use it
 
 **Sales:** revenue, money after fees, monthly recurring, active clients, Stripe balance, and recent payments.

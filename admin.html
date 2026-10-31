@@ -299,7 +299,7 @@
 
     <!-- CONTENT STUDIO -->
     <section id="tab-studio" class="hidden" style="padding:0">
-      <p class="muted">1. Tell the AI what the post is about → 2. it writes the post and draws branded images (1080×1350) → 3. tweak the words, then download or post the carousel straight to Instagram.</p>
+      <p class="muted">1. Tell the AI what the post is about → 2. it writes the post, makes free AI photos, and draws the slides (TikTok 9:16 or Instagram 4:5) → 3. tweak the words, then download for TikTok or post the carousel straight to Instagram.</p>
       <div class="grid g2" style="align-items:start;margin-top:16px">
         <form id="c-form" class="card">
           <h3>1 · Make a viral photo post</h3>
@@ -315,6 +315,22 @@
             <option value="signs">“Signs your business needs…” checklist</option>
             <option value="pov">POV / relatable moment (most shared)</option>
             <option value="quote">Single bold statement (one image)</option>
+          </select>
+          <label for="c-platform">Where are you posting?</label>
+          <select id="c-platform" style="width:100%">
+            <option value="tiktok">TikTok photo mode (9:16, 1080×1920)</option>
+            <option value="instagram">Instagram carousel (4:5, 1080×1350)</option>
+          </select>
+          <label style="display:flex;gap:8px;align-items:center;margin-top:14px;font-weight:700"><input type="checkbox" id="c-photos" style="width:auto" checked> Put a free AI photo behind every slide</label>
+          <div id="c-img-off" class="tool-off hidden" style="margin:8px 0"><b>AI photos aren’t connected yet.</b> Add your free Cloudflare keys (SETUP-TOOLS.md, step 6). Until then slides use your brand colors.</div>
+          <label for="c-look">Photo style</label>
+          <select id="c-look" style="width:100%">
+            <option value="bright, candid lifestyle photography, natural light, shallow depth of field, shot on iPhone">Real &amp; candid (iPhone look, best for TikTok)</option>
+            <option value="moody luxury editorial photography, dark tones, warm highlights, cinematic">Moody luxury</option>
+            <option value="clean minimal studio photography, soft pastel background, soft shadows">Clean &amp; minimal</option>
+            <option value="warm golden-hour photography, glowing sunlight, cozy feel">Golden hour</option>
+            <option value="aesthetic overhead flat-lay photography, neutral tones, tidy arrangement">Aesthetic flat-lay</option>
+            <option value="cute original 3D cartoon render, soft lighting, pastel colors, Pixar-like quality but an original character">3D cartoon (original characters)</option>
           </select>
           <label for="c-goal">Goal (optional)</label>
           <input id="c-goal" maxlength="200" placeholder="Get salon owners to book a free website call">
@@ -368,7 +384,7 @@
 <script src="config.js?v=6"></script>
 <script src="content.js?v=3"></script>
 <script src="admin.js?v=13"></script>
-<script src="admin-tools.js?v=2"></script>
+<script src="admin-tools.js?v=3"></script>
 <script src="builder-generator.js?v=2"></script>
 <script src="site-editor.js?v=1"></script>
 <script src="store-admin.js?v=1"></script>

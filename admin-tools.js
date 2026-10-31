@@ -218,8 +218,8 @@
     });
 
     /* =================== CONTENT STUDIO (photo posts) =================== */
-    var lastPost = null, slideBlobs = [], bgImg = null;
-    var W = 1080, H = 1350;
+    var lastPost = null, slideBlobs = [], bgImg = null, imagesOn = false;
+    var W = 1080, H = 1350, TT = false; // TT = TikTok 9:16 layout
     var BRAND = { blue: "#151581", blueDark: "#0C0C55", creme: "#FBF7F0", ink: "#111111", slate: "#3D3D3D", gold: "#C2A878", handle: "@official.projectsarae" };
     var DISPLAY = '"Playfair Display", "Times New Roman", serif', TEXT = '"Times New Roman", Times, serif';
     var logos = {};
@@ -230,6 +230,7 @@
       var s = await api("status");
       if (s.error) { say("#c-msg", s.error, "err"); return; }
       show($("#c-ai-off"), !s.gemini);
+      imagesOn = !!s.images; show($("#c-img-off"), !imagesOn && $("#c-photos").checked);
       show($("#c-ig-off"), !s.instagram);
       if (s.instagram) {
         var a = await api("ig_account");
@@ -242,6 +243,7 @@
         if (a.dataset.format) $("#c-format").value = a.dataset.format;
       });
     });
+    $("#c-photos").addEventListener("change", function () { show($("#c-img-off"), !imagesOn && this.checked); });
     $("#c-bg").addEventListener("change", function () {
       var f = $("#c-bg").files[0];
       if (!f) { bgImg = null; if (lastPost) renderPost(lastPost); return; }
@@ -288,13 +290,16 @@
 
     function drawSlide(s, i, total) {
       var c = document.createElement("canvas"); c.width = W; c.height = H;
-      var ctx = c.getContext("2d"), dark = s.kind !== "point", M = 96, maxW = W - M * 2;
+      var photo = s._img || (s.kind === "cover" && bgImg) || null;
+      var ctx = c.getContext("2d"), dark = !!photo || s.kind !== "point", M = 96, maxW = W - M * 2 - (TT ? 110 : 0);
       var fg = dark ? "#FFFFFF" : BRAND.ink, accent = dark ? BRAND.gold : BRAND.blue;
+      // TikTok covers the top (tabs), right side (buttons) and bottom (caption): keep text inside the safe area.
+      var TOP = TT ? 150 : 92, BOT = TT ? 430 : 130;
       ctx.textBaseline = "top";
 
       // Background
-      if (s.kind === "cover" && bgImg) {
-        coverImg(ctx, bgImg);
+      if (photo) {
+        coverImg(ctx, photo);
         var g = ctx.createLinearGradient(0, 0, 0, H);
         g.addColorStop(0, "rgba(12,12,85,.35)"); g.addColorStop(.45, "rgba(12,12,85,.55)"); g.addColorStop(1, "rgba(12,12,85,.92)");
         ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
@@ -306,16 +311,17 @@
           ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H);
         }
       }
+      if (photo) { ctx.shadowColor = "rgba(0,0,0,.45)"; ctx.shadowBlur = 18; }
       // Frame line
-      ctx.strokeStyle = dark ? "rgba(255,255,255,.25)" : "rgba(21,21,129,.18)"; ctx.lineWidth = 2;
-      ctx.strokeRect(40, 40, W - 80, H - 80);
+      if (!photo) ctx.strokeStyle = dark ? "rgba(255,255,255,.25)" : "rgba(21,21,129,.18)"; ctx.lineWidth = 2;
+      if (!photo) ctx.strokeRect(40, 40, W - 80, H - 80);
 
       // Logo + slide count
       var logo = logos[dark ? "white" : "dark"];
-      if (logo && logo.complete && logo.naturalWidth) { var lh0 = 64, lw = logo.naturalWidth * lh0 / logo.naturalHeight; ctx.drawImage(logo, M, 92, lw, lh0); }
+      if (logo && logo.complete && logo.naturalWidth) { var lh0 = 64, lw = logo.naturalWidth * lh0 / logo.naturalHeight; ctx.drawImage(logo, M, TOP, lw, lh0); }
       if (total > 1) {
         ctx.font = "600 28px " + TEXT; ctx.fillStyle = dark ? "rgba(255,255,255,.75)" : BRAND.slate; ctx.textAlign = "right";
-        ctx.fillText((i + 1) + " / " + total, W - M, 110); ctx.textAlign = "left";
+        ctx.fillText((i + 1) + " / " + total, W - M, TOP + 18); ctx.textAlign = "left";
       }
 
       var y;
@@ -323,25 +329,25 @@
         var head = fit(ctx, s.headline, "700 {s}px " + DISPLAY, maxW, 640, 124, 64, 1.08);
         var body = s.body ? fit(ctx, s.body, "400 {s}px " + TEXT, maxW, 180, 46, 32, 1.3) : null;
         var block = (s.kicker ? 70 : 0) + head.lines.length * head.size * 1.08 + (body ? 40 + body.lines.length * body.size * 1.3 : 0);
-        y = bgImg ? H - 230 - block : (H - block) / 2;
+        y = photo ? H - BOT - 100 - block : (H - block) / 2;
         if (s.kicker) { ctx.font = "italic 400 40px " + DISPLAY; ctx.fillStyle = accent; ctx.fillText(s.kicker, M, y); y += 70; }
         ctx.fillStyle = fg; ctx.font = "700 " + head.size + "px " + DISPLAY; y = drawLines(ctx, head, M, y, 1.08);
         if (body) { y += 40; ctx.font = "400 " + body.size + "px " + TEXT; ctx.fillStyle = "rgba(255,255,255,.88)"; drawLines(ctx, body, M, y, 1.3); }
-        if (total > 1) { ctx.font = "italic 400 36px " + DISPLAY; ctx.fillStyle = "#FFFFFF"; ctx.textAlign = "right"; ctx.fillText("Swipe  →", W - M, H - 150); ctx.textAlign = "left"; }
+        if (total > 1) { ctx.font = "italic 400 36px " + DISPLAY; ctx.fillStyle = "#FFFFFF"; ctx.textAlign = "right"; ctx.fillText("Swipe  →", W - M - (TT ? 110 : 0), H - BOT - 20); ctx.textAlign = "left"; }
       } else if (s.kind === "point") {
-        y = 300;
+        y = TT ? (photo ? H * 0.34 : 460) : 300;
         var label = s.kicker || String(i).padStart(2, "0");
         var big = /^\d+$/.test(label);
         ctx.fillStyle = accent;
         if (big) { ctx.font = "italic 400 150px " + DISPLAY; ctx.fillText(label, M - 6, y - 20); y += 200; }
         else { ctx.font = "700 34px " + TEXT; ctx.fillText(label.toUpperCase().split("").join(String.fromCharCode(8202)), M, y); y += 80; }
-        ctx.fillStyle = BRAND.blue; ctx.fillRect(M, y, 90, 6); y += 56;
+        ctx.fillStyle = photo ? BRAND.gold : BRAND.blue; ctx.fillRect(M, y, 90, 6); y += 56;
         var h2 = fit(ctx, s.headline, "700 {s}px " + DISPLAY, maxW, 380, 92, 54, 1.12);
         ctx.fillStyle = fg; ctx.font = "700 " + h2.size + "px " + DISPLAY; y = drawLines(ctx, h2, M, y, 1.12);
         if (s.body) {
           y += 44;
-          var b2 = fit(ctx, s.body, "400 {s}px " + TEXT, maxW, H - 220 - y, 46, 30, 1.38);
-          ctx.fillStyle = BRAND.slate; ctx.font = "400 " + b2.size + "px " + TEXT; drawLines(ctx, b2, M, y, 1.38);
+          var b2 = fit(ctx, s.body, "400 {s}px " + TEXT, maxW, H - BOT - 90 - y, 46, 30, 1.38);
+          ctx.fillStyle = photo ? "rgba(255,255,255,.92)" : BRAND.slate; ctx.font = "400 " + b2.size + "px " + TEXT; drawLines(ctx, b2, M, y, 1.38);
         }
       } else { // cta
         var h3 = fit(ctx, s.headline, "700 {s}px " + DISPLAY, maxW, 520, 104, 56, 1.1);
@@ -351,19 +357,38 @@
         ctx.fillStyle = fg; ctx.font = "700 " + h3.size + "px " + DISPLAY; y = drawLines(ctx, h3, M, y, 1.1);
         if (b3) { y += 50; ctx.fillStyle = "rgba(255,255,255,.88)"; ctx.font = "400 " + b3.size + "px " + TEXT; y = drawLines(ctx, b3, M, y, 1.35); }
         y += 70; // pill
+        ctx.shadowBlur = 0; ctx.shadowColor = "transparent";
         ctx.font = "700 36px " + TEXT; var pill = "projectsarae.site", pw = ctx.measureText(pill).width + 80;
         ctx.fillStyle = "#FFFFFF"; ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(M, y, pw, 96, 48); else ctx.rect(M, y, pw, 96); ctx.fill();
         ctx.fillStyle = BRAND.blue; ctx.fillText(pill, M + 40, y + 30);
       }
       // Handle footer
-      ctx.font = "400 30px " + TEXT; ctx.fillStyle = dark ? "rgba(255,255,255,.75)" : BRAND.slate;
-      ctx.fillText(BRAND.handle, M, H - 130);
+      ctx.font = "400 30px " + TEXT; ctx.fillStyle = dark ? "rgba(255,255,255,.8)" : BRAND.slate;
+      ctx.fillText(BRAND.handle, M, H - BOT);
       return c;
     }
     function toBlob(c) { return new Promise(function (r) { c.toBlob(r, "image/jpeg", 0.92); }); }
 
+    // Copy of a post without photo data (for saving drafts).
+    function lean(p) { return JSON.parse(JSON.stringify(p, function (k, v) { return k.charAt(0) === "_" ? undefined : v; })); }
+    function loadImg(src) { return new Promise(function (res, rej) { var i = new Image(); i.onload = function () { res(i); }; i.onerror = rej; i.src = src; }); }
+    var photoQueue = Promise.resolve();
+    function makePhoto(s, redraw, note) {
+      photoQueue = photoQueue.catch(function () {}).then(async function () {
+        if (!s.image_prompt) return;
+        if (note) note.textContent = "Making photo…";
+        var r = await api("image", { prompt: s.image_prompt });
+        if (r.notConnected) { show($("#c-img-off"), true); if (note) note.textContent = "AI photos aren’t connected."; return; }
+        if (r.error || !r.image) { if (note) note.textContent = r.error || "Photo failed. Try again."; return; }
+        try { s._src = r.image; s._img = await loadImg(r.image); if (note) note.textContent = ""; await redraw(); }
+        catch (e) { if (note) note.textContent = "Couldn’t draw that photo. Try “New photo”."; }
+      });
+      return photoQueue;
+    }
+
     async function renderPost(p) {
       lastPost = p;
+      TT = p.platform === "tiktok"; H = TT ? 1920 : 1350;
       try { await Promise.all(["700 100px", "italic 400 40px", "400 40px"].map(function (f) { return document.fonts.load(f + ' "Playfair Display"'); })); } catch (e) { /* fall back to Times */ }
       var out = $("#c-out"); out.innerHTML = "";
       var st = el("div", "stack");
@@ -388,6 +413,28 @@
         h.addEventListener("input", function () { s.headline = h.value; redraw(); }); box.appendChild(h);
         var bd = el("textarea"); bd.rows = 3; bd.value = s.body || ""; bd.placeholder = "Smaller text"; bd.setAttribute("aria-label", "Slide " + (i + 1) + " text");
         bd.addEventListener("input", function () { s.body = bd.value; redraw(); }); box.appendChild(bd);
+        // Photo controls
+        var note = el("small", "muted", ""); note.style.display = "block";
+        var prow = el("div", "row");
+        if (s.image_prompt != null) {
+          var ip = el("textarea"); ip.rows = 2; ip.value = s.image_prompt || ""; ip.placeholder = "Describe the background photo"; ip.setAttribute("aria-label", "Slide " + (i + 1) + " photo description");
+          ip.addEventListener("input", function () { s.image_prompt = ip.value; }); box.appendChild(ip);
+          var np = el("button", "btn btn-ghost", s._img ? "New photo" : "Make photo"); np.type = "button";
+          np.addEventListener("click", function () { np.textContent = "New photo"; makePhoto(s, redraw, note); }); prow.appendChild(np);
+        }
+        var upl = el("button", "btn btn-ghost", "Use my photo"); upl.type = "button";
+        upl.addEventListener("click", function () {
+          var f = document.createElement("input"); f.type = "file"; f.accept = "image/*";
+          f.onchange = async function () { if (!f.files[0]) return; var u = URL.createObjectURL(f.files[0]); s._img = await loadImg(u); s._src = u; redraw(); };
+          f.click();
+        });
+        prow.appendChild(upl);
+        if (s._img || s.kind === "point") {
+          var rm = el("button", "btn btn-ghost", "No photo"); rm.type = "button";
+          rm.addEventListener("click", function () { s._img = null; s._src = null; redraw(); }); prow.appendChild(rm);
+        }
+        box.appendChild(prow); box.appendChild(note);
+        s._redraw = redraw; s._note = note;
         var row = el("div", "row"); row.appendChild(el("small", "muted", (i + 1) + " · " + s.kind));
         var dl = el("button", "btn btn-ghost", "Save"); dl.type = "button";
         dl.addEventListener("click", function () { download(slideBlobs[i], i); }); row.appendChild(dl);
@@ -399,6 +446,16 @@
       var all = el("button", "btn btn-ghost", "Download all images"); all.type = "button";
       all.addEventListener("click", function () { slideBlobs.forEach(function (b, i) { setTimeout(function () { download(b, i); }, i * 350); }); });
       st.appendChild(all);
+      var sw = el("button", "btn btn-ghost", TT ? "Make an Instagram (4:5) version" : "Make a TikTok (9:16) version"); sw.type = "button";
+      sw.addEventListener("click", function () { p.platform = TT ? "instagram" : "tiktok"; renderPost(p); });
+      st.appendChild(sw);
+      if (TT) st.appendChild(el("p", "hint", "To post on TikTok: send these images to your phone → TikTok → + → Photo (Photo mode) → pick them in order → paste the caption. TikTok doesn’t let outside apps post photo carousels without a reviewed developer app, so this step is by hand."));
+      var missing = slides.filter(function (s) { return s.image_prompt && !s._img; });
+      if (p.photos && imagesOn && missing.length) {
+        var mk = el("button", "btn btn-primary", "Make all " + missing.length + " photos"); mk.type = "button";
+        mk.addEventListener("click", function () { mk.remove(); makeAllPhotos(p); });
+        st.insertBefore(mk, st.firstChild.nextSibling);
+      }
 
       (p.hooks || []).forEach(function (hk, i) {
         var c = copyBlock("Other cover hook " + (i + 1), hk);
@@ -419,7 +476,7 @@
     function download(blob, i) {
       if (!blob) return;
       var a = document.createElement("a"); a.href = URL.createObjectURL(blob);
-      a.download = "project-sarae-slide-" + (i + 1) + ".jpg"; document.body.appendChild(a); a.click(); a.remove();
+      a.download = "project-sarae-" + (TT ? "tiktok" : "instagram") + "-slide-" + (i + 1) + ".jpg"; document.body.appendChild(a); a.click(); a.remove();
       setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
     }
 
@@ -437,20 +494,33 @@
     $("#c-form").addEventListener("submit", async function (e) {
       e.preventDefault();
       var btn = $("#c-go"); btn.disabled = true; say("#c-msg", "Writing your post and drawing the images…");
-      var payload = { topic: $("#c-topic").value, format: $("#c-format").value, goal: $("#c-goal").value };
+      var payload = { topic: $("#c-topic").value, format: $("#c-format").value, goal: $("#c-goal").value,
+        platform: $("#c-platform").value, photos: $("#c-photos").checked, look: $("#c-look").value };
       var d = await api("generate", payload);
       btn.disabled = false;
       if (d.notConnected) { show($("#c-ai-off"), true); say("#c-msg", ""); return; }
       if (d.error) { say("#c-msg", d.error, "err"); return; }
       if (!d.slides || !d.slides.length) { say("#c-msg", "The AI didn’t return any slides. Try again.", "err"); return; }
       d.slides = d.slides.slice(0, 10);
-      d.type = "photo";
+      d.type = "photo"; d.platform = payload.platform; d.photos = payload.photos;
+      if (d.photos) d.slides.forEach(function (sl) { if (sl.image_prompt == null) sl.image_prompt = ""; });
       say("#c-msg", "Done. Saved to your drafts below.", "ok");
       $("#c-caption").value = "";
       await renderPost(d);
-      await sb.from("content_posts").insert({ topic: payload.topic, script: d, caption: captionOf(d).slice(0, 2200), status: "draft" });
+      await sb.from("content_posts").insert({ topic: payload.topic, script: lean(d), caption: captionOf(d).slice(0, 2200), status: "draft" });
       loadHistory();
+      if (d.photos && imagesOn) makeAllPhotos(d);
     });
+
+    async function makeAllPhotos(p) {
+      var list = (p.slides || []).filter(function (s) { return s.image_prompt && !s._img; });
+      for (var i = 0; i < list.length; i++) {
+        if (lastPost !== p) return; // they opened a different post
+        say("#c-msg", "Making free AI photos… " + (i + 1) + " of " + list.length);
+        await makePhoto(list[i], list[i]._redraw, list[i]._note);
+      }
+      if (lastPost === p) say("#c-msg", "Done. Tweak any words, then download or post.", "ok");
+    }
 
     async function loadHistory() {
       var r = await sb.from("content_posts").select("*").order("created_at", { ascending: false }).limit(30);
@@ -482,6 +552,7 @@
       var caption = $("#c-caption").value.trim();
       var blobs = picked.length ? picked : slideBlobs.filter(Boolean);
       if (!blobs.length) { say("#c-post-msg", "Make a post above or choose your .jpg photos first.", "err"); return; }
+      if (!picked.length && TT) { say("#c-post-msg", "These slides are TikTok size (9:16), which Instagram feed posts don’t accept. Click “Make an Instagram (4:5) version” above first, then post.", "err"); return; }
       if (blobs.length > 10) { say("#c-post-msg", "Instagram allows up to 10 images in one post.", "err"); return; }
       if (blobs.some(function (b) { return b.size > 8 * 1024 * 1024; })) { say("#c-post-msg", "Each photo must be under 8 MB.", "err"); return; }
       var many = blobs.length > 1;
@@ -532,7 +603,7 @@
         if (p.error) return fail("Instagram: " + p.error);
         prog.value = 100;
         await cleanup();
-        await sb.from("content_posts").insert({ topic: lastPost && !picked.length ? $("#c-topic").value.slice(0, 400) : null, script: picked.length ? null : lastPost, caption: caption.slice(0, 2200), status: "posted", ig_media_id: p.id, permalink: p.permalink || null });
+        await sb.from("content_posts").insert({ topic: lastPost && !picked.length ? $("#c-topic").value.slice(0, 400) : null, script: picked.length || !lastPost ? null : lean(lastPost), caption: caption.slice(0, 2200), status: "posted", ig_media_id: p.id, permalink: p.permalink || null });
         say("#c-post-msg", "Posted to Instagram!", "ok");
         $("#c-file").value = ""; btn.disabled = false; setTimeout(function () { show(prog, false); }, 1500);
         loadHistory();

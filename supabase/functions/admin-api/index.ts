@@ -12,7 +12,10 @@
 //   IG_ACCESS_TOKEN     long-lived Instagram/Meta access token
 //   META_GRAPH_HOST     optional: graph.facebook.com (default) or graph.instagram.com
 //   META_API_VERSION    optional, defaults to v23.0
-//   GITHUB_TOKEN        fine-grained GitHub token (Site Builder publishing)
+//   GITHUB_TOKEN        GitHub token (Site Builder publishing)
+//   CF_ACCOUNT_ID       Cloudflare account ID (free AI photos in Content Studio)
+//   CF_AI_TOKEN         Cloudflare API token with "Workers AI" permission
+//   CF_IMAGE_MODEL      optional, defaults to @cf/black-forest-labs/flux-1-schnell
 // =========================================================
 import { createClient } from "npm:@supabase/supabase-js@2";
 
@@ -103,9 +106,11 @@ const FORMATS: Record<string, string> = {
 async function generate(body: any) {
   const topic = clean(body.topic, 400), goal = clean(body.goal, 200);
   const format = FORMATS[clean(body.format, 20)] ? clean(body.format, 20) : "tips";
+  const tiktok = body.platform === "tiktok", photos = !!body.photos, look = clean(body.look, 120);
   if (!topic) throw new Error("Add a topic first.");
-  const prompt = `You create Instagram photo posts (carousels of text slides) for "Project Sarae", a one-woman web design studio run by A'Nya.
-She builds websites with online booking for local businesses (salons, med spas, barbers, beauty pros). Audience: local business owners scrolling Instagram.
+  const where = tiktok ? "TikTok photo-mode carousels (vertical 9:16 slides people swipe through)" : "Instagram photo posts (carousels of text slides)";
+  const prompt = `You create ${where} for "Project Sarae", a one-woman web design studio run by A'Nya.
+She builds websites with online booking for local businesses (salons, med spas, barbers, beauty pros). Audience: local business owners scrolling ${tiktok ? "TikTok" : "Instagram"}.
 Tone: professional-casual, warm, confident, plain-spoken. No fake income claims, no invented statistics or percentages, no fake testimonials, no lifestyle flexing.
 
 Write it to spread: the cover must stop the scroll in under 1 second (pattern interrupt, specific, curiosity gap, speaks to one person).
@@ -116,14 +121,17 @@ Format: ${FORMATS[format]}
 Topic: ${topic}
 Goal of the post: ${goal || "get local business owners to book a free website call"}
 
-Slides: ${format === "quote" ? "exactly 1" : "6 to 8"} total. Slide 1 is kind "cover" (kicker = 2-4 word label, headline = the hook, body = optional short subline).
+${tiktok ? "TikTok style: the cover hook reads like a spoken thought or bold claim; keep every slide skimmable in 2 seconds; headlines under 7 words, body under 18 words.\n" : ""}Slides: ${format === "quote" ? "exactly 1" : "6 to 8"} total. Slide 1 is kind "cover" (kicker = 2-4 word label, headline = the hook, body = optional short subline).
 ${format === "quote" ? "" : `Middle slides are kind "point". Last slide is kind "cta": headline invites them to save/share or DM, body mentions a free website call with Project Sarae.`}
 Return JSON only:
 {"hooks":[3 alternative cover headlines, under 9 words each],
- "slides":[{"kind":"cover"|"point"|"cta","kicker":string,"headline":string,"body":string}],
- "caption": string (under 400 characters; opens with a hook line, adds value, ends by asking a question or telling them to save/share),
- "hashtags":[10 strings without #, mix of broad and niche/local small-business tags],
- "alt_text": string (one sentence describing the post for screen readers)}`;
+ "slides":[{"kind":"cover"|"point"|"cta","kicker":string,"headline":string,"body":string${photos ? ',"image_prompt":string' : ""}}],
+ "caption": string (${tiktok ? "under 150 characters, casual, ends with a question to get comments" : "under 400 characters; opens with a hook line, adds value, ends by asking a question or telling them to save/share"}),
+ "hashtags":[${tiktok ? "5" : "10"} strings without #, mix of broad and niche/local small-business tags],
+ "alt_text": string (one sentence describing the post for screen readers)}${photos ? `
+For image_prompt: describe a realistic, eye-catching background PHOTO for that slide (scene, subject, lighting, camera angle) that matches its message, e.g. a stylist finishing a client's hair, a phone showing a booking screen in a cozy salon.
+Style: ${look || "bright, candid lifestyle photography, shallow depth of field"}. Vertical composition with the subject in the center and empty space at the top.
+No text, letters, logos, watermarks, or brand names in the image. No famous or real named people. Under 60 words.` : ""}`;
   const model = env("GEMINI_MODEL", "gemini-3.8-flash");
   const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
     method: "POST",
@@ -138,6 +146,30 @@ Return JSON only:
   const text = data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text || "").join("") || "";
   try { return JSON.parse(text.replace(/^```(json)?|```$/g, "").trim()); }
   catch { throw new Error("The AI reply wasn't in the right format. Try again."); }
+}
+
+// ---------- Free AI photos (Cloudflare Workers AI) ----------
+async function makeImage(body: any) {
+  const prompt = clean(body.prompt, 900);
+  if (!prompt) throw new Error("Describe the photo first.");
+  const model = env("CF_IMAGE_MODEL", "@cf/black-forest-labs/flux-1-schnell");
+  const r = await fetch(`https://api.cloudflare.com/client/v4/accounts/${env("CF_ACCOUNT_ID")}/ai/run/${model}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${env("CF_AI_TOKEN")}`, "content-type": "application/json" },
+    body: JSON.stringify({ prompt: prompt + ". No text, no letters, no logos, no watermark.", steps: 4 }),
+  });
+  const type = r.headers.get("content-type") || "";
+  if (type.startsWith("image/")) {
+    const buf = new Uint8Array(await r.arrayBuffer());
+    let bin = ""; for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode(...buf.subarray(i, i + 0x8000));
+    return { image: `data:${type};base64,${btoa(bin)}` };
+  }
+  const data = await r.json().catch(() => ({}));
+  if (r.status === 429 || /neuron|limit|quota/i.test(JSON.stringify(data?.errors || ""))) throw new Error("You’ve used today’s free Cloudflare images. It resets at 5pm Pacific (midnight UTC).");
+  if (!r.ok || !data?.success) throw new Error("Cloudflare: " + (data?.errors?.[0]?.message || `error ${r.status}`));
+  const img = data?.result?.image;
+  if (!img) throw new Error("Cloudflare didn’t send an image back. Try again.");
+  return { image: `data:image/jpeg;base64,${img}` };
 }
 
 // ---------- Site Builder: Gemini writes one page at a time ----------
@@ -302,7 +334,11 @@ Deno.serve(async (req) => {
           stripe: !!env("STRIPE_SECRET_KEY"), gemini: !!env("GEMINI_API_KEY"),
           instagram: !!(env("IG_USER_ID") && env("IG_ACCESS_TOKEN")),
           github: !!env("GITHUB_TOKEN"),
+          images: !!(env("CF_ACCOUNT_ID") && env("CF_AI_TOKEN")),
         });
+      case "image":
+        if (!env("CF_ACCOUNT_ID") || !env("CF_AI_TOKEN")) return json(200, { notConnected: true });
+        return json(200, await makeImage(body));
       case "build_page":
         if (!env("GEMINI_API_KEY")) return json(200, { notConnected: true });
         try { return json(200, await buildPage(body)); }
