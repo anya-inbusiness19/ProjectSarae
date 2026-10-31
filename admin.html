@@ -89,6 +89,13 @@
   .pay-row:last-child { border: 0; }
   .pay-row small { display: block; color: var(--muted-2); }
   progress { width: 100%; height: 8px; }
+  .slides { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .slide { border: 1px solid var(--line); border-radius: 14px; padding: 8px; background: var(--canvas); display: flex; flex-direction: column; gap: 6px; }
+  .slide img { width: 100%; aspect-ratio: 4/5; border-radius: 8px; display: block; background: var(--cream-2); }
+  .slide input, .slide textarea { font-size: .8rem; padding: 6px 8px; margin: 0; min-height: 0; height: auto; resize: vertical; }
+  .copyable .btns { display: flex; gap: 6px; flex: none; }
+  .slide .row { display: flex; gap: 6px; justify-content: space-between; align-items: center; }
+  .slide .btn { padding: 4px 9px; font-size: .75rem; }
   @media (max-width: 760px) { #b-pages .pg > div:first-child { grid-template-columns: 1fr !important; } }
 </style>
 </head>
@@ -292,35 +299,47 @@
 
     <!-- CONTENT STUDIO -->
     <section id="tab-studio" class="hidden" style="padding:0">
-      <p class="muted">1. Write the script here → 2. make the clips in a free AI video app (Kling, Seedance, Pika) and edit in CapCut → 3. upload and post to Instagram here.</p>
+      <p class="muted">1. Tell the AI what the post is about → 2. it writes the post and draws branded images (1080×1350) → 3. tweak the words, then download or post the carousel straight to Instagram.</p>
       <div class="grid g2" style="align-items:start;margin-top:16px">
         <form id="c-form" class="card">
-          <h3>1 · Write a Reel script</h3>
+          <h3>1 · Make a viral photo post</h3>
           <div id="c-ai-off" class="tool-off hidden" style="margin:10px 0"><b>AI writing isn’t connected yet.</b> Add a free <code>GEMINI_API_KEY</code> (SETUP-TOOLS.md, step 4).</div>
-          <label for="c-topic">What’s the video about?</label>
-          <textarea id="c-topic" rows="3" maxlength="400" required placeholder="A salon owner loses clients because people can’t book online at night"></textarea>
-          <label for="c-style">Character &amp; look (optional)</label>
-          <input id="c-style" maxlength="300" placeholder="Original 3D cartoon woman with curly hair, royal blue blazer, warm sunset light">
+          <label for="c-topic">What’s the post about?</label>
+          <textarea id="c-topic" rows="3" maxlength="400" required placeholder="Why salons lose clients when people can’t book online at night"></textarea>
+          <label for="c-format">Post format</label>
+          <select id="c-format" style="width:100%">
+            <option value="tips">Tips carousel: “5 ways to…” (most saved)</option>
+            <option value="mistakes">Mistakes to avoid: “Stop doing this”</option>
+            <option value="myth">Myth vs. fact</option>
+            <option value="beforeafter">Before / after comparison</option>
+            <option value="signs">“Signs your business needs…” checklist</option>
+            <option value="pov">POV / relatable moment (most shared)</option>
+            <option value="quote">Single bold statement (one image)</option>
+          </select>
           <label for="c-goal">Goal (optional)</label>
           <input id="c-goal" maxlength="200" placeholder="Get salon owners to book a free website call">
-          <div class="card-actions"><button class="btn btn-primary" type="submit" id="c-go">Write it</button><div class="msg" id="c-msg" role="status"></div></div>
-          <div class="hint" style="margin-top:14px">Need a quick idea? <a href="#" data-idea="Before and after: a hair salon with no website vs. one with online booking">Before/after</a> · <a href="#" data-idea="3 signs your med spa is losing clients because of your website">3 signs</a> · <a href="#" data-idea="What happens when a customer finds your business on Google at 11pm">11pm customer</a> · <a href="#" data-idea="POV: you finally stop taking bookings in your DMs">POV: no more DMs</a></div>
+          <label for="c-bg">Cover photo (optional)</label>
+          <input id="c-bg" type="file" accept="image/*">
+          <p class="hint">Put a real photo behind the first slide, like your salon demo or a client’s storefront. Photos of real people get more stops than plain text.</p>
+          <div class="card-actions"><button class="btn btn-primary" type="submit" id="c-go">Make my post</button><div class="msg" id="c-msg" role="status"></div></div>
+          <div class="hint" style="margin-top:14px">Need a quick idea? <a href="#" data-idea="3 signs your med spa is losing clients because of your website" data-format="signs">3 signs</a> · <a href="#" data-idea="Booking through DMs vs. booking online" data-format="beforeafter">DMs vs. online</a> · <a href="#" data-idea="What happens when a customer finds your salon on Google at 11pm" data-format="pov">11pm customer</a> · <a href="#" data-idea="Website mistakes that make customers leave in 5 seconds" data-format="mistakes">5-second mistakes</a> · <a href="#" data-idea="“You don’t need a website, you have Instagram”" data-format="myth">Myth: Instagram is enough</a></div>
         </form>
         <div class="card" id="c-out-card">
-          <h3>Your script</h3>
-          <div id="c-out"><p class="muted" style="margin-top:8px">Your hooks, scenes, caption and hashtags will show up here.</p></div>
+          <h3>2 · Your post</h3>
+          <div id="c-out"><p class="muted" style="margin-top:8px">Your images, hooks, caption and hashtags will show up here. You can change any text and the image redraws.</p></div>
         </div>
       </div>
 
       <div class="card" style="margin-top:18px">
         <h3>3 · Post to Instagram</h3>
-        <div id="c-ig-off" class="tool-off hidden" style="margin:10px 0"><b>Instagram isn’t connected yet.</b> Follow SETUP-TOOLS.md, step 5. You can still write scripts above.</div>
+        <div id="c-ig-off" class="tool-off hidden" style="margin:10px 0"><b>Instagram isn’t connected yet.</b> Follow SETUP-TOOLS.md, step 5. You can still make and download images above.</div>
         <p class="muted" id="c-ig-acct"></p>
         <div class="grid g2" style="align-items:start">
           <div>
-            <label for="c-file">Finished video (.mp4, under 50 MB, vertical 9:16) or a .jpg photo</label>
-            <input id="c-file" type="file" accept="video/mp4,video/quicktime,image/jpeg">
-            <p class="hint">Instagram Reels must be 3 seconds to 15 minutes. Your file is deleted from your storage after it posts.</p>
+            <p id="c-ready" class="muted" style="margin-top:0">Make a post above and its images will be posted as a carousel.</p>
+            <label for="c-file">Or post your own .jpg photos instead (up to 10, makes a carousel)</label>
+            <input id="c-file" type="file" accept="image/jpeg" multiple>
+            <p class="hint">Your files are deleted from your storage after they post.</p>
           </div>
           <div>
             <label for="c-caption">Caption</label>
@@ -335,7 +354,7 @@
       </div>
 
       <div class="card" style="margin-top:18px">
-        <h3>Saved scripts &amp; posts</h3>
+        <h3>Saved drafts &amp; posts</h3>
         <div id="c-history" style="margin-top:8px"></div>
       </div>
     </section>
@@ -349,7 +368,7 @@
 <script src="config.js?v=6"></script>
 <script src="content.js?v=3"></script>
 <script src="admin.js?v=13"></script>
-<script src="admin-tools.js?v=1"></script>
+<script src="admin-tools.js?v=2"></script>
 <script src="builder-generator.js?v=2"></script>
 <script src="site-editor.js?v=1"></script>
 <script src="store-admin.js?v=1"></script>

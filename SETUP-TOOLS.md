@@ -10,7 +10,7 @@ Your secret keys go into Supabase (step 2), never into the site's code.
 1. Supabase → **SQL Editor → New query**.
 2. Paste everything from `supabase-tools-setup.sql` and click **Run**.
 
-This adds your outreach tracker, saved scripts, private settings, and a `content-media` folder for videos you post.
+This adds your outreach tracker, saved post drafts, private settings, and a `content-media` folder for videos you post.
 
 ## 2. Turn on the admin API (5 minutes)
 This small function holds your keys and only answers your admin login.
@@ -28,12 +28,12 @@ Use a **read-only restricted key**, so the key can't move money even if it ever 
 3. Copy the key (starts with `rk_live_`).
 4. In Supabase Secrets, add `STRIPE_SECRET_KEY` = that key.
 
-## 4. Content Studio, AI scripts: Gemini (3 minutes, free)
+## 4. Content Studio, AI photo posts: Gemini (3 minutes, free)
 1. Go to **aistudio.google.com** and sign in with your Google account.
 2. Click **Get API key → Create API key**.
 3. In Supabase Secrets, add `GEMINI_API_KEY` = that key.
 
-The free tier covers a few scripts a day. If Google renames its model, add a secret `GEMINI_MODEL` with the new name.
+The free tier covers a few posts a day. If Google renames its model, add a secret `GEMINI_MODEL` with the new name.
 
 ## 5. Content Studio, posting: Instagram (15–20 minutes)
 1. In the Instagram app: **Settings → Account type and tools → Switch to professional account → Creator or Business**, for @official.projectsarae.
@@ -64,10 +64,12 @@ You don't need Meta's app review, because you're only posting to your own accoun
 - Edit the template once and replace `[Your mailing address here]` with a real mailing address. A PO box is fine. US law (CAN-SPAM) requires it in cold emails, plus the opt-out line.
 - If someone says no thanks, set them to **Not now** and don't email them again.
 
-**Content Studio:**
-1. Type a topic and click **Write it**. You get 3 hooks, a character description, and scenes with copy-paste video prompts, plus a caption.
-2. Make each scene in Kling, Seedance, or Pika (free plans). Paste the character description every time so the character looks the same.
-3. Put the clips together in CapCut. Export as 1080p, 9:16, .mp4, under 50 MB.
-4. Upload the video, click **Use this caption for posting**, and then **Post to Instagram**.
+**Content Studio (viral photo posts):**
+1. Type a topic, pick a format (tips, mistakes, myth vs. fact, before/after, signs, POV, or one bold statement), and click **Make my post**.
+2. The AI writes 6–8 slides plus 3 extra cover hooks, a caption, hashtags, and alt text. Your admin page draws each slide as a branded 1080×1350 image (royal blue and cream, Playfair Display).
+3. Change any words under a slide and the image redraws right away. Click **Use** on another hook to swap the cover. You can add a real photo behind the cover slide.
+4. Click **Post to Instagram** to post every slide as one carousel, or **Download all images** to post them yourself on Instagram or TikTok (TikTok photo mode works well with these).
 
-Use original characters only. Don't use Pixar, Disney, or other studio characters.
+What makes these spread: a cover that stops the scroll, one idea per slide, and a last slide that asks people to save it or send it to a business-owner friend. Saves and shares count for more on Instagram than likes do.
+
+For a cover photo, use your own photos or ones you have permission to use.

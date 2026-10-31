@@ -1,6 +1,6 @@
 /* =========================================================
    PROJECT SARAE — ADMIN TOOLS
-   Sales (Stripe), Outreach pipeline, Content Studio (AI scripts + Instagram).
+   Sales (Stripe), Outreach pipeline, Content Studio (AI photo posts + Instagram).
    Secret keys live in the Supabase "admin-api" function, never here.
    ========================================================= */
 (function () {
@@ -217,8 +217,14 @@
       say("#o-tpl-msg", r.error ? "Couldn’t save." : "Saved.", r.error ? "err" : "ok");
     });
 
-    /* =================== CONTENT STUDIO =================== */
-    var lastScript = null;
+    /* =================== CONTENT STUDIO (photo posts) =================== */
+    var lastPost = null, slideBlobs = [], bgImg = null;
+    var W = 1080, H = 1350;
+    var BRAND = { blue: "#151581", blueDark: "#0C0C55", creme: "#FBF7F0", ink: "#111111", slate: "#3D3D3D", gold: "#C2A878", handle: "@official.projectsarae" };
+    var DISPLAY = '"Playfair Display", "Times New Roman", serif', TEXT = '"Times New Roman", Times, serif';
+    var logos = {};
+    ["white", "dark"].forEach(function (k) { var i = new Image(); i.src = "images/logo-" + k + ".png"; logos[k] = i; });
+
     async function loadStudio() {
       loadHistory();
       var s = await api("status");
@@ -231,46 +237,218 @@
       }
     }
     document.querySelectorAll("[data-idea]").forEach(function (a) {
-      a.addEventListener("click", function (e) { e.preventDefault(); $("#c-topic").value = a.dataset.idea; });
+      a.addEventListener("click", function (e) {
+        e.preventDefault(); $("#c-topic").value = a.dataset.idea;
+        if (a.dataset.format) $("#c-format").value = a.dataset.format;
+      });
     });
+    $("#c-bg").addEventListener("change", function () {
+      var f = $("#c-bg").files[0];
+      if (!f) { bgImg = null; if (lastPost) renderPost(lastPost); return; }
+      var i = new Image();
+      i.onload = function () { bgImg = i; if (lastPost) renderPost(lastPost); };
+      i.src = URL.createObjectURL(f);
+    });
+
     function copyBlock(label, text) {
       var wrap = el("div", "copyable"), left = el("div");
       left.appendChild(el("b", "", label)); left.appendChild(el("p", "", text));
       var b = el("button", "btn btn-ghost", "Copy"); b.type = "button"; b.addEventListener("click", function () { copy(text, b); });
       wrap.appendChild(left); wrap.appendChild(b); return wrap;
     }
-    function renderScript(s) {
+    function captionOf(p) {
+      return ((p.caption || "") + "\n\n" + (p.hashtags || []).map(function (h) { return "#" + String(h).replace(/^#/, "").replace(/\s+/g, ""); }).join(" ")).trim();
+    }
+
+    /* ---------- drawing ---------- */
+    function wrapLines(ctx, text, maxW) {
+      var words = String(text || "").split(/\s+/).filter(Boolean), lines = [], line = "";
+      words.forEach(function (w) {
+        var t = line ? line + " " + w : w;
+        if (ctx.measureText(t).width > maxW && line) { lines.push(line); line = w; } else line = t;
+      });
+      if (line) lines.push(line);
+      return lines;
+    }
+    // Biggest font size (down to min) that fits the text in maxW × maxH.
+    function fit(ctx, text, font, maxW, maxH, start, min, lh) {
+      for (var size = start; size >= min; size -= 4) {
+        ctx.font = font.replace("{s}", size);
+        var lines = wrapLines(ctx, text, maxW);
+        if (lines.length * size * lh <= maxH) return { size: size, lines: lines };
+      }
+      ctx.font = font.replace("{s}", min);
+      return { size: min, lines: wrapLines(ctx, text, maxW) };
+    }
+    function drawLines(ctx, f, x, y, lh) { f.lines.forEach(function (l, i) { ctx.fillText(l, x, y + i * f.size * lh); }); return y + f.lines.length * f.size * lh; }
+    function coverImg(ctx, img) {
+      var r = Math.max(W / img.width, H / img.height), w = img.width * r, h = img.height * r;
+      ctx.drawImage(img, (W - w) / 2, (H - h) / 2, w, h);
+    }
+
+    function drawSlide(s, i, total) {
+      var c = document.createElement("canvas"); c.width = W; c.height = H;
+      var ctx = c.getContext("2d"), dark = s.kind !== "point", M = 96, maxW = W - M * 2;
+      var fg = dark ? "#FFFFFF" : BRAND.ink, accent = dark ? BRAND.gold : BRAND.blue;
+      ctx.textBaseline = "top";
+
+      // Background
+      if (s.kind === "cover" && bgImg) {
+        coverImg(ctx, bgImg);
+        var g = ctx.createLinearGradient(0, 0, 0, H);
+        g.addColorStop(0, "rgba(12,12,85,.35)"); g.addColorStop(.45, "rgba(12,12,85,.55)"); g.addColorStop(1, "rgba(12,12,85,.92)");
+        ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      } else {
+        ctx.fillStyle = dark ? BRAND.blue : BRAND.creme; ctx.fillRect(0, 0, W, H);
+        if (dark) { // soft corner glow
+          var rg = ctx.createRadialGradient(W, 0, 0, W, 0, 900);
+          rg.addColorStop(0, "rgba(255,255,255,.12)"); rg.addColorStop(1, "rgba(255,255,255,0)");
+          ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H);
+        }
+      }
+      // Frame line
+      ctx.strokeStyle = dark ? "rgba(255,255,255,.25)" : "rgba(21,21,129,.18)"; ctx.lineWidth = 2;
+      ctx.strokeRect(40, 40, W - 80, H - 80);
+
+      // Logo + slide count
+      var logo = logos[dark ? "white" : "dark"];
+      if (logo && logo.complete && logo.naturalWidth) { var lh0 = 64, lw = logo.naturalWidth * lh0 / logo.naturalHeight; ctx.drawImage(logo, M, 92, lw, lh0); }
+      if (total > 1) {
+        ctx.font = "600 28px " + TEXT; ctx.fillStyle = dark ? "rgba(255,255,255,.75)" : BRAND.slate; ctx.textAlign = "right";
+        ctx.fillText((i + 1) + " / " + total, W - M, 110); ctx.textAlign = "left";
+      }
+
+      var y;
+      if (s.kind === "cover") {
+        var head = fit(ctx, s.headline, "700 {s}px " + DISPLAY, maxW, 640, 124, 64, 1.08);
+        var body = s.body ? fit(ctx, s.body, "400 {s}px " + TEXT, maxW, 180, 46, 32, 1.3) : null;
+        var block = (s.kicker ? 70 : 0) + head.lines.length * head.size * 1.08 + (body ? 40 + body.lines.length * body.size * 1.3 : 0);
+        y = bgImg ? H - 230 - block : (H - block) / 2;
+        if (s.kicker) { ctx.font = "italic 400 40px " + DISPLAY; ctx.fillStyle = accent; ctx.fillText(s.kicker, M, y); y += 70; }
+        ctx.fillStyle = fg; ctx.font = "700 " + head.size + "px " + DISPLAY; y = drawLines(ctx, head, M, y, 1.08);
+        if (body) { y += 40; ctx.font = "400 " + body.size + "px " + TEXT; ctx.fillStyle = "rgba(255,255,255,.88)"; drawLines(ctx, body, M, y, 1.3); }
+        if (total > 1) { ctx.font = "italic 400 36px " + DISPLAY; ctx.fillStyle = "#FFFFFF"; ctx.textAlign = "right"; ctx.fillText("Swipe  →", W - M, H - 150); ctx.textAlign = "left"; }
+      } else if (s.kind === "point") {
+        y = 300;
+        var label = s.kicker || String(i).padStart(2, "0");
+        var big = /^\d+$/.test(label);
+        ctx.fillStyle = accent;
+        if (big) { ctx.font = "italic 400 150px " + DISPLAY; ctx.fillText(label, M - 6, y - 20); y += 200; }
+        else { ctx.font = "700 34px " + TEXT; ctx.fillText(label.toUpperCase().split("").join(String.fromCharCode(8202)), M, y); y += 80; }
+        ctx.fillStyle = BRAND.blue; ctx.fillRect(M, y, 90, 6); y += 56;
+        var h2 = fit(ctx, s.headline, "700 {s}px " + DISPLAY, maxW, 380, 92, 54, 1.12);
+        ctx.fillStyle = fg; ctx.font = "700 " + h2.size + "px " + DISPLAY; y = drawLines(ctx, h2, M, y, 1.12);
+        if (s.body) {
+          y += 44;
+          var b2 = fit(ctx, s.body, "400 {s}px " + TEXT, maxW, H - 220 - y, 46, 30, 1.38);
+          ctx.fillStyle = BRAND.slate; ctx.font = "400 " + b2.size + "px " + TEXT; drawLines(ctx, b2, M, y, 1.38);
+        }
+      } else { // cta
+        var h3 = fit(ctx, s.headline, "700 {s}px " + DISPLAY, maxW, 520, 104, 56, 1.1);
+        var b3 = s.body ? fit(ctx, s.body, "400 {s}px " + TEXT, maxW, 220, 44, 30, 1.35) : null;
+        var blk = h3.lines.length * h3.size * 1.1 + (b3 ? 50 + b3.lines.length * b3.size * 1.35 : 0) + 170;
+        y = (H - blk) / 2;
+        ctx.fillStyle = fg; ctx.font = "700 " + h3.size + "px " + DISPLAY; y = drawLines(ctx, h3, M, y, 1.1);
+        if (b3) { y += 50; ctx.fillStyle = "rgba(255,255,255,.88)"; ctx.font = "400 " + b3.size + "px " + TEXT; y = drawLines(ctx, b3, M, y, 1.35); }
+        y += 70; // pill
+        ctx.font = "700 36px " + TEXT; var pill = "projectsarae.site", pw = ctx.measureText(pill).width + 80;
+        ctx.fillStyle = "#FFFFFF"; ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(M, y, pw, 96, 48); else ctx.rect(M, y, pw, 96); ctx.fill();
+        ctx.fillStyle = BRAND.blue; ctx.fillText(pill, M + 40, y + 30);
+      }
+      // Handle footer
+      ctx.font = "400 30px " + TEXT; ctx.fillStyle = dark ? "rgba(255,255,255,.75)" : BRAND.slate;
+      ctx.fillText(BRAND.handle, M, H - 130);
+      return c;
+    }
+    function toBlob(c) { return new Promise(function (r) { c.toBlob(r, "image/jpeg", 0.92); }); }
+
+    async function renderPost(p) {
+      lastPost = p;
+      try { await Promise.all(["700 100px", "italic 400 40px", "400 40px"].map(function (f) { return document.fonts.load(f + ' "Playfair Display"'); })); } catch (e) { /* fall back to Times */ }
       var out = $("#c-out"); out.innerHTML = "";
       var st = el("div", "stack");
-      (s.hooks || []).forEach(function (h, i) { st.appendChild(copyBlock("Hook " + (i + 1), h)); });
-      if (s.character_prompt) st.appendChild(copyBlock("Character (paste into your AI video app every time)", s.character_prompt));
-      (s.scenes || []).forEach(function (sc, i) {
-        var box = el("div", "scene stack");
-        box.appendChild(el("span", "n", "Scene " + (i + 1)));
-        box.appendChild(copyBlock("Video prompt", (s.character_prompt ? s.character_prompt + ". " : "") + sc.visual_prompt));
-        if (sc.on_screen_text) box.appendChild(copyBlock("On-screen text", sc.on_screen_text));
-        if (sc.voiceover) box.appendChild(copyBlock("Voiceover", sc.voiceover));
-        st.appendChild(box);
+      var grid = el("div", "slides"); st.appendChild(grid);
+      var slides = p.slides || [];
+      slideBlobs = new Array(slides.length);
+
+      slides.forEach(function (s, i) {
+        var box = el("div", "slide"), img = el("img"); img.alt = "Slide " + (i + 1);
+        async function redraw() {
+          var b = await toBlob(drawSlide(s, i, slides.length));
+          slideBlobs[i] = b;
+          if (img.src) URL.revokeObjectURL(img.src);
+          img.src = URL.createObjectURL(b);
+        }
+        box.appendChild(img);
+        if (s.kind !== "cover" || slides.length > 1) {
+          var k = el("input"); k.value = s.kicker || ""; k.placeholder = s.kind === "point" ? "Label or number" : "Small label"; k.setAttribute("aria-label", "Slide " + (i + 1) + " label");
+          k.addEventListener("input", function () { s.kicker = k.value; redraw(); }); box.appendChild(k);
+        }
+        var h = el("textarea"); h.rows = 2; h.value = s.headline || ""; h.setAttribute("aria-label", "Slide " + (i + 1) + " headline");
+        h.addEventListener("input", function () { s.headline = h.value; redraw(); }); box.appendChild(h);
+        var bd = el("textarea"); bd.rows = 3; bd.value = s.body || ""; bd.placeholder = "Smaller text"; bd.setAttribute("aria-label", "Slide " + (i + 1) + " text");
+        bd.addEventListener("input", function () { s.body = bd.value; redraw(); }); box.appendChild(bd);
+        var row = el("div", "row"); row.appendChild(el("small", "muted", (i + 1) + " · " + s.kind));
+        var dl = el("button", "btn btn-ghost", "Save"); dl.type = "button";
+        dl.addEventListener("click", function () { download(slideBlobs[i], i); }); row.appendChild(dl);
+        box.appendChild(row);
+        grid.appendChild(box);
+        redraw();
       });
-      var cap = (s.caption || "") + "\n\n" + (s.hashtags || []).map(function (h) { return "#" + String(h).replace(/^#/, ""); }).join(" ");
-      st.appendChild(copyBlock("Caption + hashtags", cap.trim()));
-      var use = el("button", "btn btn-primary", "Use this caption for posting"); use.type = "button";
-      use.addEventListener("click", function () { $("#c-caption").value = cap.trim(); $("#c-caption").scrollIntoView({ behavior: "smooth", block: "center" }); });
-      st.appendChild(use);
+
+      var all = el("button", "btn btn-ghost", "Download all images"); all.type = "button";
+      all.addEventListener("click", function () { slideBlobs.forEach(function (b, i) { setTimeout(function () { download(b, i); }, i * 350); }); });
+      st.appendChild(all);
+
+      (p.hooks || []).forEach(function (hk, i) {
+        var c = copyBlock("Other cover hook " + (i + 1), hk);
+        var use = el("button", "btn btn-ghost", "Use"); use.type = "button";
+        use.addEventListener("click", function () { if (slides[0]) { slides[0].headline = hk; renderPost(p); } });
+        var btns = el("div", "btns"); btns.appendChild(c.lastChild); btns.appendChild(use); c.appendChild(btns); st.appendChild(c);
+      });
+      var cap = captionOf(p);
+      st.appendChild(copyBlock("Caption + hashtags", cap));
+      if (p.alt_text) st.appendChild(copyBlock("Alt text", p.alt_text));
+      var useCap = el("button", "btn btn-primary", "Use this caption for posting"); useCap.type = "button";
+      useCap.addEventListener("click", function () { $("#c-caption").value = cap; $("#c-caption").scrollIntoView({ behavior: "smooth", block: "center" }); });
+      st.appendChild(useCap);
+      out.appendChild(st);
+      $("#c-ready").textContent = slides.length > 1 ? "Ready: your " + slides.length + " slides will post as one carousel." : "Ready: your image will post as a single photo.";
+      if (!$("#c-caption").value.trim()) $("#c-caption").value = cap;
+    }
+    function download(blob, i) {
+      if (!blob) return;
+      var a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+      a.download = "project-sarae-slide-" + (i + 1) + ".jpg"; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+    }
+
+    // Older saved items were video scripts; show them simply.
+    function renderOldScript(s) {
+      lastPost = null; slideBlobs = [];
+      var out = $("#c-out"); out.innerHTML = ""; var st = el("div", "stack");
+      st.appendChild(el("p", "muted", "This is an older video script."));
+      (s.hooks || []).forEach(function (h, i) { st.appendChild(copyBlock("Hook " + (i + 1), h)); });
+      (s.scenes || []).forEach(function (sc, i) { st.appendChild(copyBlock("Scene " + (i + 1), [sc.visual_prompt, sc.on_screen_text, sc.voiceover].filter(Boolean).join(" · "))); });
+      st.appendChild(copyBlock("Caption + hashtags", captionOf(s)));
       out.appendChild(st);
     }
+
     $("#c-form").addEventListener("submit", async function (e) {
       e.preventDefault();
-      var btn = $("#c-go"); btn.disabled = true; say("#c-msg", "Writing your script…");
-      var payload = { topic: $("#c-topic").value, style: $("#c-style").value, goal: $("#c-goal").value };
+      var btn = $("#c-go"); btn.disabled = true; say("#c-msg", "Writing your post and drawing the images…");
+      var payload = { topic: $("#c-topic").value, format: $("#c-format").value, goal: $("#c-goal").value };
       var d = await api("generate", payload);
       btn.disabled = false;
       if (d.notConnected) { show($("#c-ai-off"), true); say("#c-msg", ""); return; }
       if (d.error) { say("#c-msg", d.error, "err"); return; }
-      say("#c-msg", "Done. Saved to your scripts below.", "ok");
-      lastScript = d; renderScript(d);
-      var cap = (d.caption || "") + "\n\n" + (d.hashtags || []).map(function (h) { return "#" + String(h).replace(/^#/, ""); }).join(" ");
-      await sb.from("content_posts").insert({ topic: payload.topic, script: d, caption: cap.trim().slice(0, 2200), status: "draft" });
+      if (!d.slides || !d.slides.length) { say("#c-msg", "The AI didn’t return any slides. Try again.", "err"); return; }
+      d.slides = d.slides.slice(0, 10);
+      d.type = "photo";
+      say("#c-msg", "Done. Saved to your drafts below.", "ok");
+      $("#c-caption").value = "";
+      await renderPost(d);
+      await sb.from("content_posts").insert({ topic: payload.topic, script: d, caption: captionOf(d).slice(0, 2200), status: "draft" });
       loadHistory();
     });
 
@@ -282,53 +460,79 @@
       r.data.forEach(function (p) {
         var row = el("div", "pay-row"), left = el("div");
         left.appendChild(el("b", "", p.topic || (p.caption || "").slice(0, 80) || "Post"));
-        left.appendChild(el("small", "", new Date(p.created_at).toLocaleString() + " · " + (p.status === "posted" ? "Posted" : p.status === "failed" ? "Didn’t post" : "Script")));
+        left.appendChild(el("small", "", new Date(p.created_at).toLocaleString() + " · " + (p.status === "posted" ? "Posted" : p.status === "failed" ? "Didn’t post" : "Draft")));
         var act = el("div");
         if (p.permalink) { var a = el("a", "btn btn-ghost", "View"); a.href = p.permalink; a.target = "_blank"; a.rel = "noopener"; a.style.padding = "6px 11px"; act.appendChild(a); }
-        else if (p.script) { var o = el("button", "btn btn-ghost", "Open"); o.type = "button"; o.style.padding = "6px 11px"; o.addEventListener("click", function () { lastScript = p.script; renderScript(p.script); $("#c-out-card").scrollIntoView({ behavior: "smooth" }); }); act.appendChild(o); }
+        else if (p.script) {
+          var o = el("button", "btn btn-ghost", "Open"); o.type = "button"; o.style.padding = "6px 11px";
+          o.addEventListener("click", function () {
+            if (p.script.slides) { $("#c-topic").value = p.topic || ""; $("#c-caption").value = ""; renderPost(JSON.parse(JSON.stringify(p.script))); }
+            else renderOldScript(p.script);
+            $("#c-out-card").scrollIntoView({ behavior: "smooth" });
+          });
+          act.appendChild(o);
+        }
         row.appendChild(left); row.appendChild(act); box.appendChild(row);
       });
     }
 
     function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
     $("#c-post").addEventListener("click", async function () {
-      var file = $("#c-file").files[0], caption = $("#c-caption").value.trim();
-      if (!file) { say("#c-post-msg", "Choose your finished video or photo first.", "err"); return; }
-      if (file.size > 50 * 1024 * 1024) { say("#c-post-msg", "That file is over 50 MB. Export it smaller in CapCut (1080p).", "err"); return; }
-      var isVideo = /^video\//.test(file.type);
-      if (!confirm("Post this " + (isVideo ? "Reel" : "photo") + " to Instagram now?")) return;
-      var btn = $("#c-post"), prog = $("#c-prog"); btn.disabled = true; show(prog, true); prog.value = 10;
-      var path = Date.now() + "-" + Math.random().toString(36).slice(2, 8) + (isVideo ? (/quicktime/.test(file.type) ? ".mov" : ".mp4") : ".jpg");
-      async function cleanup() { await sb.storage.from("content-media").remove([path]); }
+      var picked = Array.prototype.slice.call($("#c-file").files || []);
+      var caption = $("#c-caption").value.trim();
+      var blobs = picked.length ? picked : slideBlobs.filter(Boolean);
+      if (!blobs.length) { say("#c-post-msg", "Make a post above or choose your .jpg photos first.", "err"); return; }
+      if (blobs.length > 10) { say("#c-post-msg", "Instagram allows up to 10 images in one post.", "err"); return; }
+      if (blobs.some(function (b) { return b.size > 8 * 1024 * 1024; })) { say("#c-post-msg", "Each photo must be under 8 MB.", "err"); return; }
+      var many = blobs.length > 1;
+      if (!confirm("Post " + (many ? "this " + blobs.length + "-image carousel" : "this photo") + " to Instagram now?")) return;
+      var btn = $("#c-post"), prog = $("#c-prog"); btn.disabled = true; show(prog, true); prog.value = 5;
+      var paths = [];
+      async function cleanup() { if (paths.length) await sb.storage.from("content-media").remove(paths); }
       async function fail(msg) { say("#c-post-msg", msg, "err"); btn.disabled = false; show(prog, false); await cleanup(); }
       try {
-        say("#c-post-msg", "Uploading…");
-        var up = await sb.storage.from("content-media").upload(path, file, { contentType: file.type });
-        if (up.error) return fail("Upload failed: " + up.error.message);
-        prog.value = 35;
-        var url = sb.storage.from("content-media").getPublicUrl(path).data.publicUrl;
+        var urls = [];
+        for (var i = 0; i < blobs.length; i++) {
+          say("#c-post-msg", "Uploading image " + (i + 1) + " of " + blobs.length + "…");
+          var path = Date.now() + "-" + i + "-" + Math.random().toString(36).slice(2, 8) + ".jpg";
+          var up = await sb.storage.from("content-media").upload(path, blobs[i], { contentType: "image/jpeg" });
+          if (up.error) return fail("Upload failed: " + up.error.message);
+          paths.push(path);
+          urls.push(sb.storage.from("content-media").getPublicUrl(path).data.publicUrl);
+          prog.value = 5 + Math.round(35 * (i + 1) / blobs.length);
+        }
         say("#c-post-msg", "Sending to Instagram…");
-        var c = await api("ig_create", { mediaUrl: url, caption: caption, kind: isVideo ? "video" : "image" });
-        if (c.notConnected) return fail("Instagram isn’t connected yet. See SETUP-TOOLS.md, step 5.");
-        if (c.error) return fail("Instagram: " + c.error);
-        if (isVideo) {
-          say("#c-post-msg", "Instagram is processing your video. This can take a minute or two…");
-          var ready = false;
-          for (var i = 0; i < 60; i++) {
-            await wait(5000);
-            prog.value = Math.min(85, 40 + i * 2);
-            var s = await api("ig_check", { id: c.id });
-            if (s.status_code === "FINISHED") { ready = true; break; }
-            if (s.status_code === "ERROR" || s.error) return fail("Instagram couldn’t process this video. " + (s.status || s.error || "Check it’s an .mp4, 9:16, 3 sec to 15 min."));
+        var id;
+        if (many) {
+          var kids = [];
+          for (var j = 0; j < urls.length; j++) {
+            var k = await api("ig_create", { mediaUrl: urls[j], kind: "carousel_item" });
+            if (k.notConnected) return fail("Instagram isn’t connected yet. See SETUP-TOOLS.md, step 5.");
+            if (k.error) return fail("Instagram (image " + (j + 1) + "): " + k.error);
+            kids.push(k.id); prog.value = 40 + Math.round(30 * (j + 1) / urls.length);
           }
-          if (!ready) return fail("Instagram is still processing after 5 minutes. Try again in a bit.");
+          var car = await api("ig_carousel", { children: kids, caption: caption });
+          if (car.error) return fail("Instagram: " + car.error);
+          id = car.id;
+        } else {
+          var c = await api("ig_create", { mediaUrl: urls[0], caption: caption, kind: "image" });
+          if (c.notConnected) return fail("Instagram isn’t connected yet. See SETUP-TOOLS.md, step 5.");
+          if (c.error) return fail("Instagram: " + c.error);
+          id = c.id;
+        }
+        // Wait until Instagram has the post ready.
+        for (var t = 0; t < 24; t++) {
+          var s = await api("ig_check", { id: id });
+          if (!s.status_code || s.status_code === "FINISHED") break;
+          if (s.status_code === "ERROR" || s.error) return fail("Instagram couldn’t process these images. " + (s.status || s.error || ""));
+          await wait(2500);
         }
         say("#c-post-msg", "Publishing…"); prog.value = 92;
-        var p = await api("ig_publish", { id: c.id });
+        var p = await api("ig_publish", { id: id });
         if (p.error) return fail("Instagram: " + p.error);
         prog.value = 100;
         await cleanup();
-        await sb.from("content_posts").insert({ topic: lastScript ? $("#c-topic").value.slice(0, 400) : null, script: lastScript, caption: caption.slice(0, 2200), status: "posted", ig_media_id: p.id, permalink: p.permalink || null });
+        await sb.from("content_posts").insert({ topic: lastPost && !picked.length ? $("#c-topic").value.slice(0, 400) : null, script: picked.length ? null : lastPost, caption: caption.slice(0, 2200), status: "posted", ig_media_id: p.id, permalink: p.permalink || null });
         say("#c-post-msg", "Posted to Instagram!", "ok");
         $("#c-file").value = ""; btn.disabled = false; setTimeout(function () { show(prog, false); }, 1500);
         loadHistory();

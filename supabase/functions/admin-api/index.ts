@@ -90,22 +90,40 @@ async function sales(days: number) {
   };
 }
 
-// ---------- Gemini (scripts, hooks, captions) ----------
+// ---------- Gemini (photo posts: carousel slides, hooks, captions) ----------
+const FORMATS: Record<string, string> = {
+  tips: "Tips carousel. Cover promises a specific number of tips. Each point slide is one tip.",
+  mistakes: "Mistakes to avoid. Cover calls out a costly mistake. Each point slide names one mistake (headline) and the fix (body).",
+  myth: "Myth vs. fact. Each point slide: kicker 'MYTH' or 'FACT', headline the statement, body the short explanation. Alternate myth then fact.",
+  beforeafter: "Before / after comparison. Point slides alternate kicker 'BEFORE' and 'AFTER' showing the same moment both ways.",
+  signs: "Checklist of signs. Cover: 'Signs your business needs...'. Each point slide is one sign the reader can check against themselves.",
+  pov: "POV / relatable moment. Cover starts with 'POV:'. Point slides tell a tiny story a business owner instantly recognizes, beat by beat.",
+  quote: "Single bold statement. Return exactly ONE slide of kind 'cover' with a short, punchy, quotable headline and a one-line body. No other slides.",
+};
 async function generate(body: any) {
-  const topic = clean(body.topic, 400), style = clean(body.style, 300), goal = clean(body.goal, 200);
+  const topic = clean(body.topic, 400), goal = clean(body.goal, 200);
+  const format = FORMATS[clean(body.format, 20)] ? clean(body.format, 20) : "tips";
   if (!topic) throw new Error("Add a topic first.");
-  const prompt = `You write short-form, faceless Instagram Reels for "Project Sarae", a one-woman web design studio run by A'Nya.
-She builds websites with online booking for local businesses (salons, med spas). Tone: professional-casual, warm, confident. No fake income claims, no lifestyle flexing, no fake testimonials.
-The video uses an ORIGINAL 3D-cartoon character (not any existing studio or brand character), made in an AI image-to-video tool. Each scene is a 3-5 second clip.
+  const prompt = `You create Instagram photo posts (carousels of text slides) for "Project Sarae", a one-woman web design studio run by A'Nya.
+She builds websites with online booking for local businesses (salons, med spas, barbers, beauty pros). Audience: local business owners scrolling Instagram.
+Tone: professional-casual, warm, confident, plain-spoken. No fake income claims, no invented statistics or percentages, no fake testimonials, no lifestyle flexing.
+
+Write it to spread: the cover must stop the scroll in under 1 second (pattern interrupt, specific, curiosity gap, speaks to one person).
+Every slide must earn the next swipe. Be specific and useful enough that people SAVE it and SEND it to a business-owner friend.
+Short words. Headlines under 9 words. Body under 26 words. No emojis on slides. No hashtags on slides.
+
+Format: ${FORMATS[format]}
 Topic: ${topic}
-Character / visual style: ${style || "friendly original 3D cartoon character, cinematic lighting, vertical 9:16"}
 Goal of the post: ${goal || "get local business owners to book a free website call"}
-Return JSON only, with this shape:
-{"hooks":[3 strings, under 10 words, scroll-stopping],
- "character_prompt": string (reusable description to keep the character consistent),
- "scenes":[4 to 6 objects {"visual_prompt": string for the AI video tool, "on_screen_text": string under 6 words, "voiceover": string}],
- "caption": string (under 300 characters, ends with a soft call to action),
- "hashtags":[8 strings without #]}`;
+
+Slides: ${format === "quote" ? "exactly 1" : "6 to 8"} total. Slide 1 is kind "cover" (kicker = 2-4 word label, headline = the hook, body = optional short subline).
+${format === "quote" ? "" : `Middle slides are kind "point". Last slide is kind "cta": headline invites them to save/share or DM, body mentions a free website call with Project Sarae.`}
+Return JSON only:
+{"hooks":[3 alternative cover headlines, under 9 words each],
+ "slides":[{"kind":"cover"|"point"|"cta","kicker":string,"headline":string,"body":string}],
+ "caption": string (under 400 characters; opens with a hook line, adds value, ends by asking a question or telling them to save/share),
+ "hashtags":[10 strings without #, mix of broad and niche/local small-business tags],
+ "alt_text": string (one sentence describing the post for screen readers)}`;
   const model = env("GEMINI_MODEL", "gemini-3.8-flash");
   const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
     method: "POST",
@@ -327,8 +345,17 @@ Deno.serve(async (req) => {
         const isVideo = body.kind === "video";
         const p: Record<string, string> = isVideo
           ? { media_type: "REELS", video_url: url, caption, share_to_feed: "true" }
+          : body.kind === "carousel_item"
+          ? { image_url: url, is_carousel_item: "true" }
           : { image_url: url, caption };
         return json(200, await ig("POST", `${env("IG_USER_ID")}/media`, p));
+      }
+      case "ig_carousel": {
+        const ids = (Array.isArray(body.children) ? body.children : []).map((x: unknown) => clean(x, 60)).filter(Boolean);
+        if (ids.length < 2 || ids.length > 10) throw new Error("A carousel needs 2 to 10 images.");
+        return json(200, await ig("POST", `${env("IG_USER_ID")}/media`, {
+          media_type: "CAROUSEL", children: ids.join(","), caption: clean(body.caption, 2200),
+        }));
       }
       case "ig_check":
         return json(200, await ig("GET", clean(body.id, 60), { fields: "status_code,status" }));
