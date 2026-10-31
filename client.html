@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Your Website Dashboard | Project Sarae</title>
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=12">
+<style>
+  body { min-height: 100vh; }
+  .hidden { display: none !important; }
+  .admin-wrap { max-width: 1320px; margin: 0 auto; padding: 28px 20px 60px; }
+  .login { max-width: 400px; margin: 9vh auto; }
+  .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--line); margin: 6px 0 22px; overflow-x: auto; }
+  .tabs button { background: none; border: 0; font: inherit; font-weight: 700; color: var(--muted); padding: 12px 16px; border-bottom: 2.5px solid transparent; cursor: pointer; white-space: nowrap; }
+  .tabs button.on { color: var(--navy); border-color: var(--blue); }
+  .muted { color: var(--muted-2); font-size: .9rem; }
+  .hint { font-size: .82rem; color: var(--muted-2); margin-top: 4px; }
+  .status { font-size: .72rem; font-weight: 800; padding: 3px 9px; border-radius: 999px; margin-right: 6px; }
+  .status.p { background: #FBEBD3; color: #9A6212; } .status.a { background: #DDF1E6; color: #2E7D5B; }
+  .btn-danger { background: #fff; border-color: #EBC9C4; color: var(--coral); }
+  .ed-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; } .ed-grid .full { grid-column: 1 / -1; }
+  @media (max-width: 640px) { .ed-grid { grid-template-columns: 1fr; } }
+  select { width: auto; padding: 8px 12px; }
+  .pubbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .pubbar .msg { margin: 0; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #2E7D5B; display: inline-block; margin-right: 6px; }
+  .dot.dirty { background: #D98B1F; }
+</style>
+</head>
+<body>
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="index.html"><img src="images/logo-dark.png" alt="" class="brand-logo"><span>YOUR WEBSITE</span></a>
+    <button id="logout" class="btn btn-ghost-dark hidden" style="padding:8px 14px">Log out</button>
+  </div>
+</header>
+
+<div class="admin-wrap">
+  <form id="login" class="card login hidden">
+    <h3>Sign in</h3>
+    <p>Manage your website, products, and orders.</p>
+    <label for="email">Email</label>
+    <input id="email" type="email" autocomplete="username" required>
+    <label for="password">Password</label>
+    <input id="password" type="password" autocomplete="current-password" required>
+    <button class="btn btn-primary btn-block" style="margin-top:18px" type="submit">Sign in</button>
+    <p class="hint" style="margin-top:12px"><a href="#" id="forgot">Forgot your password?</a></p>
+    <div id="login-msg" class="msg" role="status"></div>
+  </form>
+
+  <form id="setpw" class="card login hidden">
+    <h3>Create your password</h3>
+    <p>You’ll use this with your email to sign in.</p>
+    <label for="pw1">New password (8+ characters)</label>
+    <input id="pw1" type="password" autocomplete="new-password" minlength="8" required>
+    <label for="pw2">Type it again</label>
+    <input id="pw2" type="password" autocomplete="new-password" minlength="8" required>
+    <button class="btn btn-primary btn-block" style="margin-top:18px" type="submit">Save password</button>
+    <div id="pw-msg" class="msg" role="status"></div>
+  </form>
+
+  <div id="nosite" class="card login hidden"><h3>No website yet</h3><p>Your account isn’t linked to a website yet. Contact your web designer.</p></div>
+
+  <div id="dash" class="hidden">
+    <div class="top">
+      <div><span class="eyebrow">Your website</span><h2 style="font-size:1.8rem;margin:0" id="site-name"></h2><select id="site-pick" class="hidden" style="margin-top:8px"></select></div>
+      <div class="pubbar"><span class="muted" id="save-state"><span class="dot"></span>All changes saved</span>
+        <a class="btn btn-ghost" id="view-live" target="_blank" rel="noopener">View live site</a>
+        <button class="btn btn-primary" id="publish" type="button">Publish changes</button></div>
+    </div>
+    <div class="msg" id="pub-msg" role="status"></div>
+    <div class="tabs" role="tablist" style="margin-top:14px">
+      <button class="on" data-tab="edit">Edit pages</button>
+      <button data-tab="info">Business info &amp; look</button>
+      <button data-tab="store" id="store-tab" class="hidden">Store &amp; orders</button>
+    </div>
+
+    <section id="tab-edit" style="padding:0">
+      <div class="top" style="margin-bottom:12px"><div><label for="page-pick" style="margin:0 8px 0 0;display:inline">Page</label><select id="page-pick"></select></div>
+        <p class="hint" style="margin:0">Click any text to change it. Changes save automatically. Click <b>Publish changes</b> to put them live.</p></div>
+      <div id="editor"></div>
+    </section>
+
+    <section id="tab-info" class="hidden" style="padding:0">
+      <div class="card"><h3>Business info</h3><p class="muted">This shows across your whole site (header, footer, contact page, services list, and the chat assistant).</p>
+        <div class="ed-grid" id="info-form"></div></div>
+      <div class="card" style="margin-top:18px"><h3>Look</h3><div class="ed-grid" id="look-form"></div></div>
+    </section>
+
+    <section id="tab-store" class="hidden" style="padding:0"><div id="store"></div></section>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js?v=6"></script>
+<script src="builder-generator.js?v=2"></script>
+<script src="site-editor.js?v=1"></script>
+<script src="store-admin.js?v=1"></script>
+<script src="client.js?v=1"></script>
+</body>
+</html>

@@ -292,6 +292,24 @@ Deno.serve(async (req) => {
       case "gh_publish":
         if (!env("GITHUB_TOKEN")) return json(200, { notConnected: true });
         return json(200, await publish(body));
+      case "invite_client": {
+        // Gives a client a login for one site and emails them an invite to set a password.
+        const site = clean(body.site, 100).toLowerCase(), email = clean(body.email, 200).toLowerCase();
+        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new Error("Enter a valid email.");
+        const admin = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"));
+        const { data: row } = await admin.from("client_sites").select("slug").eq("slug", site).maybeSingle();
+        if (!row) throw new Error("Save the site first.");
+        const redirectTo = clean(body.redirectTo, 300) || "https://projectsarae.site/client.html";
+        const inv = await admin.auth.admin.inviteUserByEmail(email, { redirectTo });
+        let existed = false;
+        if (inv.error) {
+          if (!/already|registered|exists/i.test(inv.error.message)) throw new Error(inv.error.message);
+          existed = true; // They already have a login (maybe for another site). Just link this site.
+        }
+        const m = await admin.from("site_members").upsert({ site_slug: site, email }, { onConflict: "site_slug,email" });
+        if (m.error) throw new Error(m.error.message);
+        return json(200, { ok: true, existed });
+      }
       case "sales": {
         if (!env("STRIPE_SECRET_KEY")) return json(200, { notConnected: true });
         const days = [7, 30, 90, 365].includes(+body.days) ? +body.days : 30;
