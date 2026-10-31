@@ -7,7 +7,7 @@
 // don't have yet; that part of the admin just says "not connected".
 //   STRIPE_SECRET_KEY   restricted, READ-ONLY Stripe key (rk_live_...)
 //   GEMINI_API_KEY      free key from Google AI Studio
-//   GEMINI_MODEL        optional, defaults to gemini-2.5-flash
+//   GEMINI_MODEL        optional, defaults to gemini-3.8-flash
 //   IG_USER_ID          your Instagram professional account ID
 //   IG_ACCESS_TOKEN     long-lived Instagram/Meta access token
 //   META_GRAPH_HOST     optional: graph.facebook.com (default) or graph.instagram.com
@@ -105,7 +105,7 @@ Return JSON only, with this shape:
  "scenes":[4 to 6 objects {"visual_prompt": string for the AI video tool, "on_screen_text": string under 6 words, "voiceover": string}],
  "caption": string (under 300 characters, ends with a soft call to action),
  "hashtags":[8 strings without #]}`;
-  const model = env("GEMINI_MODEL", "gemini-2.5-flash");
+  const model = env("GEMINI_MODEL", "gemini-3.8-flash");
   const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
     method: "POST",
     headers: { "content-type": "application/json", "x-goog-api-key": env("GEMINI_API_KEY") },
