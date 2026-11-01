@@ -847,5 +847,6 @@ footer a:hover { color: var(--ink); }
 .sale-banner b { color: var(--action); }
 s.was { color: var(--steel); font-weight: 400; font-size: .5em; margin-right: 10px; text-decoration-thickness: 2px; }
 .setup-card s.was { font-size: .6em; }
+.summary s.was, .pick-price s.was, .setup-pill s.was, #picked-plan s.was { font-size: .9em; margin-right: 6px; }
 .summary .disc, .summary .disc b { color: #1a7f4b; }
 .plan.featured s.was { color: #C9CBF2; }

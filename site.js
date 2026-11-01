@@ -63,6 +63,13 @@
     return Math.min(price, Math.round(o * 100) / 100);
   }
   function discLine(d) { return (d.kind === "percent" ? d.value + "% off " : money(d.value) + " off ") + APPLIES[d.applies]; }
+  function endsText(d) { return d && d.ends ? "Sale ends " + new Date(d.ends + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""; }
+  // Puts "<s>$old</s> $new" into el (or just $new when there's no discount)
+  function slash(el, oldTxt, newTxt) {
+    el.textContent = "";
+    if (oldTxt && oldTxt !== newTxt) { var w = document.createElement("s"); w.className = "was"; w.textContent = oldTxt; el.appendChild(w); }
+    el.appendChild(document.createTextNode(newTxt));
+  }
   function promoUrl(url, d) {
     if (!url || !d || !d.code) return url;
     try { var u = new URL(url); u.searchParams.set("prefilled_promo_code", d.code); return u.href; } catch (e) { return url; }
@@ -224,8 +231,9 @@
       $(".price span", card).textContent = money(p[period] - pOff);
       if (pOff) { var was = document.createElement("s"); was.className = "was"; was.textContent = money(p[period]); $(".price", card).insertBefore(was, $(".price span", card)); }
       $(".price small", card).textContent = period === "yearly" ? "/year" : "/month";
-      $(".note", card).textContent = pOff && sd.applies === "plan_first"
-        ? (period === "yearly" ? "Your first year. Then " : "Your first month. Then ") + money(p[period]) + (period === "yearly" ? "/year" : "/month")
+      $(".note", card).textContent = pOff
+        ? (sd.applies === "plan_first" ? (period === "yearly" ? "Your first year. Then " : "Your first month. Then ") + money(p[period]) + (period === "yearly" ? "/year" : "/month") : sd.label) +
+          (sd.ends ? " · " + endsText(sd) : "")
         : period === "yearly" && p.monthly * 12 > p.yearly ? "Save " + money(p.monthly * 12 - p.yearly) + " vs. monthly" : "";
       var ul = $("ul", card);
       (p.features || []).forEach(function (f) {
@@ -270,7 +278,12 @@
   function renderSetupFee() {
     var fee = setupFee(), sd = sale(), fOff = hits(sd, "setup") ? off(sd, fee) : 0;
     renderSale();
-    $$("[data-setup-pill]").forEach(function (el) { el.textContent = fee ? "One-time setup fee: " + money(fee - fOff) + (fOff ? " (was " + money(fee) + ")" : "") : "No setup fee"; });
+    $$("[data-setup-pill]").forEach(function (el) {
+      if (!fee) { el.textContent = "No setup fee"; return; }
+      el.textContent = "One-time setup fee: ";
+      var v = document.createElement("span"); slash(v, fOff ? money(fee) : "", money(fee - fOff)); el.appendChild(v);
+      if (fOff && sd.ends) el.appendChild(document.createTextNode(" · " + endsText(sd)));
+    });
     $$("[data-setup-amount]").forEach(function (el) {
       el.textContent = fee ? money(fee - fOff) : "$0";
       var prev = el.previousElementSibling; if (prev && prev.classList.contains("was")) prev.remove();
@@ -339,7 +352,10 @@
       var banner = $("#picked");
       if (plan && banner) {
         banner.hidden = false;
-        $("#picked-plan", banner).textContent = pm[plan].name + " plan · " + money(pm[plan][period]) + (period === "yearly" ? "/year" : "/month");
+        var bs = sale(), bOff = hits(bs, "plan") ? off(bs, pm[plan][period]) : 0, per_ = period === "yearly" ? "/year" : "/month";
+        var pp = $("#picked-plan", banner), ps = document.createElement("span");
+        slash(ps, bOff ? money(pm[plan][period]) : "", money(pm[plan][period] - bOff) + per_);
+        pp.textContent = pm[plan].name + " plan · "; pp.appendChild(ps);
       }
       return plan ? "Interested in the " + pm[plan].name + " plan (" + period + ")" : "";
     };
@@ -518,16 +534,17 @@
         ((fee || chosen.length) ? " Each item below has its own secure payment button." : "") +
         ((pOff || fOff) && d.code ? " Your discount code " + d.code + " is filled in for you on the Stripe page." : "");
       var sum = $("#pay-sum");
-      var line = function (label, amt, cls) {
+      var line = function (label, amt, cls, was) {
         var d = document.createElement("div"); if (cls) d.className = cls;
         var a = document.createElement("span"); a.textContent = label;
-        var b = document.createElement("b"); b.textContent = amt;
+        var b = document.createElement("b"); slash(b, was, amt);
         d.appendChild(a); d.appendChild(b); sum.appendChild(d);
       };
-      line(plan.name + " plan (" + per + ")", money(plan[per]) + (per === "yearly" ? "/year" : "/month"));
-      if (fee) line("Setup fee (one-time)", money(fee));
+      var perTxt = per === "yearly" ? "/year" : "/month";
+      line(plan.name + " plan (" + per + ")", money(plan[per] - pOff) + perTxt, "", pOff ? money(plan[per]) + perTxt : "");
+      if (fee) line("Setup fee (one-time)", money(fee - fOff), "", fOff ? money(fee) : "");
       chosen.forEach(function (k) { line(addonLine(AD[k]), money(AD[k].price) + (AD[k].unit === "month" ? "/month" : "")); });
-      if (pOff || fOff) line(d.label + " (" + discLine(d) + ")", "−" + money(pOff + fOff), "disc");
+      if (pOff || fOff) line(d.label + (d.ends ? " · " + endsText(d).toLowerCase() : ""), "You save " + money(pOff + fOff), "disc");
       line("Due today", money(total), "total");
       var pb = $(".pay-buttons", cbox), n = 0, multi = !!(fee || chosen.length);
       var addBtn = function (label, url, track_) {
@@ -589,27 +606,29 @@
       var update = function () {
         $$(".plan-pick .pick", cbox).forEach(function (lab) {
           var k = $("input", lab).value;
-          $(".pick-price", lab).textContent = money(PR[k][sel.period]) + (sel.period === "yearly" ? "/year" : "/month");
+          var kp = PR[k][sel.period], ko = hits(d, "plan") ? off(d, kp) : 0, kper = sel.period === "yearly" ? "/year" : "/month";
+          slash($(".pick-price", lab), ko ? money(kp) : "", money(kp - ko) + kper);
           lab.classList.toggle("on", $("input", lab).checked);
         });
         $$(".addon-pick .pick", cbox).forEach(function (lab) { lab.classList.toggle("on", $("input", lab).checked); });
         var p = PR[sel.plan], today = p[sel.period], monthlyAdd = 0;
         var sum = $("#sum"); sum.innerHTML = "";
-        var row = function (label, amt, cls) {
+        var row = function (label, amt, cls, was) {
           var d = document.createElement("div"); if (cls) d.className = cls;
           var a = document.createElement("span"); a.textContent = label;
-          var b = document.createElement("b"); b.textContent = amt;
+          var b = document.createElement("b"); slash(b, was, amt);
           d.appendChild(a); d.appendChild(b); sum.appendChild(d);
         };
-        row(p.name + " plan (" + sel.period + ")", money(p[sel.period]));
-        if (fee) { row("Setup fee (one-time)", money(fee)); today += fee; }
+        var pO = hits(d, "plan") ? off(d, p[sel.period]) : 0, fO = hits(d, "setup") ? off(d, fee) : 0;
+        row(p.name + " plan (" + sel.period + ")", money(p[sel.period] - pO), "", pO ? money(p[sel.period]) : "");
+        today -= pO;
+        if (fee) { row("Setup fee (one-time)", money(fee - fO), "", fO ? money(fee) : ""); today += fee - fO; }
         Object.keys(sel.addons).filter(function (k) { return sel.addons[k] && AD[k]; }).forEach(function (k) {
           row(addonLine(AD[k]), money(AD[k].price));
           today += +AD[k].price || 0;
           if (AD[k].unit === "month") monthlyAdd += +AD[k].price || 0;
         });
-        var dOff = (hits(d, "plan") ? off(d, p[sel.period]) : 0) + (hits(d, "setup") ? off(d, fee) : 0);
-        if (dOff) { row(d.label + " (" + discLine(d) + ")", "−" + money(dOff), "disc"); today -= dOff; }
+        if (pO || fO) row(d.label + (d.ends ? " · " + endsText(d).toLowerCase() : ""), "You save " + money(pO + fO), "disc");
         row("Due today", money(today), "total");
         var after = document.createElement("p");
         after.className = "fine after";
