@@ -841,3 +841,11 @@ footer a:hover { color: var(--ink); }
 .faq-item summary::after { content: "+"; color: var(--slate); font-weight: 400; }
 .faq-item[open] summary::after { content: "−"; }
 .faq-item p { color: var(--slate); font-size: 17px; margin-top: 10px; }
+
+/* ---------- Discounts ---------- */
+.sale-banner { background: var(--mist); border: 1px solid var(--hairline); border-radius: 14px; padding: 14px 18px; margin-bottom: 22px; font-size: 15px; color: var(--ink); text-align: center; }
+.sale-banner b { color: var(--action); }
+s.was { color: var(--steel); font-weight: 400; font-size: .5em; margin-right: 10px; text-decoration-thickness: 2px; }
+.setup-card s.was { font-size: .6em; }
+.summary .disc, .summary .disc b { color: #1a7f4b; }
+.plan.featured s.was { color: #C9CBF2; }

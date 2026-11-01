@@ -104,6 +104,10 @@ create table if not exists public.checkout_invites (
   chosen_addons     text[],
   contract_version  text
 );
+-- Optional per-client discount (set when you create the link)
+-- {label, kind: percent|amount, value, applies: setup|plan_first|plan_all, code}
+alter table public.checkout_invites add column if not exists discount jsonb
+  check (discount is null or (jsonb_typeof(discount) = 'object' and pg_column_size(discount) < 2000));
 alter table public.checkout_invites enable row level security;
 drop policy if exists "admin manages invites" on public.checkout_invites;
 create policy "admin manages invites" on public.checkout_invites
@@ -139,6 +143,7 @@ begin
     'chosen_plan', inv.chosen_plan,
     'chosen_period', inv.chosen_period,
     'chosen_addons', inv.chosen_addons,
+    'discount', inv.discount,
     'links', case when inv.signed_at is not null then _invite_links(inv) else null end
   );
 end $$;

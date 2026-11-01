@@ -2,6 +2,12 @@
 
 Everything here uses free plans. Stripe only takes its normal fee (about 2.9% + 30¢) when a client actually pays you.
 
+## Update — November 1, 2026: discounts
+1. In Supabase, open **SQL Editor → New query**, paste all of `supabase-setup.sql`, and click **Run** (adds client discounts; safe to run again).
+2. In Stripe: **Product catalog → Coupons → Create coupon** (Once = first payment only, Forever = every payment), then add a **promotion code** to it, like `OPEN20`.
+3. In Stripe, open each Payment Link the discount should work on → **Edit** → turn on **Allow promotion codes**.
+4. In your admin: **Pricing & add-ons → Sale for everyone** for a public sale, or **Clients & checkout → Add a discount for this client** when you create a private link. Use the same promotion code. Clients see the lower price, and the code is filled in for them on the Stripe page.
+
 ## Update — October 24, 2026 (do these 3 things once)
 1. Upload every file in this folder to your GitHub repo (replace the old ones). New files: `content.js`, `images/hero.jpg`.
 2. In Supabase, open **SQL Editor → New query**, paste all of `supabase-setup.sql`, and click **Run**. This lets checkout use your setup fee and any add-on you create.

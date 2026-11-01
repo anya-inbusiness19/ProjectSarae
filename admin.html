@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=12">
+<link rel="stylesheet" href="styles.css?v=14">
 <style>
   .ed-row { border: 1px solid var(--line); border-radius: 16px; padding: 4px 16px 16px; margin-top: 12px; background: var(--canvas); }
   .ed-row .ed-tools { display: flex; gap: 6px; justify-content: flex-end; margin-top: 10px; flex-wrap: wrap; }
@@ -180,6 +180,9 @@
           <label for="i-plan">Recommended plan</label>
           <select id="i-plan" style="width:100%"><option value="starter">Starter</option><option value="business" selected>Business</option><option value="pro">Pro</option></select>
           <label for="i-date">Zoom call date</label><input id="i-date" type="date">
+          <details id="i-disc" style="margin-top:14px"><summary style="cursor:pointer;font-weight:700">Add a discount for this client (optional)</summary>
+            <p class="hint" style="margin-top:8px">Create the coupon and promotion code in Stripe first, and turn on <b>Allow promotion codes</b> on your Payment Links. The client sees the lower price and the code is filled in on the Stripe page.</p>
+          </details>
           <button class="btn btn-primary btn-block" style="margin-top:16px" type="submit">Create link</button>
           <div class="msg" id="invite-msg" role="status"></div>
           <div id="invite-result" class="hidden" style="margin-top:14px">
@@ -383,7 +386,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=6"></script>
 <script src="content.js?v=3"></script>
-<script src="admin.js?v=13"></script>
+<script src="admin.js?v=14"></script>
 <script src="admin-tools.js?v=3"></script>
 <script src="builder-generator.js?v=2"></script>
 <script src="site-editor.js?v=1"></script>

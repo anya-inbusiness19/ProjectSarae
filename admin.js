@@ -215,7 +215,7 @@
     else if (f.type === "select") {
       inp = el("select"); inp.style.width = "100%";
       f.options.forEach(function (o) { var op = el("option"); op.value = o[0]; op.textContent = o[1]; inp.appendChild(op); });
-    } else { inp = el("input"); inp.type = f.type === "number" ? "number" : f.type === "url" ? "url" : "text"; if (f.type === "number") { inp.min = "0"; inp.step = "1"; } }
+    } else { inp = el("input"); inp.type = f.type === "number" ? "number" : f.type === "url" ? "url" : f.type === "date" ? "date" : "text"; if (f.type === "number") { inp.min = "0"; inp.step = f.step || "1"; } }
     if (f.placeholder) inp.placeholder = f.placeholder;
     inp.value = value == null ? "" : value;
     inp.dataset.k = f.k;
@@ -340,8 +340,58 @@
   }
 
   function slug(s) { return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "").slice(0, 28) || "item"; }
+  /* ---------- Discounts ---------- */
+  var DISC_APPLIES = [["setup", "Setup fee"], ["plan_first", "First plan payment"], ["plan_all", "Plan, every payment"]];
+  var DISC_KINDS = [["percent", "% off"], ["amount", "$ off"]];
+  // Reads discount fields inside box. Returns null (no discount), a discount object, or throws a friendly error.
+  function readDisc(box) {
+    var q = function (k) { var i = box.querySelector('[data-k="' + k + '"]'); return i ? i.value.trim() : ""; };
+    var value = Math.round((+q("d_value") || 0) * 100) / 100;
+    if (!value) return null;
+    var d = { label: q("d_label") || "Discount", kind: q("d_kind") === "amount" ? "amount" : "percent", value: value,
+              applies: DISC_APPLIES.some(function (a) { return a[0] === q("d_applies"); }) ? q("d_applies") : "setup",
+              code: q("d_code").replace(/\s+/g, "").toUpperCase() };
+    if (d.kind === "percent" && d.value > 100) throw new Error("A percent discount can’t be more than 100.");
+    if (!/^[A-Z0-9_-]{2,40}$/.test(d.code)) throw new Error("Add the Stripe promotion code (letters and numbers only), so Stripe charges the discounted price.");
+    return d;
+  }
+  function discFields(d, extra) {
+    d = d || {};
+    var g = el("div", "ed-grid");
+    g.appendChild(inputFor({ k: "d_label", label: "Name clients see", type: "text", placeholder: "e.g. Grand opening" }, d.label || ""));
+    g.appendChild(inputFor({ k: "d_code", label: "Stripe promotion code", type: "text", placeholder: "e.g. OPENING20", hint: "Must match a promotion code in Stripe exactly." }, d.code || ""));
+    g.appendChild(inputFor({ k: "d_kind", label: "Type", type: "select", options: DISC_KINDS }, d.kind || "percent"));
+    g.appendChild(inputFor({ k: "d_value", label: "Amount (leave blank for no discount)", type: "number", step: "any" }, d.value || ""));
+    g.appendChild(inputFor({ k: "d_applies", label: "Takes money off", type: "select", options: DISC_APPLIES }, d.applies || "setup"));
+    (extra || []).forEach(function (x) { g.appendChild(x); });
+    return g;
+  }
+  function discText(d) {
+    if (!d) return "";
+    var a = { setup: "setup fee", plan_first: "first plan payment", plan_all: "plan, every payment" }[d.applies] || "";
+    return (d.kind === "amount" ? "$" + d.value : d.value + "%") + " off " + a + (d.code ? " · code " + d.code : "");
+  }
+
   function buildPricing() {
     var host = $("#pricing-cards"); host.innerHTML = "";
+
+    // Sale for everyone
+    var cur = {}; try { cur = JSON.parse(settings.sale || "{}") || {}; } catch (e) { cur = {}; }
+    var salec = card("Sale for everyone", "Shows a sale banner and crossed-out prices on your Pricing page, and takes the money off at every private checkout. A client’s own discount (set when you create their link) replaces the sale for that client.");
+    salec.appendChild(discFields(cur, [
+      inputFor({ k: "d_on", label: "Sale is", type: "select", options: [["off", "Off (hidden)"], ["on", "On (live on site)"]] }, cur.on ? "on" : "off"),
+      inputFor({ k: "d_ends", label: "Ends after (optional)", type: "date", hint: "The sale hides itself after this day." }, cur.ends || "")
+    ]));
+    salec.appendChild(el("p", "hint", "In Stripe: <b>Product catalog → Coupons → Create coupon</b> with the same amount (for “First plan payment” pick <b>Once</b>, for “every payment” pick <b>Forever</b>), add a <b>promotion code</b>, and turn on <b>Allow promotion codes</b> on the Payment Links it applies to. The code is filled in for the client automatically."));
+    actions(salec, "Save sale", async function () {
+      var on = salec.querySelector('[data-k="d_on"]').value === "on";
+      var d = readDisc(salec);
+      if (on && !d) throw new Error("Add an amount to turn the sale on.");
+      if (!d) { await clearSetting("sale"); delete settings.sale; return; }
+      d.on = on; d.ends = salec.querySelector('[data-k="d_ends"]').value || "";
+      var v = JSON.stringify(d); await saveSetting("sale", v); settings.sale = v;
+    });
+    host.appendChild(salec);
 
     // Setup fee
     var sc = card("Setup fee", "A one-time fee added at checkout. Set it to 0 to show “No setup fee” everywhere.");
@@ -446,13 +496,22 @@
       business: $("#i-business").value.trim() || null, recommended_plan: $("#i-plan").value,
       call_date: $("#i-date").value || null
     };
+    try { var disc = readDisc($("#i-disc")); } catch (er) { msg.className = "msg err"; msg.textContent = er.message; return; }
+    if (disc) row.discount = disc;
     var r = await sb.from("checkout_invites").insert(row);
-    if (r.error) { msg.className = "msg err"; msg.textContent = "Couldn’t create the link: " + r.error.message; return; }
+    if (r.error) {
+      msg.className = "msg err";
+      msg.textContent = /discount/.test(r.error.message)
+        ? "Discounts need a quick database update: in Supabase, open SQL Editor, paste all of supabase-setup.sql, and click Run. Then try again."
+        : "Couldn’t create the link: " + r.error.message;
+      return;
+    }
     msg.className = "msg ok"; msg.textContent = "Link created. Send it to " + name.split(" ")[0] + ".";
     show($("#invite-result"), true);
     $("#invite-link").value = checkoutUrl(row.code);
     $("#email-link").href = emailHref(row);
     e.target.querySelectorAll("input:not(#invite-link)").forEach(function (i) { i.value = ""; });
+    $("#i-disc").open = false;
     loadInvites();
   });
   $("#copy-link").addEventListener("click", function () {
@@ -461,6 +520,10 @@
       function () { $("#copy-link").textContent = "Copied!"; setTimeout(function () { $("#copy-link").textContent = "Copy link"; }, 1500); },
       function () { document.execCommand("copy"); });
   });
+  (function () {
+    var box = $("#i-disc"); if (!box) return;
+    box.appendChild(discFields({ label: "Your discount" }));
+  })();
   async function loadInvites() {
     var r = await sb.from("checkout_invites").select("*").order("created_at", { ascending: false }).limit(100);
     var list = $("#invite-list"); list.innerHTML = "";
@@ -480,6 +543,7 @@
       var det = x.signed_at
         ? "Signed by " + x.signed_name + " on " + new Date(x.signed_at).toLocaleDateString() + " · " + PLAN_NAMES[x.chosen_plan] + " (" + x.chosen_period + ")" + (x.chosen_addons && x.chosen_addons.length ? " + " + x.chosen_addons.length + " add-on(s)" : "")
         : "Recommended: " + (PLAN_NAMES[x.recommended_plan] || "–") + " · " + (expired ? "Expired " : "Expires ") + new Date(x.expires_at).toLocaleDateString();
+      if (x.discount) det += " · Discount: " + discText(x.discount);
       el.querySelector(".d").textContent = det;
       var act = el.querySelector(".actions");
       if (!x.signed_at && !expired) {

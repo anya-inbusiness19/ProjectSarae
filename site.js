@@ -9,7 +9,7 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var page = document.body.getAttribute("data-page") || "";
-  function money(n) { return "$" + Number(n || 0).toLocaleString("en-US"); }
+  function money(n) { n = Math.round(Number(n || 0) * 100) / 100; return "$" + n.toLocaleString("en-US", n % 1 ? { minimumFractionDigits: 2, maximumFractionDigits: 2 } : {}); }
   function esc(s) { var d = document.createElement("div"); d.textContent = s == null ? "" : String(s); return d.innerHTML; }
 
   /* ---------- Content settings (saved in admin, cached for instant loads) ---------- */
@@ -38,6 +38,35 @@
   function addons() { return list("addons").filter(function (a) { return a && a.key && a.name; }); }
   function addonMap() { var m = {}; addons().forEach(function (a) { m[a.key] = a; }); return m; }
   function unitLabel(u) { return u === "month" ? "/month" : u === "setup" ? "one-time setup" : "one-time"; }
+
+  /* ---------- Discounts ----------
+     A discount is { label, kind: "percent"|"amount", value, applies: "setup"|"plan_first"|"plan_all", code }.
+     A client's own discount comes with their checkout link; a public sale is saved in admin → Pricing. */
+  var APPLIES = { setup: "the setup fee", plan_first: "the first plan payment", plan_all: "the plan, every payment" };
+  function cleanDisc(d) {
+    if (!d || typeof d !== "object") return null;
+    var v = +d.value, kind = d.kind === "amount" ? "amount" : "percent";
+    if (!(v > 0) || !APPLIES[d.applies] || (kind === "percent" && v > 100)) return null;
+    return { label: String(d.label || "").trim() || "Discount", kind: kind, value: v, applies: d.applies, code: String(d.code || "").trim() };
+  }
+  function sale() {
+    var d; try { d = JSON.parse(S.sale || "null"); } catch (e) { return null; }
+    if (!d || !d.on) return null;
+    if (d.ends && new Date().toLocaleDateString("en-CA") > d.ends) return null;
+    var c = cleanDisc(d); if (c && /^\d{4}-\d{2}-\d{2}$/.test(d.ends || "")) c.ends = d.ends;
+    return c;
+  }
+  function hits(d, what) { return !!d && (what === "setup" ? d.applies === "setup" : d.applies.indexOf("plan") === 0); }
+  function off(d, price) {
+    price = +price || 0;
+    var o = d.kind === "percent" ? price * d.value / 100 : d.value;
+    return Math.min(price, Math.round(o * 100) / 100);
+  }
+  function discLine(d) { return (d.kind === "percent" ? d.value + "% off " : money(d.value) + " off ") + APPLIES[d.applies]; }
+  function promoUrl(url, d) {
+    if (!url || !d || !d.code) return url;
+    try { var u = new URL(url); u.searchParams.set("prefilled_promo_code", d.code); return u.href; } catch (e) { return url; }
+  }
   window.PS = { txt: txt, list: list, setupFee: setupFee, plans: plans, addons: addons, unitLabel: unitLabel };
 
   /* ---------- Icons ---------- */
@@ -191,9 +220,13 @@
         '<a class="btn btn-block ' + (feat ? "btn-primary" : "btn-ghost") + '"></a>';
       if (feat) $(".badge", card).textContent = p.badge;
       $(".name", card).textContent = p.name;
-      $(".price span", card).textContent = money(p[period]);
+      var sd = sale(), pOff = hits(sd, "plan") ? off(sd, p[period]) : 0;
+      $(".price span", card).textContent = money(p[period] - pOff);
+      if (pOff) { var was = document.createElement("s"); was.className = "was"; was.textContent = money(p[period]); $(".price", card).insertBefore(was, $(".price span", card)); }
       $(".price small", card).textContent = period === "yearly" ? "/year" : "/month";
-      $(".note", card).textContent = period === "yearly" && p.monthly * 12 > p.yearly ? "Save " + money(p.monthly * 12 - p.yearly) + " vs. monthly" : "";
+      $(".note", card).textContent = pOff && sd.applies === "plan_first"
+        ? (period === "yearly" ? "Your first year. Then " : "Your first month. Then ") + money(p[period]) + (period === "yearly" ? "/year" : "/month")
+        : period === "yearly" && p.monthly * 12 > p.yearly ? "Save " + money(p.monthly * 12 - p.yearly) + " vs. monthly" : "";
       var ul = $("ul", card);
       (p.features || []).forEach(function (f) {
         var li = document.createElement("li");
@@ -224,10 +257,25 @@
     observeNew(Array.prototype.slice.call(box.children));
   }
 
+  function renderSale() {
+    var d = sale();
+    $$("[data-sale]").forEach(function (el) {
+      el.hidden = !d; if (!d) return;
+      el.innerHTML = "<b></b> <span></span>";
+      $("b", el).textContent = d.label + ":";
+      $("span", el).textContent = discLine(d).charAt(0).toUpperCase() + discLine(d).slice(1) + ". Applied automatically at checkout." + (d.ends ? " Ends " + new Date(d.ends + "T12:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric" }) + "." : "");
+    });
+  }
+
   function renderSetupFee() {
-    var fee = setupFee();
-    $$("[data-setup-pill]").forEach(function (el) { el.textContent = fee ? "One-time setup fee: " + money(fee) : "No setup fee"; });
-    $$("[data-setup-amount]").forEach(function (el) { el.textContent = fee ? money(fee) : "$0"; });
+    var fee = setupFee(), sd = sale(), fOff = hits(sd, "setup") ? off(sd, fee) : 0;
+    renderSale();
+    $$("[data-setup-pill]").forEach(function (el) { el.textContent = fee ? "One-time setup fee: " + money(fee - fOff) + (fOff ? " (was " + money(fee) + ")" : "") : "No setup fee"; });
+    $$("[data-setup-amount]").forEach(function (el) {
+      el.textContent = fee ? money(fee - fOff) : "$0";
+      var prev = el.previousElementSibling; if (prev && prev.classList.contains("was")) prev.remove();
+      if (fOff) { var was = document.createElement("s"); was.className = "was"; was.textContent = money(fee); el.parentNode.insertBefore(was, el); }
+    });
     $$("[data-setup-title]").forEach(function (el) { el.textContent = fee ? "One-time setup fee" : "No setup fee"; });
     $$("[data-setup-text]").forEach(function (el) { el.textContent = fee ? setupText() : "You only pay for your plan. There’s no upfront charge to design and launch your site."; });
     $$("[data-setup-line]").forEach(function (el) {
@@ -456,8 +504,9 @@
       var PR = planMap(), AD = addonMap();
       var plan = PR[inv.chosen_plan], per = inv.chosen_period;
       var chosen = (inv.chosen_addons || []).filter(function (k) { return AD[k]; });
-      var fee = setupFee();
-      var total = plan[per] + fee + chosen.reduce(function (a, k) { return a + (+AD[k].price || 0); }, 0);
+      var fee = setupFee(), d = cleanDisc(inv.discount) || sale();
+      var pOff = hits(d, "plan") ? off(d, plan[per]) : 0, fOff = hits(d, "setup") ? off(d, fee) : 0;
+      var total = plan[per] - pOff + fee - fOff + chosen.reduce(function (a, k) { return a + (+AD[k].price || 0); }, 0);
       cbox.innerHTML =
         '<div class="card pay-card"><div class="icon"><svg width="20" height="20"><use href="#i-check"/></svg></div>' +
         "<h2>You’re all set to pay</h2>" +
@@ -466,7 +515,8 @@
         '<div class="pay-buttons"></div>' +
         '<p class="fine">Payments are processed securely by Stripe. After today, your plan renews automatically ' + (per === "yearly" ? "each year" : "on the same date each month") + ". Questions? <a data-email></a></p></div>";
       $(".signed-line", cbox).textContent = "Agreement signed by " + inv.signed_name + ". You can read the full terms anytime on the Service Agreement page." +
-        ((fee || chosen.length) ? " Each item below has its own secure payment button." : "");
+        ((fee || chosen.length) ? " Each item below has its own secure payment button." : "") +
+        ((pOff || fOff) && d.code ? " Your discount code " + d.code + " is filled in for you on the Stripe page." : "");
       var sum = $("#pay-sum");
       var line = function (label, amt, cls) {
         var d = document.createElement("div"); if (cls) d.className = cls;
@@ -477,6 +527,7 @@
       line(plan.name + " plan (" + per + ")", money(plan[per]) + (per === "yearly" ? "/year" : "/month"));
       if (fee) line("Setup fee (one-time)", money(fee));
       chosen.forEach(function (k) { line(addonLine(AD[k]), money(AD[k].price) + (AD[k].unit === "month" ? "/month" : "")); });
+      if (pOff || fOff) line(d.label + " (" + discLine(d) + ")", "−" + money(pOff + fOff), "disc");
       line("Due today", money(total), "total");
       var pb = $(".pay-buttons", cbox), n = 0, multi = !!(fee || chosen.length);
       var addBtn = function (label, url, track_) {
@@ -487,8 +538,8 @@
         else { a.className = "btn btn-ghost btn-block"; a.textContent += " (link coming by email)"; }
         pb.appendChild(a);
       };
-      addBtn("Pay " + money(plan[per]) + " for your plan", links && links.plan_url, "pay_" + inv.chosen_plan + "_" + per);
-      if (fee) addBtn("Pay the " + money(fee) + " setup fee", links && links.setup_url, "pay_setup");
+      addBtn("Pay " + money(plan[per] - pOff) + " for your plan", links && (pOff ? promoUrl(links.plan_url, d) : links.plan_url), "pay_" + inv.chosen_plan + "_" + per);
+      if (fee) addBtn("Pay the " + money(fee - fOff) + " setup fee", links && (fOff ? promoUrl(links.setup_url, d) : links.setup_url), "pay_setup");
       chosen.forEach(function (k) {
         var l = links && (links.addons || []).filter(function (x) { return x.key === k; })[0];
         addBtn("Pay " + money(AD[k].price) + " for " + AD[k].name.toLowerCase(), l && l.url, "pay_" + k);
@@ -496,7 +547,7 @@
       var em = $("[data-email]", cbox); if (C.email) { em.href = "mailto:" + C.email; em.textContent = C.email; }
     };
     var showForm = function (inv) {
-      var PR = planMap(), ADL = addons(), AD = addonMap(), fee = setupFee();
+      var PR = planMap(), ADL = addons(), AD = addonMap(), fee = setupFee(), d = cleanDisc(inv.discount) || sale();
       var sel = { plan: PR[inv.recommended_plan] ? inv.recommended_plan : "business", period: "monthly", addons: {} };
       cbox.innerHTML =
         '<div class="checkout-grid"><div class="stack">' +
@@ -557,10 +608,12 @@
           today += +AD[k].price || 0;
           if (AD[k].unit === "month") monthlyAdd += +AD[k].price || 0;
         });
+        var dOff = (hits(d, "plan") ? off(d, p[sel.period]) : 0) + (hits(d, "setup") ? off(d, fee) : 0);
+        if (dOff) { row(d.label + " (" + discLine(d) + ")", "−" + money(dOff), "disc"); today -= dOff; }
         row("Due today", money(today), "total");
         var after = document.createElement("p");
         after.className = "fine after";
-        after.textContent = "Then " + money(p[sel.period]) + (sel.period === "yearly" ? " per year" : " per month") +
+        after.textContent = "Then " + money(p[sel.period] - (d && d.applies === "plan_all" ? off(d, p[sel.period]) : 0)) + (sel.period === "yearly" ? " per year" : " per month") +
           (monthlyAdd ? ", plus " + money(monthlyAdd) + " per month for add-ons." : ".");
         sum.appendChild(after);
       };
@@ -587,7 +640,7 @@
           }
           track("contract_signed", sel.plan + "_" + sel.period);
           window.scrollTo(0, 0);
-          showPay({ signed_name: name, chosen_plan: sel.plan, chosen_period: sel.period, chosen_addons: chosen }, res.data);
+          showPay({ signed_name: name, chosen_plan: sel.plan, chosen_period: sel.period, chosen_addons: chosen, discount: inv.discount }, res.data);
         });
       });
     };
