@@ -387,6 +387,8 @@
       var on = salec.querySelector('[data-k="d_on"]').value === "on";
       var d = readDisc(salec);
       if (on && !d) throw new Error("Add an amount to turn the sale on.");
+      var feeNow = settings.setup_fee != null ? +settings.setup_fee : D.setup_fee;
+      if (d && d.applies === "setup" && !feeNow) throw new Error("Your setup fee is $0, so there’s nothing for this sale to take off. Set “Takes money off” to a plan payment instead.");
       if (!d) { await clearSetting("sale"); delete settings.sale; return; }
       d.on = on; d.ends = salec.querySelector('[data-k="d_ends"]').value || "";
       var v = JSON.stringify(d); await saveSetting("sale", v); settings.sale = v;
