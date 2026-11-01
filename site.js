@@ -506,8 +506,8 @@
         '<div class="card"><span class="step-label">Step 2</span><h3>Add-on services <span class="muted-inline">(optional)</span></h3><div class="addon-pick"></div></div>' +
         '<div class="card"><span class="step-label">Step 3</span><h3>Review &amp; sign the agreement</h3>' +
         '<ul class="key-terms">' +
-        "<li>3-month minimum, then month-to-month. Cancel anytime after that.</li>" +
-        "<li>You own your domain and your content. You get your site files after the minimum term.</li>" +
+        "<li>No minimum term. Cancel anytime; no refunds except for accidental or mistaken charges.</li>" +
+        "<li>You own your domain and your content. You get your site files after 3 paid months.</li>" +
         "<li>Billing is automatic. A 14-day grace period with reminders comes before any pause for nonpayment.</li>" +
         "</ul>" +
         '<p style="margin-top:10px">Read the full <a href="contract.html" target="_blank" rel="noopener">Service Agreement</a>, <a href="terms.html" target="_blank" rel="noopener">Terms &amp; Refund Policy</a>, and <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</p>' +
