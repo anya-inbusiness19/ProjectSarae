@@ -100,7 +100,7 @@
   document.body.insertAdjacentHTML("afterbegin", sprite + "</svg>");
 
   /* ---------- Header & footer (same on every page) ---------- */
-  var links = [["index.html", "Home", "home"], ["pricing.html", "Pricing", "pricing"], ["book.html", "Booking", "book"]];
+  var links = [["index.html", "Home", "home"], ["demo.html", "Demos", "demo"], ["pricing.html", "Pricing", "pricing"], ["book.html", "Booking", "book"]];
   var head = $("#site-header");
   if (head) {
     head.outerHTML =
