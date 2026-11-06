@@ -258,6 +258,7 @@
       var b = el("button", "btn btn-ghost", "Copy"); b.type = "button"; b.addEventListener("click", function () { copy(text, b); });
       wrap.appendChild(left); wrap.appendChild(b); return wrap;
     }
+    function threadsLink(text) { return "https://www.threads.net/intent/post?text=" + encodeURIComponent(String(text || "").slice(0, 500)); }
     function captionOf(p) {
       return ((p.caption || "") + "\n\n" + (p.hashtags || []).map(function (h) { return "#" + String(h).replace(/^#/, "").replace(/\s+/g, ""); }).join(" ")).trim();
     }
@@ -446,10 +447,18 @@
       var all = el("button", "btn btn-ghost", "Download all images"); all.type = "button";
       all.addEventListener("click", function () { slideBlobs.forEach(function (b, i) { setTimeout(function () { download(b, i); }, i * 350); }); });
       st.appendChild(all);
-      var sw = el("button", "btn btn-ghost", TT ? "Make an Instagram (4:5) version" : "Make a TikTok (9:16) version"); sw.type = "button";
-      sw.addEventListener("click", function () { p.platform = TT ? "instagram" : "tiktok"; renderPost(p); });
-      st.appendChild(sw);
-      if (TT) st.appendChild(el("p", "hint", "To post on TikTok: send these images to your phone → TikTok → + → Photo (Photo mode) → pick them in order → paste the caption. TikTok doesn’t let outside apps post photo carousels without a reviewed developer app, so this step is by hand."));
+      if (TT) { // older TikTok drafts: offer the 4:5 version
+        var sw = el("button", "btn btn-ghost", "Make a 4:5 version (Threads / Instagram)"); sw.type = "button";
+        sw.addEventListener("click", function () { p.platform = "threads"; renderPost(p); });
+        st.appendChild(sw);
+      }
+      if (p.platform === "threads") {
+        var tText = captionOf(p);
+        st.appendChild(copyBlock("Threads post", tText));
+        var op = el("a", "btn btn-primary", "Open in Threads"); op.href = threadsLink(tText); op.target = "_blank"; op.rel = "noopener";
+        st.appendChild(op);
+        st.appendChild(el("p", "hint", "Open in Threads fills in the text. To add the slides: download them, then attach them in the Threads post before you tap Post."));
+      }
       var missing = slides.filter(function (s) { return s.image_prompt && !s._img; });
       if (p.photos && imagesOn && missing.length) {
         var mk = el("button", "btn btn-primary", "Make all " + missing.length + " photos"); mk.type = "button";
@@ -570,6 +579,7 @@
         else if (p.script) {
           var o = el("button", "btn btn-ghost", "Open"); o.type = "button"; o.style.padding = "6px 11px";
           o.addEventListener("click", function () {
+            if (p.script.type === "threads_day") { tPlan = { id: p.id, posts: JSON.parse(JSON.stringify(p.script.posts || [])) }; renderThreadsDay(); $("#t-card").scrollIntoView({ behavior: "smooth" }); return; }
             if (p.script.slides) { $("#c-topic").value = p.topic || ""; $("#c-caption").value = ""; renderPost(JSON.parse(JSON.stringify(p.script))); }
             else renderOldScript(p.script);
             $("#c-out-card").scrollIntoView({ behavior: "smooth" });
@@ -580,13 +590,74 @@
       });
     }
 
+    /* =================== THREADS: today's hourly posts =================== */
+    var tPlan = null; // { id, posts:[{time,type,text,posted}] }
+    function renderThreadsDay() {
+      var box = $("#t-list"); box.innerHTML = "";
+      show($("#t-save"), !!tPlan);
+      if (!tPlan) return;
+      function progress() {
+        var done = tPlan.posts.filter(function (x) { return x.posted; }).length;
+        $("#t-progress").textContent = done + " of " + tPlan.posts.length + " posted";
+      }
+      tPlan.posts.forEach(function (x) {
+        var row = el("div", "copyable"); row.style.alignItems = "flex-start";
+        var left = el("div"); left.style.flex = "1";
+        left.appendChild(el("b", "", x.time + " · " + x.type));
+        var ta = el("textarea"); ta.rows = 4; ta.maxLength = 500; ta.value = x.text; ta.style.width = "100%"; ta.style.marginTop = "6px";
+        ta.setAttribute("aria-label", x.time + " Threads post");
+        var count = el("small", "muted", x.text.length + "/500");
+        var op = el("a", "btn btn-primary", "Open in Threads"); op.href = threadsLink(x.text); op.target = "_blank"; op.rel = "noopener"; op.style.padding = "6px 11px";
+        ta.addEventListener("input", function () { x.text = ta.value; count.textContent = ta.value.length + "/500"; op.href = threadsLink(ta.value); });
+        left.appendChild(ta); left.appendChild(count);
+        var act = el("div", "btns"); act.style.display = "flex"; act.style.flexDirection = "column"; act.style.gap = "6px";
+        var cp = el("button", "btn btn-ghost", "Copy"); cp.type = "button"; cp.style.padding = "6px 11px";
+        cp.addEventListener("click", function () { copy(x.text, cp); });
+        var lab = el("label"); lab.style.display = "flex"; lab.style.gap = "6px"; lab.style.alignItems = "center"; lab.style.fontWeight = "700";
+        var ck = el("input"); ck.type = "checkbox"; ck.style.width = "auto"; ck.checked = !!x.posted;
+        ck.addEventListener("change", function () { x.posted = ck.checked; row.style.opacity = ck.checked ? ".55" : "1"; progress(); saveThreadsDay(true); });
+        lab.appendChild(ck); lab.appendChild(document.createTextNode("Posted"));
+        row.style.opacity = x.posted ? ".55" : "1";
+        act.appendChild(op); act.appendChild(cp); act.appendChild(lab);
+        row.appendChild(left); row.appendChild(act); box.appendChild(row);
+      });
+      progress();
+    }
+    async function saveThreadsDay(quiet) {
+      if (!tPlan) return;
+      var script = { type: "threads_day", posts: tPlan.posts };
+      var caption = tPlan.posts.map(function (x) { return x.time + ": " + x.text; }).join("\n\n").slice(0, 2200);
+      var allDone = tPlan.posts.every(function (x) { return x.posted; });
+      var r = tPlan.id
+        ? await sb.from("content_posts").update({ script: script, caption: caption, status: allDone ? "posted" : "draft" }).eq("id", tPlan.id).select().single()
+        : await sb.from("content_posts").insert({ topic: "Threads posts · " + new Date().toLocaleDateString(), script: script, caption: caption, status: "draft" }).select().single();
+      if (r.error) { say("#t-msg", "Couldn’t save. " + r.error.message, "err"); return; }
+      tPlan.id = r.data.id;
+      if (!quiet) { say("#t-msg", "Saved.", "ok"); loadHistory(); }
+    }
+    $("#t-save").addEventListener("click", function () { saveThreadsDay(false); });
+    $("#t-go").addEventListener("click", async function () {
+      if (tPlan && tPlan.posts.some(function (x) { return !x.posted; }) && !confirm("Replace the posts you have now with 16 new ones? (Your current list stays in Saved drafts.)")) return;
+      var btn = $("#t-go"); btn.disabled = true; say("#t-msg", "Writing 16 Threads posts…");
+      var r = await api("threads_day", { focus: $("#t-focus").value });
+      btn.disabled = false;
+      if (r.notConnected) { say("#t-msg", "AI writing isn’t connected yet. Add a free GEMINI_API_KEY (SETUP-TOOLS.md, step 4).", "err"); return; }
+      if (r.error) { say("#t-msg", /unknown|bad action|not found/i.test(r.error) ? "Redeploy your Supabase admin-api function with the latest code from GitHub first." : r.error, "err"); return; }
+      if (!r.posts || !r.posts.length) { say("#t-msg", "The AI didn’t return any posts. Try again.", "err"); return; }
+      tPlan = { id: null, posts: r.posts.map(function (x) { return { time: x.time, type: x.type, text: x.text, posted: false }; }) };
+      renderThreadsDay();
+      await saveThreadsDay(true);
+      say("#t-msg", "Done. Review each post, then post it at its hour.", "ok");
+      loadHistory();
+    });
+
     function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
     $("#c-post").addEventListener("click", async function () {
       var picked = Array.prototype.slice.call($("#c-file").files || []);
       var caption = $("#c-caption").value.trim();
       var blobs = picked.length ? picked : slideBlobs.filter(Boolean);
       if (!blobs.length) { say("#c-post-msg", "Make a post above or choose your .jpg photos first.", "err"); return; }
-      if (!picked.length && TT) { say("#c-post-msg", "These slides are TikTok size (9:16), which Instagram feed posts don’t accept. Click “Make an Instagram (4:5) version” above first, then post.", "err"); return; }
+      if (!picked.length && TT) { say("#c-post-msg", "These slides are 9:16, which Instagram feed posts don’t accept. Click “Make a 4:5 version” above first, then post.", "err"); return; }
       if (blobs.length > 10) { say("#c-post-msg", "Instagram allows up to 10 images in one post.", "err"); return; }
       if (blobs.some(function (b) { return b.size > 8 * 1024 * 1024; })) { say("#c-post-msg", "Each photo must be under 8 MB.", "err"); return; }
       var many = blobs.length > 1;

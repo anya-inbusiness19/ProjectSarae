@@ -302,7 +302,7 @@
 
     <!-- CONTENT STUDIO -->
     <section id="tab-studio" class="hidden" style="padding:0">
-      <p class="muted">1. Tell the AI what the post is about → 2. it writes the post, makes free AI photos, and draws the slides (TikTok 9:16 or Instagram 4:5) → 3. tweak the words, then download for TikTok or post the carousel straight to Instagram.</p>
+      <p class="muted">1. Tell the AI what the post is about → 2. it writes the post, makes free AI photos, and draws the slides (4:5) → 3. tweak the words, then post it on Threads yourself or post the carousel straight to Instagram. Use “Today’s Threads posts” below for a ready-to-review post for every hour, 7am to 10pm.</p>
       <div class="grid g2" style="align-items:start;margin-top:16px">
         <form id="c-form" class="card">
           <h3>1 · Make a viral photo post</h3>
@@ -321,14 +321,14 @@
           </select>
           <label for="c-platform">Where are you posting?</label>
           <select id="c-platform" style="width:100%">
-            <option value="tiktok">TikTok photo mode (9:16, 1080×1920)</option>
+            <option value="threads">Threads post (text + optional 4:5 images)</option>
             <option value="instagram">Instagram carousel (4:5, 1080×1350)</option>
           </select>
           <label style="display:flex;gap:8px;align-items:center;margin-top:14px;font-weight:700"><input type="checkbox" id="c-photos" style="width:auto" checked> Put a free AI photo behind every slide</label>
           <div id="c-img-off" class="tool-off hidden" style="margin:8px 0"><b>AI photos aren’t connected yet.</b> Add your free Cloudflare keys (SETUP-TOOLS.md, step 6). Until then slides use your brand colors.</div>
           <label for="c-look">Photo style</label>
           <select id="c-look" style="width:100%">
-            <option value="bright, candid lifestyle photography, natural light, shallow depth of field, shot on iPhone">Real &amp; candid (iPhone look, best for TikTok)</option>
+            <option value="bright, candid lifestyle photography, natural light, shallow depth of field, shot on iPhone">Real &amp; candid (iPhone look)</option>
             <option value="moody luxury editorial photography, dark tones, warm highlights, cinematic">Moody luxury</option>
             <option value="clean minimal studio photography, soft pastel background, soft shadows">Clean &amp; minimal</option>
             <option value="warm golden-hour photography, glowing sunlight, cozy feel">Golden hour</option>
@@ -347,6 +347,15 @@
           <h3>2 · Your post</h3>
           <div id="c-out"><p class="muted" style="margin-top:8px">Your images, hooks, caption and hashtags will show up here. You can change any text and the image redraws.</p></div>
         </div>
+      </div>
+
+      <div class="card" style="margin-top:18px" id="t-card">
+        <div class="top"><h3>Today’s Threads posts · every hour, 7am–10pm</h3><span class="muted" id="t-progress"></span></div>
+        <p class="muted">The AI writes one post for each hour (16 total). Review and edit each one, then tap <b>Open in Threads</b> (or Copy) at the top of the hour and post it yourself. Tick <b>Posted</b> so you know where you are.</p>
+        <label for="t-focus">Anything to focus on today? (optional)</label>
+        <input id="t-focus" maxlength="300" placeholder="New salon demo, the free 1-week trial, Huntsville small businesses">
+        <div class="card-actions"><button class="btn btn-primary" type="button" id="t-go">Write today’s 16 posts</button><button class="btn btn-ghost hidden" type="button" id="t-save">Save my edits</button><div class="msg" id="t-msg" role="status"></div></div>
+        <div id="t-list" style="margin-top:12px"></div>
       </div>
 
       <div class="card" style="margin-top:18px">
