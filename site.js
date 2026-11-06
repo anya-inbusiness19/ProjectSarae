@@ -213,6 +213,38 @@
     $("#demo-open").href = d.url;
   }
 
+  var galRO = null;
+  function renderGallery() {
+    var g = $("#demo-gallery"); if (!g) return;
+    var demos = list("demos").filter(function (d) { return d && d.url; });
+    $$(".gal-card:not(.gal-next)", g).forEach(function (n) { n.remove(); });
+    var next = $(".gal-next", g);
+    if (!galRO && "ResizeObserver" in window) galRO = new ResizeObserver(function (en) { en.forEach(function (e) { fitLive(e.target); }); });
+    demos.forEach(function (d, i) {
+      var a = document.createElement("a");
+      a.className = "gal-card"; a.href = d.url; a.target = "_blank"; a.rel = "noopener";
+      a.setAttribute("data-track", "demopage_demo");
+      a.innerHTML =
+        '<div class="gal-shot"><div class="live" data-w="1280" data-h="800" style="--ar:1280/800">' +
+        '<div class="live-loading" aria-hidden="true">Loading live site…</div>' +
+        '<iframe loading="lazy" width="1280" height="800" tabindex="-1"></iframe></div>' +
+        '<span class="gal-open">Open live site <svg width="14" height="14"><use href="#i-out"/></svg></span></div>' +
+        '<div class="gal-meta"><span class="gal-icon" aria-hidden="true"></span><div><h3></h3><p></p></div></div>';
+      var f = $("iframe", a), live = $(".live", a);
+      f.title = (d.name || "Website") + " live demo";
+      f.addEventListener("load", function () { live.classList.add("ready"); });
+      f.src = d.url;
+      $(".gal-icon", a).textContent = String(d.name || "?").trim().charAt(0).toUpperCase();
+      $("h3", a).textContent = d.name || "";
+      $("p", a).textContent = d.label || "";
+      g.insertBefore(a, next);
+      fitLive(live);
+      if (galRO) galRO.observe(live);
+    });
+    observeNew($$(".gal-card", g));
+  }
+  function fitLive(el) { var w = Number(el.dataset.w); if (w && el.clientWidth) el.style.setProperty("--s", (el.clientWidth / w).toFixed(4)); }
+
   function renderPricing(period) {
     var grid = $("#plan-grid"); if (!grid) return;
     period = period || grid.dataset.period || "monthly";
@@ -304,7 +336,7 @@
       if (el.tagName === "IMG") { if (el.getAttribute("src") !== v) el.src = v; }
       else el.style.backgroundImage = "url('" + String(v).replace(/'/g, "%27") + "')";
     });
-    renderTicker(); renderBenefits(); renderDemos(); renderPricing(); renderAddons(); renderSetupFee();
+    renderTicker(); renderBenefits(); renderDemos(); renderGallery(); renderPricing(); renderAddons(); renderSetupFee();
   }
   applyContent();
 

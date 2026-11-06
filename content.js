@@ -45,6 +45,13 @@ window.SITE_CONTENT = {
     { key: "addons_sub", group: "pricing", label: "Add-ons description", type: "textarea",
       def: "Add any of these to your plan. We’ll choose the right ones together on your Zoom meeting." },
 
+    // Demos page
+    { key: "demopage_eyebrow", group: "demo_page", label: "Small line above the heading", type: "text", def: "Live demos" },
+    { key: "demopage_title", group: "demo_page", label: "Heading", type: "text", def: "Try it before you buy it." },
+    { key: "demopage_sub", group: "demo_page", label: "Description", type: "textarea",
+      def: "This is a real, working website we built. Open it to scroll, browse services, and walk through booking an appointment, just like your customers would." },
+    { key: "demopage_closer", group: "demo_page", label: "Closing heading", type: "text", def: "Like what you see? Let’s build yours." },
+
     // Booking page
     { key: "book_eyebrow", group: "book", label: "Small line above the heading", type: "text", def: "Free consultation" },
     { key: "book_title", group: "book", label: "Heading", type: "text", def: "Book a Zoom meeting." },
@@ -56,6 +63,7 @@ window.SITE_CONTENT = {
     home_top: "Homepage: top section",
     home_demo: "Homepage: live demo",
     home_end: "Homepage: reviews & closing",
+    demo_page: "Demos page",
     pricing: "Pricing page",
     book: "Booking page"
   },

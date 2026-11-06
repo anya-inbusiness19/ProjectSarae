@@ -75,7 +75,7 @@
   var clickNames = {
     nav_book: "Book call (menu)", hero_book: "Book call (top)", cta_book: "Book call (bottom)",
     booking_open: "Opened booking page", booking_email: "Email to book", email: "Email link", instagram: "Instagram link",
-    announce_book: "Book (announcement bar)", demo_book: "Book call (demo section)", demo_try: "Tried the live demo", demo_open: "Opened demo full screen", pay_setup: "Clicked pay: setup fee", toggle_yearly: "Viewed yearly prices", toggle_monthly: "Viewed monthly prices"
+    announce_book: "Book (announcement bar)", demo_book: "Book call (demo section)", demo_try: "Tried the live demo", demo_open: "Opened demo full screen", demopage_demo: "Opened a demo (Demos page)", demopage_yours: "Clicked “Your business here” (Demos page)", demopage_book: "Book call (Demos page)", pay_setup: "Clicked pay: setup fee", toggle_yearly: "Viewed yearly prices", toggle_monthly: "Viewed monthly prices"
   };
   function niceClick(l) {
     if (clickNames[l]) return clickNames[l];
@@ -303,11 +303,14 @@
           { k: "title", label: "Title", type: "text", full: true },
           { k: "text", label: "Text", type: "textarea", full: true, rows: 70 }
         ], { noun: "benefit" });
-        var dl = el("label"); dl.textContent = "Live demos in the laptop"; dl.style.marginTop = "26px"; c.appendChild(dl);
-        c.appendChild(el("div", "hint")).textContent = "Add the web address of any live site you’ve built. With two or more, visitors get buttons to switch between them.";
+        c.appendChild(el("div", "hint")).textContent = "Your live demo sites are managed in the Demos page section below. The first one shows in the homepage laptop.";
+      }
+      if (g === "demo_page") {
+        var dl = el("label"); dl.textContent = "Demo sites"; dl.style.marginTop = "26px"; c.appendChild(dl);
+        c.appendChild(el("div", "hint")).textContent = "Add the web address of any live site you’ve built. Each one becomes a card on the Demos page. The first one also shows in the homepage laptop, and with two or more, homepage visitors get buttons to switch between them.";
         readDemos = rowEditor(c, savedList("demos"), [
           { k: "name", label: "Site name", type: "text" },
-          { k: "label", label: "Small label (type of business · plan)", type: "text" },
+          { k: "label", label: "Small label under the name (e.g. Hair salon · Online booking)", type: "text" },
           { k: "url", label: "Live site address (https://…)", type: "url", full: true, placeholder: "https://" },
           { k: "text", label: "Short description", type: "textarea", full: true, rows: 70 }
         ], { noun: "demo" });
