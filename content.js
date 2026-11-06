@@ -25,7 +25,7 @@ window.SITE_CONTENT = {
     { key: "demo_eyebrow", group: "home_demo", label: "Small line above the demo heading", type: "text", def: "Live demo" },
     { key: "demo_title", group: "home_demo", label: "Demo heading", type: "text", def: "See what we can build for you." },
     { key: "demo_sub", group: "home_demo", label: "Demo description", type: "textarea",
-      def: "These are real, working sites. Click the laptop screen to scroll, browse, and even try booking an appointment." },
+      def: "These are real, working sites. Open one to scroll, browse, and even try booking an appointment." },
     { key: "benefits_title", group: "home_demo", label: "Side panel heading", type: "text", def: "When you work with us" },
 
     // Homepage: reviews + closing

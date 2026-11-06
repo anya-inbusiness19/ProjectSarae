@@ -874,3 +874,5 @@ s.was { color: var(--steel); font-weight: 400; font-size: .5em; margin-right: 10
 .gal-plus { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; background: var(--action); color: #fff; font-size: 30px; line-height: 1; margin-bottom: 6px; }
 .gal-placeholder strong { font-family: var(--display); font-size: 22px; }
 .gal-placeholder span:last-child { color: var(--steel); font-size: 16px; max-width: 280px; }
+.gallery-one { grid-template-columns: 1fr; max-width: none; margin: 0; gap: 32px; }
+.demo-grid .gallery-one { align-self: start; }

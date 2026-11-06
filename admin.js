@@ -298,16 +298,16 @@
       }
       var readBenefits = null, readDemos = null;
       if (g === "home_demo") {
-        c.appendChild(el("label")).textContent = "Benefits beside the laptop";
+        c.appendChild(el("label")).textContent = "Benefits beside the demos";
         readBenefits = rowEditor(c, savedList("benefits"), [
           { k: "title", label: "Title", type: "text", full: true },
           { k: "text", label: "Text", type: "textarea", full: true, rows: 70 }
         ], { noun: "benefit" });
-        c.appendChild(el("div", "hint")).textContent = "Your live demo sites are managed in the Demos page section below. The first one shows in the homepage laptop.";
+        c.appendChild(el("div", "hint")).textContent = "Your live demo sites are managed in the Demos page section below. They show as cards on both the homepage and the Demos page.";
       }
       if (g === "demo_page") {
         var dl = el("label"); dl.textContent = "Demo sites"; dl.style.marginTop = "26px"; c.appendChild(dl);
-        c.appendChild(el("div", "hint")).textContent = "Add the web address of any live site you’ve built. Each one becomes a card on the Demos page. The first one also shows in the homepage laptop, and with two or more, homepage visitors get buttons to switch between them.";
+        c.appendChild(el("div", "hint")).textContent = "Add the web address of any live site you’ve built. Each one becomes a card on the homepage and the Demos page, in this order.";
         readDemos = rowEditor(c, savedList("demos"), [
           { k: "name", label: "Site name", type: "text" },
           { k: "label", label: "Small label under the name (e.g. Hair salon · Online booking)", type: "text" },

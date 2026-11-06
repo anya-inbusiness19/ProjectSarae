@@ -223,7 +223,7 @@
     demos.forEach(function (d, i) {
       var a = document.createElement("a");
       a.className = "gal-card"; a.href = d.url; a.target = "_blank"; a.rel = "noopener";
-      a.setAttribute("data-track", "demopage_demo");
+      a.setAttribute("data-track", page === "home" ? "demo_open" : "demopage_demo");
       a.innerHTML =
         '<div class="gal-shot"><div class="live" data-w="1280" data-h="800" style="--ar:1280/800">' +
         '<div class="live-loading" aria-hidden="true">Loading live site…</div>' +
