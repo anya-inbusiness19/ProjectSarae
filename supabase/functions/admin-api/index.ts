@@ -106,11 +106,11 @@ const FORMATS: Record<string, string> = {
 async function generate(body: any) {
   const topic = clean(body.topic, 400), goal = clean(body.goal, 200);
   const format = FORMATS[clean(body.format, 20)] ? clean(body.format, 20) : "tips";
-  const tiktok = body.platform === "tiktok", photos = !!body.photos, look = clean(body.look, 120);
+  const threads = body.platform === "threads", photos = !!body.photos, look = clean(body.look, 120);
   if (!topic) throw new Error("Add a topic first.");
-  const where = tiktok ? "TikTok photo-mode carousels (vertical 9:16 slides people swipe through)" : "Instagram photo posts (carousels of text slides)";
+  const where = threads ? "Threads posts (a short text post, with an optional carousel of 4:5 image slides attached)" : "Instagram photo posts (carousels of text slides)";
   const prompt = `You create ${where} for "Project Sarae", a one-woman web design studio run by A'Nya.
-She builds websites with online booking for local businesses (salons, med spas, barbers, beauty pros). Audience: local business owners scrolling ${tiktok ? "TikTok" : "Instagram"}.
+She builds websites with online booking for local businesses (salons, med spas, barbers, beauty pros). Audience: local business owners scrolling ${threads ? "Threads" : "Instagram"}.
 Tone: professional-casual, warm, confident, plain-spoken. No fake income claims, no invented statistics or percentages, no fake testimonials, no lifestyle flexing.
 
 Write it to spread: the cover must stop the scroll in under 1 second (pattern interrupt, specific, curiosity gap, speaks to one person).
@@ -121,24 +121,57 @@ Format: ${FORMATS[format]}
 Topic: ${topic}
 Goal of the post: ${goal || "get local business owners to book a free website call"}
 
-${tiktok ? "TikTok style: the cover hook reads like a spoken thought or bold claim; keep every slide skimmable in 2 seconds; headlines under 7 words, body under 18 words.\n" : ""}Slides: ${format === "quote" ? "exactly 1" : "6 to 8"} total. Slide 1 is kind "cover" (kicker = 2-4 word label, headline = the hook, body = optional short subline).
+${threads ? "Threads style: conversational and text-first. The caption IS the post: it must stand on its own even without the images, read like a real person talking, and never sound like an ad.\n" : ""}Slides: ${format === "quote" ? "exactly 1" : "6 to 8"} total. Slide 1 is kind "cover" (kicker = 2-4 word label, headline = the hook, body = optional short subline).
 ${format === "quote" ? "" : `Middle slides are kind "point". Last slide is kind "cta": headline invites them to save/share or DM, body mentions a free website call with Project Sarae.`}
 Return JSON only:
 {"hooks":[3 alternative cover headlines, under 9 words each],
  "slides":[{"kind":"cover"|"point"|"cta","kicker":string,"headline":string,"body":string${photos ? ',"image_prompt":string' : ""}}],
- "caption": string (${tiktok ? "under 150 characters, casual, ends with a question to get comments" : "under 400 characters; opens with a hook line, adds value, ends by asking a question or telling them to save/share"}),
- "hashtags":[${tiktok ? "5" : "10"} strings without #, mix of broad and niche/local small-business tags],
+ "caption": string (${threads ? "the Threads post text, under 450 characters, first line is the hook, short lines, ends with a question that invites replies" : "under 400 characters; opens with a hook line, adds value, ends by asking a question or telling them to save/share"}),
+ "hashtags":[${threads ? "1 string without # (a single Threads topic tag, e.g. smallbusiness)" : "10 strings without #, mix of broad and niche/local small-business tags"}],
  "alt_text": string (one sentence describing the post for screen readers)}${photos ? `
 For image_prompt: describe a realistic, eye-catching background PHOTO for that slide (scene, subject, lighting, camera angle) that matches its message, e.g. a stylist finishing a client's hair, a phone showing a booking screen in a cozy salon.
-Style: ${look || "bright, candid lifestyle photography, shallow depth of field"}. Vertical composition with the subject in the center and empty space at the top.
+Style: ${look || "bright, candid lifestyle photography, shallow depth of field"}. Composition with the subject in the center and empty space at the top.
 No text, letters, logos, watermarks, or brand names in the image. No famous or real named people. Under 60 words.` : ""}`;
+  return geminiJSON(prompt, 0.9);
+}
+
+// ---------- Threads: a full day of hourly text posts (7am to 10pm) ----------
+const THREADS_HOURS = ["7am", "8am", "9am", "10am", "11am", "12pm", "1pm", "2pm", "3pm", "4pm", "5pm", "6pm", "7pm", "8pm", "9pm", "10pm"];
+async function threadsDay(body: any) {
+  const focus = clean(body.focus, 300);
+  const prompt = `You write Threads posts for "Project Sarae" (https://projectsarae.site/), a web design studio run by A'Nya, a college student in Huntsville, AL.
+Project Sarae builds websites with online booking and Google setup for local small businesses (salons, med spas, barbers, beauty pros, any local business) in Huntsville, AL and Los Angeles.
+Offer: free 1-week website trial, pay only to keep it, monthly plans, no setup fee, cancel anytime. Live salon demo: https://anya-inbusiness19.github.io/salon-demo/
+
+Write ${THREADS_HOURS.length} separate Threads posts, one for each hour she posts today: ${THREADS_HOURS.join(", ")} (Central time).
+${focus ? `Today's focus: ${focus}\n` : ""}Rotate these types so back-to-back hours feel different:
+- tip: one quick useful tip for small business owners (Google listings, websites, online booking, getting found)
+- bts: behind-the-scenes of her design work (before/after, the salon demo, what she's building)
+- question: a conversation starter for business owners or Huntsville locals
+- story: build-in-public story or a relatable one-liner about running a business as a college student
+- offer: soft mention of the free 1-week trial (use for only 2 or 3 posts, spread out)
+Rules: posts must NOT feel like ads. Business posts speak as "we" (Project Sarae); personal stories can say "I". Warm professional-casual tone, plain words, short lines.
+Each post under 450 characters. At most one emoji per post, often none. No hashtags. Include https://projectsarae.site/ in only 3 or 4 posts total.
+No fake statistics, no invented clients or testimonials, no income claims. Every post must be different.
+Return JSON only: {"posts":[{"time":"7am","type":"tip"|"bts"|"question"|"story"|"offer","text":string}]} with exactly ${THREADS_HOURS.length} posts in hour order.`;
+  const d = await geminiJSON(prompt, 0.95);
+  const list = Array.isArray(d) ? d : Array.isArray(d?.posts) ? d.posts : [];
+  const posts = THREADS_HOURS.map((t, i) => {
+    const p = list[i] || {};
+    return { time: t, type: clean(p.type, 20) || "post", text: clean(p.text, 500) };
+  }).filter((p) => p.text);
+  if (!posts.length) throw new Error("The AI didn't return any posts. Try again.");
+  return { posts };
+}
+
+async function geminiJSON(prompt: string, temperature: number) {
   const model = env("GEMINI_MODEL", "gemini-3.8-flash");
   const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
     method: "POST",
     headers: { "content-type": "application/json", "x-goog-api-key": env("GEMINI_API_KEY") },
     body: JSON.stringify({
       contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: { responseMimeType: "application/json", temperature: 0.9 },
+      generationConfig: { responseMimeType: "application/json", temperature },
     }),
   });
   const data = await r.json();
@@ -372,6 +405,9 @@ Deno.serve(async (req) => {
       case "generate":
         if (!env("GEMINI_API_KEY")) return json(200, { notConnected: true });
         return json(200, await generate(body));
+      case "threads_day":
+        if (!env("GEMINI_API_KEY")) return json(200, { notConnected: true });
+        return json(200, await threadsDay(body));
       case "ig_account":
         if (!env("IG_ACCESS_TOKEN")) return json(200, { notConnected: true });
         return json(200, await ig("GET", env("IG_USER_ID"), { fields: "username,followers_count,media_count" }));
