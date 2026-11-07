@@ -12,14 +12,14 @@ window.SITE_CONTENT = {
   fields: [
     // Homepage: top of the page
     { key: "announce_text", group: "home_top", label: "Announcement bar (top of homepage)", type: "text",
-      def: "Now booking new websites for this season · Free 30-minute Zoom consultation" },
-    { key: "announce_link", group: "home_top", label: "Announcement bar link text", type: "text", def: "Book now" },
+      def: "Websites for local businesses from $5 · You pay when it’s done" },
+    { key: "announce_link", group: "home_top", label: "Announcement bar link text", type: "text", def: "See plans" },
     { key: "hero_photo", group: "home_top", label: "Background photo (top of homepage)", type: "image", def: "images/hero.jpg" },
-    { key: "hero_kicker", group: "home_top", label: "Small line above the heading", type: "text", def: "Huntsville web design · Free Zoom consultation" },
-    { key: "hero_title", group: "home_top", label: "Heading", type: "text", def: "If they can’t find you, they’ll find someone else." },
+    { key: "hero_kicker", group: "home_top", label: "Small line above the heading", type: "text", def: "Websites for local businesses · Starting at $5" },
+    { key: "hero_title", group: "home_top", label: "Heading", type: "text", def: "A website that books customers for you." },
     { key: "hero_sub", group: "home_top", label: "Subheading (what we do)", type: "textarea",
-      def: "Right now, people are searching for what you offer and choosing whoever shows up first. We design, launch, and maintain a professional website that gets you found, booked, and paid, so you stop losing customers to the business down the street. You never touch anything technical." },
-    { key: "hero_cta", group: "home_top", label: "Button text", type: "text", def: "Book a Zoom meeting" },
+      def: "You’re busy running your business. We design a website that takes bookings around the clock and helps new customers find you on Google, so you spend less time answering calls and more time doing the work. No ridiculous prices, and you only pay once your site is done." },
+    { key: "hero_cta", group: "home_top", label: "Button text", type: "text", def: "See plans from $5" },
 
     // Homepage: live demo
     { key: "demo_eyebrow", group: "home_demo", label: "Small line above the demo heading", type: "text", def: "Live demo" },
@@ -32,15 +32,15 @@ window.SITE_CONTENT = {
     { key: "reviews_title", group: "home_end", label: "Reviews heading", type: "text", def: "What clients say." },
     { key: "reviews_sub", group: "home_end", label: "Reviews description", type: "text",
       def: "Honest feedback from the businesses we’ve worked with." },
-    { key: "closer_title", group: "home_end", label: "Closing heading", type: "text", def: "Let’s build yours." },
+    { key: "closer_title", group: "home_end", label: "Closing heading", type: "text", def: "Fair prices. Real help." },
     { key: "closer_text", group: "home_end", label: "Closing text", type: "textarea",
-      def: "Book a free Zoom meeting. We’ll plan your site together, and your first draft follows soon after you sign up." },
+      def: "Our goal is simple: help local businesses save time and make more money, without charging a ridiculous amount. Pick a plan, answer a few quick questions, and pay once your site is done." },
 
     // Pricing page
-    { key: "pricing_eyebrow", group: "pricing", label: "Small line above the heading", type: "text", def: "Transparent plans" },
+    { key: "pricing_eyebrow", group: "pricing", label: "Small line above the heading", type: "text", def: "Simple, honest pricing" },
     { key: "pricing_title", group: "pricing", label: "Heading", type: "text", def: "Pricing." },
     { key: "pricing_sub", group: "pricing", label: "Description", type: "textarea",
-      def: "Pick the plan that fits, then add only the services you need. Book a free Zoom meeting first, and check out privately after we talk." },
+      def: "One price, paid once, and only after your site is done. Pick the plan that fits how many pages you need." },
     { key: "addons_title", group: "pricing", label: "Add-ons heading", type: "text", def: "Add-on services." },
     { key: "addons_sub", group: "pricing", label: "Add-ons description", type: "textarea",
       def: "Add any of these to your plan. We’ll choose the right ones together on your Zoom meeting." },
@@ -62,18 +62,18 @@ window.SITE_CONTENT = {
 
   /* ---------- Sliding services bar (under the top section) ---------- */
   ticker: [
-    "Custom website design", "Online booking websites", "Google Business Profile setup", "Appointment reminders",
-    "Online payments", "Follow-up emails", "Win back past clients",
-    "Weekly reports", "Online store", "Member area"
+    "Custom website design", "Online booking", "Found on Google", "Mobile-friendly",
+    "Contact forms & maps", "Photo galleries", "Online payments", "Starting at $5",
+    "Pay when it’s done"
   ],
 
   /* ---------- Benefits beside the laptop demo ---------- */
   benefits: [
-    { title: "Designed around your business", text: "A custom layout with your colors, photos, services, and prices. Never a template that looks like everyone else’s." },
-    { title: "Customers reach you while you work", text: "Booking, contact forms, reminders, and payments run around the clock, so you stop missing people who were ready to buy." },
-    { title: "Found on Google", text: "Set up for local SEO and Google Maps, so people searching nearby find you before a competitor." },
-    { title: "Changes in one text", text: "New hours, prices, or photos? Send them over and we update your site for you." },
-    { title: "One simple monthly price", text: "Hosting, updates, and support are included, and your domain is registered in your name." }
+    { title: "Bookings while you work", text: "Customers pick a time and book themselves, day or night, so you stop stopping work to answer the phone." },
+    { title: "Found on Google", text: "Your site is set up so people searching nearby can find you before a competitor." },
+    { title: "Designed around your business", text: "Your colors, photos, services, and prices. Never a template that looks like everyone else’s." },
+    { title: "Pay once, when it’s done", text: "No deposit and no monthly bill. You see your finished site first, then pay." },
+    { title: "Prices that make sense", text: "From $5. We’d rather help a business grow than charge a ridiculous amount." }
   ],
 
   /* ---------- Live demos shown in the laptop ---------- */
@@ -84,16 +84,17 @@ window.SITE_CONTENT = {
   ],
 
   /* ---------- Pricing ---------- */
-  setup_fee: 180,
+  one_time: true,   /* true = plans are a one-time price, paid when the site is done */
+  setup_fee: 0,
   setup_fee_text: "A one-time fee that covers designing, building, and launching your site. Paid once at checkout, then just your monthly plan.",
 
   plans: [
-    { key: "starter", name: "Starter", monthly: 50, yearly: 500, badge: "",
-      features: ["Fast, reliable hosting", "Contact form & Google Maps", "1 update per month"] },
-    { key: "business", name: "Business", monthly: 80, yearly: 800, badge: "Most popular",
-      features: ["Your own domain (registered in your name)", "Online payments", "Booking and scheduling", "Live customer chat", "Up to 3 updates per month"] },
-    { key: "pro", name: "Pro", monthly: 120, yearly: 1200, badge: "",
-      features: ["Everything in Business", "Customer sign-ups & accounts", "Sales and money dashboard", "Up to 8 updates per month", "Same-day priority support"] }
+    { key: "starter", name: "Starter", monthly: 5, yearly: 5, pages: "1–3 pages", badge: "",
+      features: ["1–3 pages", "Mobile-friendly design", "Contact form & Google Maps", "Set up to show on Google"] },
+    { key: "business", name: "Business", monthly: 10, yearly: 10, pages: "4–6 pages", badge: "Most popular",
+      features: ["4–6 pages", "Everything in Starter", "Online booking", "Services & prices page", "Photo gallery & reviews"] },
+    { key: "pro", name: "Pro", monthly: 15, yearly: 15, pages: "7–10 pages", badge: "",
+      features: ["7–10 pages", "Everything in Business", "Online payments", "FAQ & policy pages", "Priority build"] }
   ],
 
   /* unit: "one-time", "month", or "setup" (one-time setup) */

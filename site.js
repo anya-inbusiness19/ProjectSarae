@@ -100,7 +100,7 @@
   document.body.insertAdjacentHTML("afterbegin", sprite + "</svg>");
 
   /* ---------- Header & footer (same on every page) ---------- */
-  var links = [["index.html", "Home", "home"], ["demo.html", "Demos", "demo"], ["pricing.html", "Pricing", "pricing"], ["book.html", "Booking", "book"]];
+  var links = [["index.html", "Home", "home"], ["demo.html", "Demos", "demo"], ["pricing.html", "Pricing", "pricing"]];
   var head = $("#site-header");
   if (head) {
     head.outerHTML =
@@ -109,7 +109,7 @@
       '<button class="menu-btn" aria-label="Open menu" aria-expanded="false"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>' +
       '<nav class="nav-links" aria-label="Main">' +
       links.map(function (l) { return '<a href="' + l[0] + '"' + (page === l[2] ? ' aria-current="page"' : "") + ">" + l[1] + "</a>"; }).join("") +
-      '<a class="btn btn-primary" href="book.html" data-track="nav_book">Book a Zoom meeting</a></nav></div></header>';
+      '<a class="btn btn-primary" href="pricing.html" data-track="nav_start">Get started</a></nav></div></header>';
     var mb = $(".menu-btn");
     mb.addEventListener("click", function () {
       var open = $(".nav-links").classList.toggle("open");
@@ -127,7 +127,7 @@
       '<div><h4>Contact</h4>' +
       (C.email ? '<a href="mailto:' + C.email + '" data-track="email">' + C.email + "</a>" : "") +
       (C.instagram ? '<a href="https://instagram.com/' + C.instagram + '" target="_blank" rel="noopener" data-track="instagram">@' + C.instagram + "</a>" : "") +
-      '<a href="book.html">Book a Zoom meeting</a></div>' +
+      '<a href="pricing.html">Get started</a></div>' +
       '</div><div class="wrap foot-bottom"><span>© ' + new Date().getFullYear() + ' Project Sarae. All rights reserved.</span>' +
       '<span>This site counts visits anonymously. <a href="admin.html" rel="nofollow">Admin</a></span></div></footer>';
   }
@@ -215,7 +215,8 @@
 
   function renderPricing(period) {
     var grid = $("#plan-grid"); if (!grid) return;
-    period = period || grid.dataset.period || "monthly";
+    var once = !!D.one_time;
+    period = once ? "monthly" : (period || grid.dataset.period || "monthly");
     grid.dataset.period = period;
     grid.innerHTML = "";
     plans().forEach(function (p) {
@@ -230,10 +231,11 @@
       var sd = sale(), pOff = hits(sd, "plan") ? off(sd, p[period]) : 0;
       $(".price span", card).textContent = money(p[period] - pOff);
       if (pOff) { var was = document.createElement("s"); was.className = "was"; was.textContent = money(p[period]); $(".price", card).insertBefore(was, $(".price span", card)); }
-      $(".price small", card).textContent = period === "yearly" ? "/year" : "/month";
+      $(".price small", card).textContent = once ? "one-time" : period === "yearly" ? "/year" : "/month";
       $(".note", card).textContent = pOff
         ? (sd.applies === "plan_first" ? (period === "yearly" ? "Your first year. Then " : "Your first month. Then ") + money(p[period]) + (period === "yearly" ? "/year" : "/month") : sd.label) +
           (sd.ends ? " · " + endsText(sd) : "")
+        : once ? "Paid once, when your site is done"
         : period === "yearly" && p.monthly * 12 > p.yearly ? "Save " + money(p.monthly * 12 - p.yearly) + " vs. monthly" : "";
       var ul = $("ul", card);
       (p.features || []).forEach(function (f) {
@@ -243,7 +245,7 @@
       });
       var a = $("a", card);
       a.textContent = "Choose " + p.name;
-      a.href = "start.html?plan=" + p.key + "&period=" + period;
+      a.href = "start.html?plan=" + p.key + (once ? "" : "&period=" + period);
       a.setAttribute("data-track", "choose_" + p.key + "_" + period);
       grid.appendChild(card);
     });
@@ -331,6 +333,7 @@
       });
     });
   }
+  if (page === "pricing" && D.one_time) $$(".pricing-bar").forEach(function (el) { el.hidden = true; });
   if (page === "pricing") bindToggle(function (period) { renderPricing(period); track("click", "toggle_" + period); });
 
   /* ---------- Homepage: live demo in the laptop ---------- */

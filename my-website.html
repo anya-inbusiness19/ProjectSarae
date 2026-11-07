@@ -43,7 +43,7 @@
 <main class="card" id="app"></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=6"></script>
-<script src="content.js?v=3"></script>
+<script src="content.js?v=4"></script>
 <script>
 const CFG = window.SITE_CONFIG || {};
 const sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey);
@@ -81,7 +81,7 @@ async function load() {
   if (error) return loginView(error.message);
   const name = orders[0]?.contact_name || "there";
   app.innerHTML = `<div class="top">${brand}<button class="link" id="out">Sign out</button></div>
-    ${params.get("paid") ? `<div class="banner">Payment received — thank you! I'm on it. You'll get an email at each step.</div>` : ""}
+    ${params.get("paid") ? `<div class="banner">Payment received — thank you! It was a pleasure building your site.</div>` : ""}
     <h1>Hey ${esc(name)} 👋</h1><p class="sub">Here's where your website is at.</p>
     ${orders.length ? orders.map(card).join("") : `<p>No website orders yet. <a href="pricing.html">Pick a plan</a> to get started.</p>`}`;
   document.getElementById("out").onclick = async () => { await sb.auth.signOut(); loginView(); };
@@ -99,8 +99,15 @@ function card(o) {
   const idx = STAGES.findIndex(s => s[0] === o.status);
   const p = { name: PLAN_NAMES[o.plan] };
   let pay = "";
+  const done = o.status === "review" || o.status === "live";
   if (!o.paid && !params.get("paid")) {
-    pay = `<div class="warn">Checkout isn't finished yet, so I haven't started.</div><button class="btn" data-pay="${esc(o.id)}">Finish checkout</button>`;
+    if ((window.SITE_CONTENT || {}).one_time) {
+      pay = done
+        ? `<div class="warn">Your site is ready! Look it over, then pay to wrap things up.</div><button class="btn" data-pay="${esc(o.id)}">Pay for my website</button>`
+        : `<div class="banner">Nothing to pay yet. You'll pay once your site is done.</div>`;
+    } else {
+      pay = `<div class="warn">Checkout isn't finished yet, so I haven't started.</div><button class="btn" data-pay="${esc(o.id)}">Finish checkout</button>`;
+    }
   }
   return `<div class="order"><h2>${esc(o.business_name)}</h2>
     <div class="meta">${esc(p.name || o.plan)} plan · started ${new Date(o.created_at).toLocaleDateString()}</div>

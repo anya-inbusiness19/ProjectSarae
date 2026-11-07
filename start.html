@@ -89,7 +89,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=6"></script>
-<script src="content.js?v=3"></script>
+<script src="content.js?v=4"></script>
 <script>
 const CFG = window.SITE_CONFIG || {};
 const LIVE = !!(CFG.supabaseUrl && CFG.supabaseAnonKey && window.supabase);
@@ -102,7 +102,8 @@ function loadPlans(settings) {
 }
 let cached = {}; try { cached = JSON.parse(localStorage.getItem("ps_settings") || "{}") || {}; } catch(e) {}
 loadPlans(cached);
-if (!PLANS.business) Object.assign(PLANS, { starter:{name:"Starter",monthly:50,yearly:500}, business:{name:"Business",monthly:180,yearly:1800}, pro:{name:"Pro",monthly:250,yearly:2500} });
+if (!PLANS.business) Object.assign(PLANS, { starter:{name:"Starter",monthly:5,yearly:5}, business:{name:"Business",monthly:10,yearly:10}, pro:{name:"Pro",monthly:15,yearly:15} });
+const ONE_TIME = !!(window.SITE_CONTENT || {}).one_time;
 
 const KEY = "ps_intake_v1";
 let saved = {}; try { saved = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch(e) {}
@@ -119,7 +120,7 @@ let password = "", logoFile = null, step = 0;
 
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e) {} };
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const price = () => { const p = PLANS[S.plan]; const m = n => "$" + Number(n).toLocaleString("en-US"); return S.billing === "yearly" ? `${m(p.yearly)}/yr` : `${m(p.monthly)}/mo`; };
+const price = () => { const p = PLANS[S.plan]; const m = n => "$" + Number(n).toLocaleString("en-US"); return ONE_TIME ? `${m(p.monthly)} one-time` : S.billing === "yearly" ? `${m(p.yearly)}/yr` : `${m(p.monthly)}/mo`; };
 
 const COLORS = [
   ["Black","#111111"],["Cream","#f4ecdf"],["White","#ffffff"],["Navy","#16187e"],["Royal Blue","#2457d6"],["Sky Blue","#7cc4f2"],["Teal","#14877f"],
@@ -292,6 +293,8 @@ async function finish() {
   if (e2) throw new Error(e2.message);
   try { localStorage.removeItem(KEY); } catch(e) {}
 
+  // Pay-when-done: no checkout yet. The client pays from their status page once the site is ready for review.
+  if (ONE_TIME) { location.href = "my-website.html?new=1"; return; }
   const { data: links } = await sb.rpc("order_checkout_links", { p_order: order.id });
   if (!links || !links.plan_url) { location.href = "my-website.html?new=1"; return; }
   const u = new URL(links.plan_url);
