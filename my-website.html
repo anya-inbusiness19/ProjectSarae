@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>My Website · Project Sarae</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 <style>
@@ -31,7 +31,12 @@
   .steps li.now{color:var(--ink);font-weight:700} .steps li.now i{border-color:var(--accent);color:var(--accent)}
   .warn{background:#fff4e5;color:#8a4b00;border-radius:12px;padding:10px 12px;font-size:14px;margin-top:12px}
   .link{color:var(--navy);font-weight:600;cursor:pointer;background:none;border:none;font:inherit;padding:0}
-  .top{display:flex;justify-content:space-between;align-items:center}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .order h2{overflow-wrap:anywhere}
+  @media (min-width:900px){ body{padding:72px 24px} .card{max-width:640px;padding:40px 44px} }
+  @media (max-width:600px){ body{padding:0;background:#fff}
+    .card{max-width:none;min-height:100vh;border-radius:0;box-shadow:none;padding:calc(18px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom))}
+    .order{padding:16px} h1{font-size:23px} .brand b{font-size:21px} }
 </style>
 </head>
 <body>

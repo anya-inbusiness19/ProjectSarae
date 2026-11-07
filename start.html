@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Start Your Website | Project Sarae</title>
 <meta name="robots" content="noindex">
 <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32.png">
@@ -44,7 +44,7 @@
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .opt{border:1.5px solid var(--line);border-radius:16px;padding:14px;cursor:pointer;background:#fff;text-align:left;font:inherit}
   .opt.on{border-color:var(--navy);box-shadow:0 0 0 3px rgba(22,24,126,.12)}
-  .opt .t{font-weight:600;font-size:15px}
+  .opt .t{font-weight:600;font-size:15px;line-height:1.25}
   .opt .d{color:var(--muted);font-size:13px;margin-top:3px}
   .opt .prev{font-size:22px;margin-bottom:6px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
   .swatches{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
@@ -68,7 +68,20 @@
   .check{display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-size:14px;color:var(--muted)}
   .check input{margin-top:3px;width:18px;height:18px}
   .fine{font-size:12.5px;color:var(--muted);text-align:center;margin-top:16px;line-height:1.5}
-  @media (max-width:440px){ .card{padding:24px 18px} .grid{grid-template-columns:1fr} .swatches{grid-template-columns:repeat(5,1fr)} h1{font-size:24px} }
+  .chip,.opt,.sw,.btn,.top a{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+  .chip{min-height:44px}
+  @media (min-width:900px){ body{padding:72px 24px} .card{max-width:600px;padding:40px 44px 34px} h1{font-size:30px} }
+  @media (max-width:600px){
+    body{padding:0;background:#fff}
+    .card{max-width:none;min-height:100vh;border-radius:0;box-shadow:none;
+      padding:calc(18px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom))}
+    .swatches{grid-template-columns:repeat(6,1fr)}
+    .btn{position:sticky;bottom:calc(10px + env(safe-area-inset-bottom));box-shadow:0 8px 24px rgba(22,24,126,.25)}
+  }
+  @media (max-width:400px){ .swatches{grid-template-columns:repeat(5,1fr)} h1{font-size:24px}
+    .emoji{font-size:38px} .plan-chip{font-size:12px} .brand b{font-size:21px} }
+  @media (max-width:340px){ .grid{grid-template-columns:1fr} }
+  @media (max-height:520px) and (orientation:landscape){ .btn{position:static} .emoji{display:none} }
 </style>
 </head>
 <body>
@@ -135,8 +148,8 @@ const input = (field, label, type="text", ph="", optional=false) =>
 const STEPS = [
   { emoji:"👋", title:"Hey! Let's meet you.", sub:"Who am I building this website for?",
     html: () => input("contact_name","Your first name","text","Your first name") +
-      input("business_name","Business name","text","e.g. Diva Stone Hair Braiding") +
-      input("business_type","What does your business do?","text","e.g. concrete contractor, braiding salon"),
+      input("business_name","Business name","text","Your business name") +
+      input("business_type","What does your business do?","text","e.g. landscaping, nail salon, food truck"),
     check: () => !S.contact_name.trim() ? "What's your first name?" : !S.business_name.trim() ? "What's your business called?" : !S.business_type.trim() ? "Tell me what your business does." : "" },
 
   { emoji:"🎨", title:"Pick your vibe.", sub:"How should people feel when they land on your site?",
@@ -170,7 +183,7 @@ const STEPS = [
     check: () => !S.features.length ? "Pick at least one thing your site should do." : "" },
 
   { emoji:"📱", title:"How do I reach you?", sub:"So I can send you updates and your finished site.",
-    html: () => input("email","Email","email","you@email.com") + input("phone","Phone number","tel","(256) 555-0123") +
+    html: () => input("email","Email","email","you@email.com") + input("phone","Phone number","tel","Your phone number") +
       `<label class="l">Best way to reach you</label><div class="chips">${["Text","Call","Email"].map(v => chip("contact_method",v)).join("")}</div>
        <label class="l">Best time</label><div class="chips">${["Morning","Afternoon","Evening","Anytime"].map(v => chip("best_time",v)).join("")}</div>`,
     check: () => !/^\S+@\S+\.\S+$/.test(S.email) ? "Enter a real email." :

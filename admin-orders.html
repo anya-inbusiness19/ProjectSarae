@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
 <title>Orders · Project Sarae Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
@@ -35,7 +35,14 @@
   .ok{color:var(--ok);font-size:13px}
   .login{max-width:380px;margin:60px auto;background:#fff;border-radius:24px;padding:28px}
   .login input{width:100%;margin:6px 0 12px}
-  @media (max-width:560px){ dl{grid-template-columns:1fr} dt{margin-top:6px} }
+  .o h2,dd{overflow-wrap:anywhere}
+  .act .btn.ghost{flex:1;text-align:center}
+  @media (min-width:1200px){ .wrap{max-width:1100px} #list{display:grid;grid-template-columns:1fr 1fr;gap:12px} #list .o{margin:0} }
+  @media (max-width:600px){ body{padding:16px 12px calc(16px + env(safe-area-inset-bottom))} h1{font-size:24px}
+    .stats{grid-template-columns:1fr 1fr} .stat b{font-size:20px}
+    .filters{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px} .chip{white-space:nowrap}
+    dl{grid-template-columns:1fr} dt{margin-top:6px}
+    .act select,.act input.url,.act [data-save]{width:100%;flex:1 1 100%} .login{margin:24px auto} }
 </style>
 </head>
 <body>
@@ -91,7 +98,7 @@ function render() {
     </div>
     <div class="filters">${[["paid","To build"],["unpaid","Didn't pay (follow up)"],["live","Live"],["all","All"]].map(([k, l]) =>
       `<button class="chip ${filter === k ? "on" : ""}" data-f="${k}">${l}</button>`).join("")}</div>
-    ${list.length ? list.map(card).join("") : `<p style="color:var(--muted)">Nothing here yet.</p>`}`;
+    ${list.length ? `<div id="list">${list.map(card).join("")}</div>` : `<p style="color:var(--muted)">Nothing here yet.</p>`}`;
   document.getElementById("out").onclick = async () => { await sb.auth.signOut(); loginView(); };
 }
 
