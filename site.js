@@ -243,7 +243,7 @@
       });
       var a = $("a", card);
       a.textContent = "Choose " + p.name;
-      a.href = "book.html?plan=" + p.key + "&period=" + period;
+      a.href = "start.html?plan=" + p.key + "&period=" + period;
       a.setAttribute("data-track", "choose_" + p.key + "_" + period);
       grid.appendChild(card);
     });

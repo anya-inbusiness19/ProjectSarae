@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Start Your Website | Project Sarae</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Great+Vibes&family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#16187e; --navy-2:#2a2db0; --cream:#f6f1ea; --bg:#fdfbf7; --ink:#1b1b2b;
+    --muted:#6b6b7b; --line:#e7e1d8; --accent:#c2614f; --ok:#2e7d4f;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;background:var(--bg);font-family:Inter,system-ui,sans-serif;color:var(--ink);
+    display:flex;justify-content:center;align-items:flex-start;padding:48px 16px}
+  .card{width:100%;max-width:540px;background:#fff;border-radius:28px;padding:32px 30px 28px;
+    box-shadow:0 20px 60px rgba(22,24,126,.10)}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
+  .top a{color:var(--navy);font-weight:600;text-decoration:none;font-size:15px;cursor:pointer}
+  .plan-chip{background:var(--cream);color:var(--navy);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;white-space:nowrap}
+  .brand{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+  .brand .ps{width:38px;height:38px;border-radius:10px;background:var(--navy);color:#fff;display:grid;place-items:center;
+    font-family:'Playfair Display',serif;font-size:17px}
+  .brand b{font-family:'Playfair Display',serif;font-size:24px;color:var(--navy)}
+  .tag{color:var(--muted);margin:2px 0 18px;font-size:15px}
+  .bar{height:9px;background:#efecf6;border-radius:99px;overflow:hidden}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--navy),var(--accent));border-radius:99px;transition:width .35s}
+  .count{font-size:13px;color:var(--muted);margin:8px 0 20px}
+  .emoji{font-size:46px;line-height:1;margin-bottom:8px}
+  h1{font-family:'Playfair Display',serif;font-size:27px;margin:0 0 6px;line-height:1.2}
+  .sub{color:var(--muted);margin:0 0 20px;font-size:15px}
+  label.l{display:block;font-weight:600;font-size:15px;margin:16px 0 7px}
+  label.l small{font-weight:400;color:var(--muted)}
+  input[type=text],input[type=email],input[type=tel],input[type=password],input[type=url],textarea{
+    width:100%;border:1px solid var(--line);border-radius:14px;padding:14px 16px;font:inherit;font-size:16px;outline:none;background:#fff}
+  textarea{min-height:84px;resize:vertical}
+  input:focus,textarea:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(22,24,126,.12)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:9px 14px;font:inherit;font-size:14px;cursor:pointer}
+  .chip.on{border-color:var(--navy);background:var(--navy);color:#fff}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .opt{border:1.5px solid var(--line);border-radius:16px;padding:14px;cursor:pointer;background:#fff;text-align:left;font:inherit}
+  .opt.on{border-color:var(--navy);box-shadow:0 0 0 3px rgba(22,24,126,.12)}
+  .opt .t{font-weight:600;font-size:15px}
+  .opt .d{color:var(--muted);font-size:13px;margin-top:3px}
+  .opt .prev{font-size:22px;margin-bottom:6px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .swatches{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+  .sw{aspect-ratio:1;border-radius:50%;border:2px solid var(--line);cursor:pointer;position:relative;padding:0}
+  .sw.on{outline:3px solid var(--navy);outline-offset:2px}
+  .sw.on::after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;font-weight:700;color:#fff;text-shadow:0 0 3px #000}
+  .row{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
+  input[type=color]{width:44px;height:36px;border:none;background:none;cursor:pointer;padding:0}
+  .hint{font-size:13px;color:var(--muted)}
+  .upload{margin-top:12px;border:1.5px dashed var(--line);border-radius:14px;padding:14px;text-align:center}
+  .btn{width:100%;margin-top:22px;border:none;border-radius:16px;background:var(--navy);color:#fff;font:inherit;font-weight:700;
+    font-size:17px;padding:17px;cursor:pointer}
+  .btn:hover{background:var(--navy-2)} .btn:disabled{opacity:.6;cursor:wait}
+  .err{color:#b3261e;font-size:14px;min-height:18px;margin:10px 0 0}
+  .foot{text-align:center;color:var(--muted);font-size:15px;margin-top:22px}
+  .foot a{color:var(--navy);font-weight:600}
+  .summary{background:var(--cream);border-radius:16px;padding:16px;font-size:14px;line-height:1.6;margin-top:16px}
+  .summary b{color:var(--navy)}
+  .dots{display:inline-flex;gap:4px;vertical-align:middle}
+  .dots i{width:14px;height:14px;border-radius:50%;border:1px solid #0002;display:inline-block}
+  .check{display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-size:14px;color:var(--muted)}
+  .check input{margin-top:3px;width:18px;height:18px}
+  .fine{font-size:12.5px;color:var(--muted);text-align:center;margin-top:16px;line-height:1.5}
+  @media (max-width:440px){ .card{padding:24px 18px} .grid{grid-template-columns:1fr} .swatches{grid-template-columns:repeat(5,1fr)} h1{font-size:24px} }
+</style>
+</head>
+<body>
+<main class="card" id="app" aria-live="polite"></main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js?v=6"></script>
+<script src="content.js?v=3"></script>
+<script>
+const CFG = window.SITE_CONFIG || {};
+const LIVE = !!(CFG.supabaseUrl && CFG.supabaseAnonKey && window.supabase);
+const sb = LIVE ? window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey) : null;
+// Plans + prices: same source as the pricing page (content.js, overridden by admin → Pricing)
+const PLANS = {};
+function loadPlans(settings) {
+  let saved = []; try { saved = JSON.parse((settings || {}).plans || "null") || []; } catch(e) {}
+  ((window.SITE_CONTENT || {}).plans || []).forEach(p => { PLANS[p.key] = saved.find(x => x && x.key === p.key) || p; });
+}
+let cached = {}; try { cached = JSON.parse(localStorage.getItem("ps_settings") || "{}") || {}; } catch(e) {}
+loadPlans(cached);
+if (!PLANS.business) Object.assign(PLANS, { starter:{name:"Starter",monthly:50,yearly:500}, business:{name:"Business",monthly:180,yearly:1800}, pro:{name:"Pro",monthly:250,yearly:2500} });
+
+const KEY = "ps_intake_v1";
+let saved = {}; try { saved = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch(e) {}
+const S = Object.assign({
+  plan:"business", billing:"monthly", contact_name:"", business_name:"", business_type:"",
+  vibe:"", colors:[], logo_choice:"", font:"", features:[], inspiration:"", notes:"",
+  email:"", phone:"", contact_method:"", best_time:"", agree:false
+}, saved);
+const params = new URLSearchParams(location.search);
+if (PLANS[params.get("plan")]) S.plan = params.get("plan");
+const per = params.get("period") || params.get("billing");
+if (["monthly","yearly"].includes(per)) S.billing = per;
+let password = "", logoFile = null, step = 0;
+
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e) {} };
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const price = () => { const p = PLANS[S.plan]; const m = n => "$" + Number(n).toLocaleString("en-US"); return S.billing === "yearly" ? `${m(p.yearly)}/yr` : `${m(p.monthly)}/mo`; };
+
+const COLORS = [
+  ["Black","#111111"],["Cream","#f4ecdf"],["White","#ffffff"],["Navy","#16187e"],["Royal Blue","#2457d6"],["Sky Blue","#7cc4f2"],["Teal","#14877f"],
+  ["Forest Green","#1f5b3a"],["Sage","#a9b89a"],["Gold","#c9a227"],["Orange","#e9772b"],["Red","#c62828"],["Blush Pink","#f2b8c6"],["Purple","#6a3db8"],
+  ["Brown","#6b4428"],["Gray","#8a8f98"]
+];
+const VIBES = [
+  ["Bold & Strong","Big, confident, gets attention"],["Clean & Modern","Simple, sharp, lots of space"],
+  ["Luxe & Elegant","High-end, polished, classy"],["Warm & Friendly","Inviting, homey, personal"],
+  ["Fun & Colorful","Playful, bright, full of energy"],["Surprise me","You pick what fits best"]
+];
+const FONTS = [
+  ["Classic","'Playfair Display',serif","Timeless and trusted"],["Modern","Inter,sans-serif","Clean and easy to read"],
+  ["Script","'Great Vibes',cursive","Soft, pretty, personal"],["Bold","'Bebas Neue',sans-serif","Loud and strong"]
+];
+const FEATURES = ["Online booking","Services & prices","Photo gallery","Customer reviews","Contact form","Quote requests","Online store","FAQ","Before & after photos","Social media links"];
+
+const chip = (field, val, multi) => {
+  const on = multi ? S[field].includes(val) : S[field] === val;
+  return `<button type="button" class="chip ${on?"on":""}" data-${multi?"multi":"pick"}="${field}" data-val="${esc(val)}">${esc(val)}</button>`;
+};
+const input = (field, label, type="text", ph="", optional=false) =>
+  `<label class="l" for="f_${field}">${label}${optional?" <small>(optional)</small>":""}</label>
+   <input id="f_${field}" type="${type}" data-field="${field}" value="${esc(S[field])}" placeholder="${esc(ph)}">`;
+
+const STEPS = [
+  { emoji:"👋", title:"Hey! Let's meet you.", sub:"Who am I building this website for?",
+    html: () => input("contact_name","Your first name","text","Your first name") +
+      input("business_name","Business name","text","e.g. Diva Stone Hair Braiding") +
+      input("business_type","What does your business do?","text","e.g. concrete contractor, braiding salon"),
+    check: () => !S.contact_name.trim() ? "What's your first name?" : !S.business_name.trim() ? "What's your business called?" : !S.business_type.trim() ? "Tell me what your business does." : "" },
+
+  { emoji:"🎨", title:"Pick your vibe.", sub:"How should people feel when they land on your site?",
+    html: () => `<div class="grid">${VIBES.map(([t,d]) =>
+        `<button type="button" class="opt ${S.vibe===t?"on":""}" data-pick="vibe" data-val="${esc(t)}"><div class="t">${t}</div><div class="d">${d}</div></button>`).join("")}</div>
+      <label class="l">Pick up to 3 colors</label>
+      <div class="swatches">${COLORS.map(([n,h]) =>
+        `<button type="button" class="sw ${S.colors.includes(n)?"on":""}" style="background:${h}" title="${n}" aria-label="${n}" data-multi="colors" data-val="${n}" data-max="3"></button>`).join("")}</div>
+      <div class="row"><input type="color" id="customColor" value="#16187e" aria-label="Pick your own color">
+        <button type="button" class="chip" id="addCustom">+ Add my exact color</button>
+        ${chip("colors","Use my logo colors",true)}</div>
+      <p class="hint">${S.colors.length ? "Picked: " + S.colors.map(esc).join(", ") : "Tap to pick. Tap again to remove."}</p>`,
+    check: () => !S.vibe ? "Pick a vibe." : !S.colors.length ? "Pick at least one color." : "" },
+
+  { emoji:"✍️", title:"Logo & lettering.", sub:"Let's make your name look good.",
+    html: () => `<label class="l">Do you have a logo?</label>
+      <div class="chips">${chip("logo_choice","Yes, I have one")}${chip("logo_choice","Make me a simple one")}${chip("logo_choice","Just my name in a nice font")}</div>
+      ${S.logo_choice==="Yes, I have one" ? `<div class="upload"><input type="file" id="logoFile" accept="image/*,.pdf,.svg">
+        <p class="hint">${logoFile ? "✓ " + esc(logoFile.name) : "PNG, JPG, SVG or PDF. No file handy? You can text it to me later."}</p></div>` : ""}
+      <label class="l">Pick a lettering style</label>
+      <div class="grid">${FONTS.map(([t,f,d]) =>
+        `<button type="button" class="opt ${S.font===t?"on":""}" data-pick="font" data-val="${t}">
+          <div class="prev" style="font-family:${f}">${esc(S.business_name || "Your Business")}</div><div class="t">${t}</div><div class="d">${d}</div></button>`).join("")}</div>`,
+    check: () => !S.logo_choice ? "Let me know about your logo." : !S.font ? "Pick a lettering style." : "" },
+
+  { emoji:"🛠️", title:"What should your site do?", sub:"Pick everything you want. You can change this later.",
+    html: () => `<div class="chips">${FEATURES.map(f => chip("features", f, true)).join("")}</div>` +
+      input("inspiration","A website you love the look of","url","Paste a link", true) +
+      `<label class="l" for="f_notes">Anything else I should know? <small>(optional)</small></label>
+       <textarea id="f_notes" data-field="notes" placeholder="Services you offer, hours, a deadline…">${esc(S.notes)}</textarea>`,
+    check: () => !S.features.length ? "Pick at least one thing your site should do." : "" },
+
+  { emoji:"📱", title:"How do I reach you?", sub:"So I can send you updates and your finished site.",
+    html: () => input("email","Email","email","you@email.com") + input("phone","Phone number","tel","(256) 555-0123") +
+      `<label class="l">Best way to reach you</label><div class="chips">${["Text","Call","Email"].map(v => chip("contact_method",v)).join("")}</div>
+       <label class="l">Best time</label><div class="chips">${["Morning","Afternoon","Evening","Anytime"].map(v => chip("best_time",v)).join("")}</div>`,
+    check: () => !/^\S+@\S+\.\S+$/.test(S.email) ? "Enter a real email." :
+      S.phone.replace(/\D/g,"").length < 10 ? "Enter your phone number." :
+      !S.contact_method ? "How should I reach you?" : !S.best_time ? "When's the best time?" : "" },
+
+  { emoji:"🔐", title:"Save your spot.", sub:"Make a password so you can check your website's progress anytime.",
+    cta:"Continue to checkout →",
+    html: () => `<label class="l">Email</label><input type="email" value="${esc(S.email)}" disabled>
+      <label class="l" for="pw">Create a password</label>
+      <input id="pw" type="password" autocomplete="new-password" placeholder="At least 8 characters" value="${esc(password)}">
+      <div class="summary">
+        <b>${esc(PLANS[S.plan].name)} plan</b> · ${price()}<br>
+        <b>For:</b> ${esc(S.business_name)} (${esc(S.contact_name)})<br>
+        <b>Vibe:</b> ${esc(S.vibe)} · <b>Font:</b> ${esc(S.font)}<br>
+        <b>Colors:</b> <span class="dots">${S.colors.map(n => { const c = COLORS.find(x => x[0]===n); return c ? `<i style="background:${c[1]}"></i>` : ""; }).join("")}</span> ${esc(S.colors.join(", "))}<br>
+        <b>Site will have:</b> ${esc(S.features.join(", "))}
+      </div>
+      <label class="check"><input type="checkbox" id="agree" ${S.agree?"checked":""}> <span>I agree to the <a href="privacy.html" target="_blank">Privacy Policy</a> and <a href="terms.html" target="_blank">Terms</a>.</span></label>`,
+    check: () => password.length < 8 ? "Password needs at least 8 characters." : !S.agree ? "Please agree to continue." : "" }
+];
+
+const app = document.getElementById("app");
+
+function render() {
+  const st = STEPS[step], total = STEPS.length, left = Math.max(1, Math.ceil((total - step) * 0.5));
+  app.innerHTML = `
+    <div class="top"><a id="back">← ${step ? "Back" : "Plans"}</a><span class="plan-chip">${esc(PLANS[S.plan].name)} · ${price()}</span></div>
+    <div class="brand"><span class="ps">PS</span><b>Project Sarae</b></div>
+    <p class="tag">Let's build your website</p>
+    <div class="bar"><i style="width:${(step+1)/total*100}%"></i></div>
+    <div class="count">Step ${step+1} of ${total} · about ${left} min left</div>
+    <div class="emoji">${st.emoji}</div><h1>${st.title}</h1><p class="sub">${st.sub}</p>
+    <form id="form" novalidate>${st.html()}<p class="err" id="err"></p>
+      <button class="btn" id="next" type="submit">${st.cta || "Continue"}</button></form>
+    ${step===0 ? `<p class="foot">Already started? <a href="my-website.html">Sign in</a></p>` : ""}
+    <p class="fine">Takes about 3 minutes. No meeting needed — I'll reach out by ${esc(S.contact_method ? S.contact_method.toLowerCase() : "your favorite way")} if I have questions.</p>`;
+  const first = app.querySelector("input:not([disabled]),textarea");
+  if (first && !first.value) first.focus({preventScroll:true});
+}
+
+app.addEventListener("input", e => {
+  const f = e.target.dataset.field;
+  if (f) { S[f] = e.target.value; save(); }
+  if (e.target.id === "pw") password = e.target.value;
+});
+app.addEventListener("change", e => {
+  if (e.target.id === "agree") { S.agree = e.target.checked; save(); }
+  if (e.target.id === "logoFile") { logoFile = e.target.files[0] || null; render(); }
+});
+app.addEventListener("click", e => {
+  const b = e.target.closest("button,a"); if (!b) return;
+  if (b.id === "back") { if (step) { step--; render(); } else location.href = "pricing.html"; return; }
+  if (b.id === "addCustom") {
+    const hex = document.getElementById("customColor").value;
+    if (!COLORS.find(c => c[0] === hex)) COLORS.push([hex, hex]);
+    if (!S.colors.includes(hex) && S.colors.filter(c => c !== "Use my logo colors").length < 3) S.colors.push(hex);
+    save(); render(); return;
+  }
+  if (b.dataset.pick) { S[b.dataset.pick] = b.dataset.val; save(); render(); return; }
+  if (b.dataset.multi) {
+    const arr = S[b.dataset.multi], v = b.dataset.val, i = arr.indexOf(v), max = +b.dataset.max || 99;
+    if (i > -1) arr.splice(i, 1);
+    else if (arr.filter(x => x !== "Use my logo colors").length < max || v === "Use my logo colors") arr.push(v);
+    save(); render();
+  }
+});
+// keep custom hex colors showing after a reload
+S.colors.forEach(c => { if (c.startsWith("#") && !COLORS.find(x => x[0] === c)) COLORS.push([c, c]); });
+
+app.addEventListener("submit", async e => {
+  e.preventDefault();
+  const msg = STEPS[step].check();
+  if (msg) { document.getElementById("err").textContent = msg; return; }
+  if (step < STEPS.length - 1) { step++; render(); window.scrollTo({top:0,behavior:"smooth"}); return; }
+  const btn = document.getElementById("next");
+  btn.disabled = true; btn.textContent = "Saving your answers…";
+  try { await finish(); }
+  catch (err) { document.getElementById("err").textContent = err.message || "Something went wrong. Try again."; btn.disabled = false; btn.textContent = STEPS[step].cta; }
+});
+
+async function finish() {
+  const row = {
+    plan:S.plan, billing:S.billing, contact_name:S.contact_name.trim(), business_name:S.business_name.trim(),
+    business_type:S.business_type.trim(), vibe:S.vibe, colors:S.colors, logo_choice:S.logo_choice, font:S.font,
+    features:S.features, inspiration:S.inspiration.trim(), notes:S.notes.trim(), email:S.email.trim().toLowerCase(),
+    phone:S.phone.trim(), contact_method:S.contact_method, best_time:S.best_time
+  };
+  if (!LIVE) {
+    app.innerHTML = `<div class="emoji">🎉</div><h1>Almost there!</h1><p class="sub">Online signup isn't connected yet. Here's what you picked:</p>
+      <pre class="summary" style="white-space:pre-wrap;font-size:12px">${esc(JSON.stringify(row, null, 2))}</pre>`;
+    return;
+  }
+  let { data, error } = await sb.auth.signUp({ email: row.email, password, options: { data: { name: row.contact_name } } });
+  if (error && /already|registered/i.test(error.message)) ({ data, error } = await sb.auth.signInWithPassword({ email: row.email, password }));
+  if (error) throw new Error(/invalid/i.test(error.message) ? "That email already has an account. Use your existing password." : error.message);
+  if (!data.session) throw new Error("Check your email to confirm your account, then come back here and tap the button again. Your answers are saved.");
+
+  if (logoFile && S.logo_choice === "Yes, I have one") {
+    const ext = (logoFile.name.split(".").pop() || "png").toLowerCase();
+    row.logo_path = `${data.user.id}/${Date.now()}.${ext}`;
+    const up = await sb.storage.from("logos").upload(row.logo_path, logoFile);
+    if (up.error) throw new Error("Logo upload failed: " + up.error.message);
+  }
+  const { data: order, error: e2 } = await sb.from("orders").insert(row).select("id").single();
+  if (e2) throw new Error(e2.message);
+  try { localStorage.removeItem(KEY); } catch(e) {}
+
+  const { data: links } = await sb.rpc("order_checkout_links", { p_order: order.id });
+  if (!links || !links.plan_url) { location.href = "my-website.html?new=1"; return; }
+  const u = new URL(links.plan_url);
+  u.searchParams.set("client_reference_id", order.id);
+  u.searchParams.set("prefilled_email", row.email);
+  location.href = u.toString();
+}
+
+render();
+// refresh prices from admin settings (same as the pricing page)
+if (sb) sb.from("site_settings").select("key,value").then(res => {
+  if (res.error || !res.data) return;
+  const m = {}; res.data.forEach(r => m[r.key] = r.value);
+  try { localStorage.setItem("ps_settings", JSON.stringify(m)); } catch(e) {}
+  loadPlans(m); render();
+});
+</script>
+</body>
+</html>
