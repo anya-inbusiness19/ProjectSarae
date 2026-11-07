@@ -12,14 +12,14 @@ window.SITE_CONTENT = {
   fields: [
     // Homepage: top of the page
     { key: "announce_text", group: "home_top", label: "Announcement bar (top of homepage)", type: "text",
-      def: "Websites for local businesses from $5 · You pay when it’s done" },
+      def: "Websites for local businesses from $5/month · Nothing due until it’s done" },
     { key: "announce_link", group: "home_top", label: "Announcement bar link text", type: "text", def: "See plans" },
     { key: "hero_photo", group: "home_top", label: "Background photo (top of homepage)", type: "image", def: "images/hero.jpg" },
-    { key: "hero_kicker", group: "home_top", label: "Small line above the heading", type: "text", def: "Websites for local businesses · Starting at $5" },
+    { key: "hero_kicker", group: "home_top", label: "Small line above the heading", type: "text", def: "Websites for local businesses · From $5 a month" },
     { key: "hero_title", group: "home_top", label: "Heading", type: "text", def: "A website that books customers for you." },
     { key: "hero_sub", group: "home_top", label: "Subheading (what we do)", type: "textarea",
-      def: "You’re busy running your business. We design a website that takes bookings around the clock and helps new customers find you on Google, so you spend less time answering calls and more time doing the work. No ridiculous prices, and you only pay once your site is done." },
-    { key: "hero_cta", group: "home_top", label: "Button text", type: "text", def: "See plans from $5" },
+      def: "You’re busy running your business. We design a website that takes bookings around the clock and helps new customers find you on Google, so you spend less time answering calls and more time doing the work. No ridiculous prices: plans start at $5 a month, and nothing is due until your site is done." },
+    { key: "hero_cta", group: "home_top", label: "Button text", type: "text", def: "See plans from $5/mo" },
 
     // Homepage: live demo
     { key: "demo_eyebrow", group: "home_demo", label: "Small line above the demo heading", type: "text", def: "Live demo" },
@@ -34,13 +34,13 @@ window.SITE_CONTENT = {
       def: "Honest feedback from the businesses we’ve worked with." },
     { key: "closer_title", group: "home_end", label: "Closing heading", type: "text", def: "Fair prices. Real help." },
     { key: "closer_text", group: "home_end", label: "Closing text", type: "textarea",
-      def: "Our goal is simple: help local businesses save time and make more money, without charging a ridiculous amount. Pick a plan, answer a few quick questions, and pay once your site is done." },
+      def: "Our goal is simple: help local businesses save time and make more money, without charging a ridiculous amount. Pick a plan, answer a few quick questions, and nothing is due until your site is done." },
 
     // Pricing page
     { key: "pricing_eyebrow", group: "pricing", label: "Small line above the heading", type: "text", def: "Simple, honest pricing" },
     { key: "pricing_title", group: "pricing", label: "Heading", type: "text", def: "Pricing." },
     { key: "pricing_sub", group: "pricing", label: "Description", type: "textarea",
-      def: "One price, paid once, and only after your site is done. Pick the plan that fits how many pages you need." },
+      def: "Low monthly prices, and nothing is due until your site is done. Pick the plan that fits how many pages you need." },
     { key: "addons_title", group: "pricing", label: "Add-ons heading", type: "text", def: "Add-on services." },
     { key: "addons_sub", group: "pricing", label: "Add-ons description", type: "textarea",
       def: "Optional extras that run every month. Cancel anytime. Mention the ones you want in your answers." },
@@ -63,7 +63,7 @@ window.SITE_CONTENT = {
   /* ---------- Sliding services bar (under the top section) ---------- */
   ticker: [
     "Custom website design", "Online booking", "Found on Google", "Mobile-friendly",
-    "Contact forms & maps", "Photo galleries", "Online payments", "Starting at $5",
+    "Contact forms & maps", "Photo galleries", "Online payments", "From $5 a month",
     "Pay when it’s done"
   ],
 
@@ -72,8 +72,8 @@ window.SITE_CONTENT = {
     { title: "Bookings while you work", text: "Customers pick a time and book themselves, day or night, so you stop stopping work to answer the phone." },
     { title: "Found on Google", text: "Your site is set up so people searching nearby can find you before a competitor." },
     { title: "Designed around your business", text: "Your colors, photos, services, and prices. Never a template that looks like everyone else’s." },
-    { title: "Pay once, when it’s done", text: "No deposit and no monthly bill. You see your finished site first, then pay." },
-    { title: "Prices that make sense", text: "From $5. We’d rather help a business grow than charge a ridiculous amount." }
+    { title: "Nothing due until it’s done", text: "No deposit. You see your finished site first, then your monthly plan starts. Cancel anytime." },
+    { title: "Prices that make sense", text: "From $5 a month. We’d rather help a business grow than charge a ridiculous amount." }
   ],
 
   /* ---------- Live demos shown in the laptop ---------- */
@@ -84,16 +84,16 @@ window.SITE_CONTENT = {
   ],
 
   /* ---------- Pricing ---------- */
-  one_time: true,   /* true = plans are a one-time price, paid when the site is done */
+  pay_when_done: true,   /* true = monthly plans, first payment only after the site is done; monthly-only (no yearly toggle) */
   setup_fee: 0,
   setup_fee_text: "A one-time fee that covers designing, building, and launching your site. Paid once at checkout, then just your monthly plan.",
 
   plans: [
-    { key: "starter", name: "Starter", monthly: 5, yearly: 5, pages: "1–3 pages", badge: "",
+    { key: "starter", name: "Starter", monthly: 5, yearly: 50, pages: "1–3 pages", badge: "",
       features: ["1–3 pages", "Online booking", "Appointment reminders", "FAQ section", "Services & prices", "Photo gallery & reviews", "Contact form & Google Maps", "Mobile-friendly design"] },
-    { key: "business", name: "Business", monthly: 10, yearly: 10, pages: "4–6 pages", badge: "Most popular",
+    { key: "business", name: "Business", monthly: 10, yearly: 100, pages: "4–6 pages", badge: "Most popular",
       features: ["4–6 pages", "Everything in Starter", "SEO setup so you show up on Google", "Google Business Profile setup", "Weekly reports"] },
-    { key: "pro", name: "Pro", monthly: 15, yearly: 15, pages: "7–10 pages", badge: "",
+    { key: "pro", name: "Pro", monthly: 15, yearly: 150, pages: "7–10 pages", badge: "",
       features: ["7–10 pages", "Everything in Business", "Online payments", "Online store", "Customer accounts / member area", "Priority build"] }
   ],
 

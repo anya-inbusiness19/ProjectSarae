@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contact Us | Project Sarae</title>
+<meta name="description" content="Questions about a website for your business? Send Project Sarae a message and we’ll get back to you.">
+<link rel="canonical" href="https://projectsarae.site/contact.html">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://projectsarae.site/contact.html">
+<meta property="og:title" content="Contact Us | Project Sarae">
+<meta property="og:description" content="Questions about a website for your business? Send us a message and we’ll get back to you.">
+<meta property="og:image" content="https://projectsarae.site/images/favicon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32.png">
+<link rel="icon" type="image/png" sizes="512x512" href="images/favicon.png">
+<link rel="apple-touch-icon" href="images/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=15">
+</head>
+<body data-page="contact">
+<div id="site-header"></div>
+<main>
+<section class="page-head"><div class="wrap"><span class="eyebrow">Contact</span><h1>Let’s talk.</h1><p>Have a question about your website, a plan, or an add-on? Send us a message and we’ll get back to you, usually within a day.</p></div></section>
+<section>
+  <div class="wrap" style="max-width:780px">
+    <form id="contact-form" class="card review-form" style="margin-top:0" novalidate>
+      <h3>Send us a message</h3>
+      <div class="grid g2" style="gap:0 20px">
+        <div><label for="c-name">Your name</label><input id="c-name" maxlength="80" required autocomplete="name"></div>
+        <div><label for="c-business">Business name <span style="font-weight:400;color:var(--steel)">(optional)</span></label><input id="c-business" maxlength="100" autocomplete="organization"></div>
+      </div>
+      <div class="grid g2" style="gap:0 20px">
+        <div><label for="c-email">Email</label><input id="c-email" type="email" maxlength="200" required autocomplete="email"></div>
+        <div><label for="c-phone">Phone <span style="font-weight:400;color:var(--steel)">(optional)</span></label><input id="c-phone" type="tel" maxlength="30" autocomplete="tel"></div>
+      </div>
+      <label for="c-message">Message</label>
+      <textarea id="c-message" maxlength="2000" required placeholder="Tell us about your business and what you need."></textarea>
+      <div style="position:absolute;left:-9999px" aria-hidden="true"><label for="c-website">Leave this empty</label><input id="c-website" tabindex="-1" autocomplete="off"></div>
+      <button class="btn btn-primary" style="margin-top:18px" type="submit">Send message</button>
+      <div class="msg" id="contact-msg" role="status"></div>
+    </form>
+    <p class="fine" style="margin-top:22px">Ready to get started? <a href="pricing.html">See plans from $5/mo</a></p>
+  </div>
+</section>
+</main>
+<div id="site-footer"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js?v=6"></script>
+<script src="content.js?v=7"></script>
+<script src="site.js?v=18"></script>
+</body>
+</html>

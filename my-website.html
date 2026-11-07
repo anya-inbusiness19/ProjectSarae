@@ -43,7 +43,7 @@
 <main class="card" id="app"></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=6"></script>
-<script src="content.js?v=6"></script>
+<script src="content.js?v=7"></script>
 <script>
 const CFG = window.SITE_CONFIG || {};
 const sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey);
@@ -101,10 +101,10 @@ function card(o) {
   let pay = "";
   const done = o.status === "review" || o.status === "live";
   if (!o.paid && !params.get("paid")) {
-    if ((window.SITE_CONTENT || {}).one_time) {
+    if ((window.SITE_CONTENT || {}).pay_when_done) {
       pay = done
-        ? `<div class="warn">Your site is ready! Look it over, then pay to wrap things up.</div><button class="btn" data-pay="${esc(o.id)}">Pay for my website</button>`
-        : `<div class="banner">Nothing to pay yet. You'll pay once your site is done.</div>`;
+        ? `<div class="warn">Your site is ready! Look it over, then start your plan.</div><button class="btn" data-pay="${esc(o.id)}">Start my plan</button>`
+        : `<div class="banner">Nothing to pay yet. Your first payment is due once your site is done.</div>`;
     } else {
       pay = `<div class="warn">Checkout isn't finished yet, so I haven't started.</div><button class="btn" data-pay="${esc(o.id)}">Finish checkout</button>`;
     }

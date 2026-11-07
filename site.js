@@ -100,7 +100,7 @@
   document.body.insertAdjacentHTML("afterbegin", sprite + "</svg>");
 
   /* ---------- Header & footer (same on every page) ---------- */
-  var links = [["index.html", "Home", "home"], ["demo.html", "Demos", "demo"], ["pricing.html", "Pricing", "pricing"]];
+  var links = [["index.html", "Home", "home"], ["demo.html", "Demos", "demo"], ["pricing.html", "Pricing", "pricing"], ["contact.html", "Contact", "contact"]];
   var head = $("#site-header");
   if (head) {
     head.outerHTML =
@@ -127,7 +127,7 @@
       '<div><h4>Contact</h4>' +
       (C.email ? '<a href="mailto:' + C.email + '" data-track="email">' + C.email + "</a>" : "") +
       (C.instagram ? '<a href="https://instagram.com/' + C.instagram + '" target="_blank" rel="noopener" data-track="instagram">@' + C.instagram + "</a>" : "") +
-      '<a href="pricing.html">Get started</a></div>' +
+      '<a href="contact.html">Contact us</a><a href="pricing.html">Get started</a></div>' +
       '</div><div class="wrap foot-bottom"><span>© ' + new Date().getFullYear() + ' Project Sarae. All rights reserved.</span>' +
       '<span>This site counts visits anonymously. <a href="admin.html" rel="nofollow">Admin</a></span></div></footer>';
   }
@@ -215,7 +215,7 @@
 
   function renderPricing(period) {
     var grid = $("#plan-grid"); if (!grid) return;
-    var once = !!D.one_time;
+    var once = !!D.pay_when_done;
     period = once ? "monthly" : (period || grid.dataset.period || "monthly");
     grid.dataset.period = period;
     grid.innerHTML = "";
@@ -231,11 +231,11 @@
       var sd = sale(), pOff = hits(sd, "plan") ? off(sd, p[period]) : 0;
       $(".price span", card).textContent = money(p[period] - pOff);
       if (pOff) { var was = document.createElement("s"); was.className = "was"; was.textContent = money(p[period]); $(".price", card).insertBefore(was, $(".price span", card)); }
-      $(".price small", card).textContent = once ? "one-time" : period === "yearly" ? "/year" : "/month";
+      $(".price small", card).textContent = once ? "/month" : period === "yearly" ? "/year" : "/month";
       $(".note", card).textContent = pOff
         ? (sd.applies === "plan_first" ? (period === "yearly" ? "Your first year. Then " : "Your first month. Then ") + money(p[period]) + (period === "yearly" ? "/year" : "/month") : sd.label) +
           (sd.ends ? " · " + endsText(sd) : "")
-        : once ? "Paid once, when your site is done"
+        : once ? "First payment when your site is done"
         : period === "yearly" && p.monthly * 12 > p.yearly ? "Save " + money(p.monthly * 12 - p.yearly) + " vs. monthly" : "";
       var ul = $("ul", card);
       (p.features || []).forEach(function (f) {
@@ -333,7 +333,7 @@
       });
     });
   }
-  if (page === "pricing" && D.one_time) $$(".pricing-bar").forEach(function (el) { el.hidden = true; });
+  if (page === "pricing" && D.pay_when_done) $$(".pricing-bar").forEach(function (el) { el.hidden = true; });
   if (page === "pricing") bindToggle(function (period) { renderPricing(period); track("click", "toggle_" + period); });
 
   /* ---------- Homepage: live demo in the laptop ---------- */
@@ -424,6 +424,46 @@
         leadForm.reset();
         msg.className = "msg ok"; msg.textContent = "Got it! Check your inbox. I’ll be in touch soon.";
         track("lead_submitted");
+      });
+    });
+  }
+
+  /* ---------- Contact form → your email (FormSubmit, free, no account) ----------
+     The first message ever sent triggers a one-time "Activate form" email
+     to SITE_CONFIG.email. Click it once and every message after that arrives. */
+  var contactForm = $("#contact-form");
+  if (contactForm) {
+    contactForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var msg = $("#contact-msg"), v = function (id) { var el = $(id); return el ? el.value.trim() : ""; };
+      var name = v("#c-name"), email = v("#c-email"), body = v("#c-message");
+      msg.className = "msg";
+      if (!name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !body) {
+        msg.className = "msg err"; msg.textContent = "Please add your name, a valid email, and a message."; return;
+      }
+      var btn = $("button[type=submit]", contactForm);
+      btn.disabled = true; btn.textContent = "Sending…";
+      var bot = v("#c-website");
+      var send = bot ? Promise.resolve(true) : !C.email ? Promise.resolve(false) :
+        fetch("https://formsubmit.co/ajax/" + encodeURIComponent(C.email), {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          body: JSON.stringify({
+            _subject: "New message from " + name + " (projectsarae.site)",
+            _template: "table", _captcha: "false", _replyto: email,
+            name: name, email: email, phone: v("#c-phone"), business: v("#c-business"), message: body
+          })
+        }).then(function (r) { return r.ok; }, function () { return false; });
+      send.then(function (ok) {
+        btn.disabled = false; btn.textContent = "Send message";
+        if (!ok) {
+          msg.className = "msg err";
+          msg.textContent = "Something went wrong. Please email us at " + (C.email || "the address below") + ".";
+          return;
+        }
+        contactForm.reset();
+        msg.className = "msg ok"; msg.textContent = "Thanks! Your message was sent. We’ll get back to you soon.";
+        track("contact_submitted");
       });
     });
   }
