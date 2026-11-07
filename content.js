@@ -43,7 +43,7 @@ window.SITE_CONTENT = {
       def: "One price, paid once, and only after your site is done. Pick the plan that fits how many pages you need." },
     { key: "addons_title", group: "pricing", label: "Add-ons heading", type: "text", def: "Add-on services." },
     { key: "addons_sub", group: "pricing", label: "Add-ons description", type: "textarea",
-      def: "Add any of these to your plan. We’ll choose the right ones together on your Zoom meeting." },
+      def: "Optional extras that run every month. Cancel anytime. Mention the ones you want in your answers." },
 
     // Booking page
     { key: "book_eyebrow", group: "book", label: "Small line above the heading", type: "text", def: "Free consultation" },
@@ -90,21 +90,17 @@ window.SITE_CONTENT = {
 
   plans: [
     { key: "starter", name: "Starter", monthly: 5, yearly: 5, pages: "1–3 pages", badge: "",
-      features: ["1–3 pages", "Online booking", "FAQ section", "Services & prices", "Photo gallery & reviews", "Contact form & Google Maps", "Mobile-friendly design"] },
+      features: ["1–3 pages", "Online booking", "Appointment reminders", "FAQ section", "Services & prices", "Photo gallery & reviews", "Contact form & Google Maps", "Mobile-friendly design"] },
     { key: "business", name: "Business", monthly: 10, yearly: 10, pages: "4–6 pages", badge: "Most popular",
-      features: ["4–6 pages", "Everything in Starter", "SEO setup so you show up on Google", "Google Business Profile setup"] },
+      features: ["4–6 pages", "Everything in Starter", "SEO setup so you show up on Google", "Google Business Profile setup", "Weekly reports"] },
     { key: "pro", name: "Pro", monthly: 15, yearly: 15, pages: "7–10 pages", badge: "",
-      features: ["7–10 pages", "Everything in Business", "Online payments", "Priority build"] }
+      features: ["7–10 pages", "Everything in Business", "Online payments", "Online store", "Customer accounts / member area", "Priority build"] }
   ],
 
   /* unit: "one-time", "month", or "setup" (one-time setup) */
+  /* Only services that cost us money to run. Price = Brevo Starter ($9/mo) + $5. */
   addons: [
-    { key: "addon_gbp", name: "Google Business Profile setup", text: "Show up on Google Maps with the right hours, photos, and services.", price: 50, unit: "one-time" },
-    { key: "addon_reminders", name: "Appointment reminders", text: "Automatic email reminders before every appointment, so fewer no-shows.", price: 40, unit: "setup" },
-    { key: "addon_followups", name: "Request review & follow-ups", text: "Instant replies to every request, a summary for you, and follow-up emails for anyone who doesn’t book.", price: 25, unit: "month" },
-    { key: "addon_winback", name: "Win back past clients", text: "“We miss you” emails with your offer for clients who haven’t been back.", price: 25, unit: "month" },
-    { key: "addon_reports", name: "Weekly reports", text: "A short email every week with your requests, bookings, follow-ups, and reviews.", price: 10, unit: "month" },
-    { key: "addonAccounts", name: "Customer accounts / member area", text: "A private portal and member access for your customers.", price: 100, unit: "one-time" },
-    { key: "addonStore", name: "Online store", text: "Products, options, and a checkout cart.", price: 150, unit: "one-time" }
+    { key: "addon_followups", name: "Review requests & follow-ups", text: "Automatic emails asking happy customers for a review, plus follow-ups for anyone who reached out but didn’t book.", price: 14, unit: "month" },
+    { key: "addon_winback", name: "Win back past clients", text: "“We miss you” emails with your offer, sent to clients who haven’t been back in a while.", price: 14, unit: "month" }
   ]
 };
