@@ -90,11 +90,11 @@ window.SITE_CONTENT = {
 
   plans: [
     { key: "starter", name: "Starter", monthly: 5, yearly: 5, pages: "1–3 pages", badge: "",
-      features: ["1–3 pages", "Mobile-friendly design", "Contact form & Google Maps", "Set up to show on Google"] },
+      features: ["1–3 pages", "Online booking", "FAQ section", "Services & prices", "Photo gallery & reviews", "Contact form & Google Maps", "Mobile-friendly design"] },
     { key: "business", name: "Business", monthly: 10, yearly: 10, pages: "4–6 pages", badge: "Most popular",
-      features: ["4–6 pages", "Everything in Starter", "Online booking", "Services & prices page", "Photo gallery & reviews"] },
+      features: ["4–6 pages", "Everything in Starter", "SEO setup (show up on Google)", "Google Business Profile setup"] },
     { key: "pro", name: "Pro", monthly: 15, yearly: 15, pages: "7–10 pages", badge: "",
-      features: ["7–10 pages", "Everything in Business", "Online payments", "FAQ & policy pages", "Priority build"] }
+      features: ["7–10 pages", "Everything in Business", "Online payments", "Visitor analytics", "Priority build"] }
   ],
 
   /* unit: "one-time", "month", or "setup" (one-time setup) */
