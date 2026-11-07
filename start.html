@@ -203,7 +203,7 @@ const STEPS = [
         <b>Colors:</b> <span class="dots">${S.colors.map(n => { const c = COLORS.find(x => x[0]===n); return c ? `<i style="background:${c[1]}"></i>` : ""; }).join("")}</span> ${esc(S.colors.join(", "))}<br>
         <b>Site will have:</b> ${esc(S.features.join(", "))}
       </div>
-      <label class="check"><input type="checkbox" id="agree" ${S.agree?"checked":""}> <span>I agree to the <a href="privacy.html" target="_blank">Privacy Policy</a> and <a href="terms.html" target="_blank">Terms</a>.</span></label>`,
+      <label class="check"><input type="checkbox" id="agree" ${S.agree?"checked":""}> <span>I agree to the <a href="contract.html" target="_blank">Service Agreement</a>, <a href="terms.html" target="_blank">Terms</a>, and <a href="privacy.html" target="_blank">Privacy Policy</a>.</span></label>`,
     check: () => password.length < 8 ? "Password needs at least 8 characters." : !S.agree ? "Please agree to continue." : "" }
 ];
 
